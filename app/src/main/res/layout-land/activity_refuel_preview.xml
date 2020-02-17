@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".RefuelPreviewActivity">
+
+
+    <include
+        android:id="@+id/toolbar"
+        layout="@layout/toolbar"></include>
+
+    <TextView
+        android:id="@+id/lbl_preview_caption"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Xem lại thông tin chuyến bay"
+        android:textSize="@dimen/medium_text"
+        app:layout_constraintStart_toEndOf="@id/guideline_left"
+        app:layout_constraintTop_toBottomOf="@id/toolbar" />
+
+    <Button
+        android:id="@+id/btnClose"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="onClick"
+        android:text="@string/end"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/guideline_left" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline_left"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.01" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline_right"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.99" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline_center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.5" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline_center_left2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.25" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline_center_right"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.75" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/item_height_24"
+        android:gravity="center_vertical"
+        android:text="@string/flightCode"
+        app:layout_constraintStart_toEndOf="@id/guideline_left"
+        app:layout_constraintTop_toBottomOf="@id/lbl_preview_caption" />
+
+    <TextView
+        android:id="@+id/lblFlightNo"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/item_height_24"
+        android:gravity="center_vertical"
+        android:text="@string/flightCode"
+        app:layout_constraintEnd_toStartOf="@id/guideline_center"
+        app:layout_constraintStart_toEndOf="@id/guideline_center_left2"
+        app:layout_constraintTop_toBottomOf="@id/lbl_preview_caption" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/item_height_24"
+        android:gravity="center_vertical"
+        android:text="@string/aircraftCode"
+        app:layout_constraintStart_toEndOf="@id/guideline_left"
+        app:layout_constraintTop_toBottomOf="@id/lblFlightNo" />
+
+    <TextView
+        android:id="@+id/lblAircraftNo"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/item_height_24"
+        android:clickable="true"
+        android:gravity="center_vertical"
+        android:text="@string/aircraftCode"
+        app:layout_constraintEnd_toStartOf="@id/guideline_center"
+        app:layout_constraintStart_toEndOf="@id/guideline_center_left2"
+        app:layout_constraintTop_toBottomOf="@id/lblFlightNo" />
+
+    <TextView
+        android:id="@+id/textView5"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/item_height_24"
+        android:gravity="center_vertical"
+        android:text="@string/parkingLot"
+        app:layout_constraintStart_toEndOf="@id/guideline_left"
+        app:layout_constraintTop_toBottomOf="@id/lblAircraftNo" />
+
+    <TextView
+        android:id="@+id/lblParkingLot"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/item_height_24"
+        android:gravity="center_vertical"
+        android:text="@string/aircraftCode"
+        app:layout_constraintEnd_toStartOf="@id/guideline_center"
+        app:layout_constraintStart_toEndOf="@id/guideline_center_left2"
+        app:layout_constraintTop_toBottomOf="@id/lblAircraftNo" />
+
+    <TextView
+        android:id="@+id/textView6"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/item_height_24"
+        android:gravity="center_vertical"
+        android:text="@string/amount"
+        app:layout_constraintStart_toEndOf="@id/guideline_left"
+        app:layout_constraintTop_toBottomOf="@id/lblParkingLot" />
+
+    <TextView
+        android:id="@+id/lblAmount"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/item_height_24"
+        android:gravity="center_vertical"
+        android:text="@string/aircraftCode"
+        app:layout_constraintEnd_toStartOf="@id/guideline_center"
+        app:layout_constraintStart_toEndOf="@id/guideline_center_left2"
+        app:layout_constraintTop_toBottomOf="@id/lblParkingLot" />
+
+    <TextView
+        android:id="@+id/textView7"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/item_height_24"
+        android:gravity="center_vertical"
+        android:text="@string/refuel_mannual_temperature"
+        app:layout_constraintStart_toEndOf="@id/guideline_left"
+        app:layout_constraintTop_toBottomOf="@id/lblAmount" />
+
+    <TextView
+        android:id="@+id/lblTemperature"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/item_height_24"
+        android:clickable="true"
+        android:gravity="center_vertical"
+        android:text="@string/aircraftCode"
+        app:layout_constraintEnd_toStartOf="@id/guideline_center"
+        app:layout_constraintStart_toEndOf="@id/guideline_center_left2"
+        app:layout_constraintTop_toBottomOf="@id/lblAmount" />
+
+    <TextView
+        android:id="@+id/textView10"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/item_height_24"
+        android:gravity="center_vertical"
+        android:text="@string/density"
+        app:layout_constraintStart_toEndOf="@id/guideline_left"
+        app:layout_constraintTop_toBottomOf="@id/lblTemperature" />
+
+    <TextView
+        android:id="@+id/lblDensity"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/item_height_24"
+        android:clickable="true"
+        android:gravity="center_vertical"
+        android:text="@string/aircraftCode"
+        app:layout_constraintEnd_toStartOf="@id/guideline_center"
+        app:layout_constraintStart_toEndOf="@id/guideline_center_left2"
+        app:layout_constraintTop_toBottomOf="@id/lblTemperature" />
+
+    <ImageView
+        android:id="@+id/edit_d"
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:clickable="true"
+        android:onClick="onClick"
+        android:src="@drawable/ic_edit"
+        app:layout_constraintStart_toEndOf="@id/lbl_preview_caption"
+        app:layout_constraintTop_toTopOf="@id/lbl_preview_caption" />
+
+    <TextView
+        android:id="@+id/textView8"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/item_height_24"
+        android:gravity="center_vertical"
+        android:text="@string/startTime"
+        app:layout_constraintStart_toEndOf="@id/guideline_left"
+        app:layout_constraintTop_toBottomOf="@id/lblDensity" />
+
+    <TextView
+        android:id="@+id/lblStartTime"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/item_height_24"
+        android:gravity="center_vertical"
+        android:text="@string/aircraftCode"
+        app:layout_constraintEnd_toStartOf="@id/guideline_center"
+        app:layout_constraintStart_toEndOf="@id/guideline_center_left2"
+        app:layout_constraintTop_toBottomOf="@id/lblDensity" />
+
+    <TextView
+        android:id="@+id/textView9"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/item_height_24"
+        android:gravity="center_vertical"
+        android:text="@string/endTime"
+        app:layout_constraintStart_toEndOf="@id/guideline_left"
+        app:layout_constraintTop_toBottomOf="@id/lblStartTime" />
+
+    <TextView
+        android:id="@+id/lblEndTime"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/item_height_24"
+        android:gravity="center_vertical"
+        android:text="@string/aircraftCode"
+        app:layout_constraintEnd_toStartOf="@id/guideline_center"
+        app:layout_constraintStart_toEndOf="@id/guideline_center_left2"
+        app:layout_constraintTop_toBottomOf="@id/lblStartTime" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

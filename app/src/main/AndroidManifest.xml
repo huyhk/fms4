@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.megatech.fms">
+
+    <uses-sdk android:maxSdkVersion="28" />
+
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+
+
+    <application
+        android:name=".FMSApplication"
+        android:allowBackup="true"
+        android:icon="@drawable/ic_fuel_tanker"
+        android:label="@string/app_name"
+        android:roundIcon="@drawable/ic_fuel"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme.NoActionBar">
+        <activity android:name=".RefuelDetailActivity"></activity>
+        <activity android:name=".LCRTest" />
+        <activity android:name=".TestActivity" />
+        <activity
+            android:name=".RefuelPreviewActivity"
+            />
+        <activity
+            android:name=".InvoiceActivity"
+            android:screenOrientation="landscape" />
+        <activity
+            android:name=".InventoryActivity"
+            />
+        <activity
+            android:name=".RefuelItemListActivity"
+            android:label="@string/title_refuelitem_list"
+            android:screenOrientation="landscape"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
+        <activity
+            android:name=".RefuelItemDetailActivity"
+            android:label="@string/title_refuelitem_detail"
+            android:parentActivityName=".RefuelItemListActivity"
+            android:theme="@style/AppTheme.NoActionBar.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.megatech.fms.RefuelItemListActivity" />
+        </activity>
+        <activity
+            android:name=".SettingActivity"
+            />
+        <activity
+            android:name=".ExtractActivity"
+            android:screenOrientation="landscape" />
+        <activity
+            android:name=".RefuelActivity"
+            android:screenOrientation="landscape" />
+        <activity
+            android:name=".LoginActivity"
+
+            android:theme="@style/AppTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".MainActivity"
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme.NoActionBar" />
+    </application>
+
+</manifest>

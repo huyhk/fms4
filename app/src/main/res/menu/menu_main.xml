@@ -1,0 +1,30 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.megatech.fms.MainActivity">
+    <item
+        android:id="@+id/action_refuel"
+        android:orderInCategory="100"
+        android:title="@string/refuel"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_invoice"
+        android:orderInCategory="100"
+        android:title="@string/invoice"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_extract"
+        android:orderInCategory="100"
+        android:title="@string/extract"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_settings"
+        android:orderInCategory="100"
+        android:title="@string/setting"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_logout"
+        android:orderInCategory="100"
+        android:title="@string/logout"
+        app:showAsAction="ifRoom" />
+</menu>

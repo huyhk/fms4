@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout>
+    <data>
+        <import type="com.megatech.fms.model.REFUEL_ITEM_STATUS"></import>
+        <variable
+            name="truckItem"
+            type="com.megatech.fms.model.RefuelItemData" />
+    </data>
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="horizontal" android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="10dp">
+
+        <TextView
+            android:layout_width="@dimen/refuel_preview_truck_width"
+            android:layout_height="match_parent"
+            android:text="@{truckItem.truckNo}" />
+
+        <TextView
+            android:layout_width="@dimen/refuel_preview_truck_width"
+            android:layout_height="match_parent"
+            android:text='@{String.format("%20.2f",truckItem.startNumber)}' />
+
+        <TextView
+            android:layout_width="@dimen/refuel_preview_truck_width"
+            android:layout_height="match_parent"
+            android:text='@{String.format("%20.2f",truckItem.endNumber)}' />
+
+        <TextView
+            android:layout_width="@dimen/refuel_preview_truck_width"
+            android:layout_height="match_parent"
+            android:text='@{String.format("%20.2f",truckItem.realAmount)}' />
+
+        <CheckedTextView
+            android:layout_width="140dp"
+            android:layout_height="wrap_content"
+            android:checkMark="@{truckItem.status == REFUEL_ITEM_STATUS.DONE ? @drawable/ic_check: null}"
+            android:checked="@{truckItem.status== REFUEL_ITEM_STATUS.DONE}"/>
+
+    </LinearLayout>
+</layout>

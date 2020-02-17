@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+        <import type="android.graphics.Color"></import>
+        <import type="com.megatech.fms.model.REFUEL_ITEM_STATUS" />
+        <import type="com.megatech.fms.model.RefuelItemData.ITEM_PRINT_STATUS" />
+        <import type="com.megatech.fms.helpers.NumberFormat" />
+        <import type="com.megatech.fms.helpers.DateUtils" />
+        <import type="android.view.View"/>
+        <variable
+            name="mItem"
+            type="com.megatech.fms.model.RefuelItemData" />
+    </data>
+
+    <androidx.cardview.widget.CardView xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp"
+        android:orientation="vertical"
+        android:padding="30dp"
+        app:cardCornerRadius="5dp"
+        android:background="@{mItem.status == REFUEL_ITEM_STATUS.DONE ? Color.rgb(  248,248,248 ): Color.WHITE}">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="10dp">
+
+                <CheckedTextView
+                    android:id="@+id/refuel_item_chk"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight=".05"
+                    android:checkMark="@{mItem.status == REFUEL_ITEM_STATUS.DONE ? @drawable/ic_check: null}"
+                    android:checked="@{mItem.status== REFUEL_ITEM_STATUS.DONE}"
+                    android:gravity="center"
+                    android:padding="5dp"
+                    />
+
+                <TextView
+                    android:id="@+id/refuel_item_flightCode"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight=".5"
+                    android:gravity="start"
+                    android:padding="5dp"
+                    android:text="@{mItem.flightCode}"
+                    android:textAllCaps="true"
+                    android:textFontWeight="8"
+                    android:textSize="@dimen/large_text"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/refuel_item_aircraftCode"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight=".25"
+                    android:gravity="center"
+                    android:padding="5dp"
+                    android:text="@{mItem.aircraftCode}"
+                    android:textSize="@dimen/medium_text"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/refuel_item_parlingLot"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight=".25"
+                    android:gravity="center"
+                    android:padding="5dp"
+                    android:text="@{mItem.parkingLot}"
+                    android:textSize="@dimen/medium_text"
+                    android:textStyle="bold" />
+
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/card_refuel_item_expand"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="visible"
+                android:orientation="horizontal"
+                android:padding="10dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="@dimen/medium_text"
+                    android:text='@{String.format("%-20s%-18s",@string/estimateAmount,NumberFormat.format("#,##0.00",mItem.estimateAmount))}'></TextView>
+
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="@dimen/medium_text"
+                    android:text='@{String.format("%-15s%s",@string/departureTime,DateUtils.formatDate(mItem.departureTime,"dd/MM/yyyy HH:mm"))}'></TextView>
+
+            </LinearLayout>
+            
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+</layout>

@@ -1,0 +1,115 @@
+package com.megatech.fms.model;
+
+import com.google.gson.FieldNamingPolicy;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
+
+import java.util.Set;
+
+public class SettingModel {
+
+    public SettingModel() {
+    }
+
+    public SettingModel(String code, float currentAmount) {
+        this.truckNo = code;
+        this.currentAmount = currentAmount;
+
+    }
+
+    private String truckNo;
+    private float currentAmount;
+
+    private String deviceSerial;
+    private String tabletSerial;
+
+
+    private String deviceIP = "192.168.1.30";
+    private String printerIP = "192.168.1.25";
+    private Integer devicePort = 10001;
+    private Integer printerPort = 9100;
+
+    public String getDeviceIP() {
+        return deviceIP;
+    }
+
+    public void setDeviceIP(String deviceIP) {
+        this.deviceIP = deviceIP;
+    }
+
+    public String getPrinterIP() {
+        return printerIP;
+    }
+
+    public void setPrinterIP(String printerIP) {
+        this.printerIP = printerIP;
+    }
+
+    public Integer getDevicePort() {
+        return devicePort;
+    }
+
+    public void setDevicePort(Integer devicePort) {
+        this.devicePort = devicePort;
+    }
+
+    public Integer getPrinterPort() {
+        return printerPort;
+    }
+
+    public void setPrinterPort(Integer printerPort) {
+        this.printerPort = printerPort;
+    }
+
+    public String getDeviceSerial() {
+        return deviceSerial;
+    }
+
+    public void setDeviceSerial(String deviceSerial) {
+        this.deviceSerial = deviceSerial;
+    }
+
+    public String getTabletSerial() {
+        return tabletSerial;
+    }
+
+    public void setTabletSerial(String tabletSerial) {
+        this.tabletSerial = tabletSerial;
+    }
+
+    public String getTruckNo() {
+        return truckNo;
+    }
+
+    public void setCode(String code) {
+        this.truckNo = code;
+    }
+
+    public float getCurrentAmount() {
+        return currentAmount;
+    }
+
+    public void setCurrentAmount(float currentAmount) {
+        this.currentAmount = currentAmount;
+    }
+
+    public String toJson() {
+        Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
+        return gson.toJson(this);
+    }
+
+    public static SettingModel fromJson(String json) {
+
+        try {
+            Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
+            SettingModel model = gson.fromJson(json, SettingModel.class);
+            if (model == null)
+                model = new SettingModel();
+            return  model;
+        }catch (JsonSyntaxException ex)
+        {
+            return new SettingModel();
+        }
+    }
+}
