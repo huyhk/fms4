@@ -2,52 +2,69 @@ package com.megatech.fms;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
+import android.app.ProgressDialog;
 import android.content.Context;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
+import android.widget.Spinner;
+import android.widget.SpinnerAdapter;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.megatech.fms.data.entity.Setting;
 import com.megatech.fms.helpers.HttpClient;
 import com.megatech.fms.helpers.LCRReader;
-import com.megatech.fms.model.SettingModel;
+import com.megatech.fms.model.AirlineModel;
+import com.megatech.fms.model.TruckModel;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 //import static com.megatech.fms.BuildConfig.IMEI_LIST;
 
 public class SettingActivity extends UserBaseActivity {
 
     private Context ctx = this;
-    private LCRReader reader;
-    private SettingModel settingModel ;
+
+    private TruckModel settingModel;
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_setting);
-        setToolbar();
+        if (!currentApp.isFirstUse())
+            finish();
         settingModel = currentApp.getSetting();
+
 
         final Button btnTest = findViewById(R.id.btnTest);
         final EditText txtIp = findViewById(R.id.txtIP);
         final EditText txtTruckNo = findViewById(R.id.txtTruckNo);
         final EditText txtPrinter = findViewById(R.id.txtPrinter);
         final EditText txtIMEI = findViewById(R.id.txtIMEI);
+
+        List<TruckModel> trucks = (new HttpClient()).getTrucks();
+        ArrayAdapter<TruckModel> spinnerAdapter = new ArrayAdapter<TruckModel>(this, R.layout.support_simple_spinner_dropdown_item, trucks);
+        spinnerAdapter.setDropDownViewResource(R.layout.support_simple_spinner_dropdown_item);
+
+        final Spinner truckSpinner = findViewById(R.id.spinner_truck);
+        truckSpinner.setAdapter(spinnerAdapter);
 
         txtIp.setText(settingModel.getDeviceIP());
         txtTruckNo.setText(settingModel.getTruckNo());
@@ -60,34 +77,53 @@ public class SettingActivity extends UserBaseActivity {
             public void onClick(View v) {
 
                 String ip = txtIp.getText().toString();
-                testConnection(ip);
+
 
             }
         });
-        Button btnSave = findViewById(R.id.btnSave);
+        ProgressBar loading_bar = findViewById(R.id.loading_bar);
+        Button btnSave = findViewById(R.id.btnUpdate);
         btnSave.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
+
+                loading_bar.setVisibility(View.VISIBLE);
                 String ip = txtIp.getText().toString();
-                String truckNo = txtTruckNo.getText().toString();
+                String truckNo = truckSpinner.getSelectedItem().toString();// txtTruckNo.getText().toString();
                 String printerAddress = txtPrinter.getText().toString();
 
                 settingModel.setCode(truckNo);
                 settingModel.setDeviceIP(ip);
                 settingModel.setPrinterIP(printerAddress);
 
-                currentApp.saveSetting(settingModel);
-
                 HttpClient client = new HttpClient();
-                client.getTruckAmount(truckNo);
-                if (reader!=null)
-                    reader.doDisconnectDevice();
+                settingModel = client.postTruck(settingModel);
+
+                //settingModel.setTruckId(truckId);
+                if (settingModel != null)
+                    currentApp.saveSetting(settingModel);
+
+                loading_bar.setVisibility(View.GONE);
+
                 setResult(Activity.RESULT_OK);
+
                 finish();
+                restartApp();
             }
         });
 
     }
+
+    private void restartApp() {
+        Intent intent = new Intent(this, StartupActivity.class);
+        int mPendingIntentId = MAGICAL_NUMBER;
+        PendingIntent mPendingIntent = PendingIntent.getActivity(this, mPendingIntentId, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+        AlarmManager mgr = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
+        mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 100, mPendingIntent);
+        System.exit(0);
+    }
+
+    private final int MAGICAL_NUMBER = 245634;
     private final int REQUEST_READ_PHONE_STATE=1;
 
     @Override
@@ -176,58 +212,12 @@ public class SettingActivity extends UserBaseActivity {
     {
         Button btnTest = findViewById(R.id.btnTest);
         btnTest.setEnabled(enabled);
-    };
-    public void testConnection(String ip)
-    {
-        try {
-
-           reader= new LCRReader(ctx, ip);
-
-            reader.setConnectionListener(new LCRReader.LCRConnectionListener() {
-                @Override
-                public void onConnected() {
-                    showMessage(getString(R.string.lcr_connection_ok),false);
-                    setButtonEnable(true);
-                    reader.doDisconnectDevice();
-                }
-
-                @Override
-                public void onError() {
-
-                }
-
-
-                @Override
-                public void onDeviceAdded(boolean failed) {
-                    if (!failed)
-                        reader.doConnectDevice();
-                    else {
-                        showMessage(getString(R.string.lcr_connection_error) , true);
-                        setButtonEnable(true);
-                    }
-
-                }
-
-                @Override
-                public void onDisconnected() {
-
-                }
-            });
-           setButtonEnable(false);
-
-
-        }
-        catch (Exception e)
-        {
-            showMessage(e.getMessage(), true);
-        }
-
     }
+
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (reader!=null)
-            reader.destroy();
+
     }
 }

@@ -1,26 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
-        <import type="android.graphics.Color"></import>
+
+        <import type="android.graphics.Color" />
+
         <import type="com.megatech.fms.model.REFUEL_ITEM_STATUS" />
+
         <import type="com.megatech.fms.model.RefuelItemData.ITEM_PRINT_STATUS" />
+
+        <import type="com.megatech.fms.model.RefuelItemData.REFUEL_ITEM_TYPE" />
+
         <import type="com.megatech.fms.helpers.NumberFormat" />
+
         <import type="com.megatech.fms.helpers.DateUtils" />
-        <import type="android.view.View"/>
+
+        <import type="android.view.View" />
+
         <variable
             name="mItem"
             type="com.megatech.fms.model.RefuelItemData" />
     </data>
 
-    <androidx.cardview.widget.CardView xmlns:app="http://schemas.android.com/apk/res-auto"
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="5dp"
+        android:background="@{mItem.status == REFUEL_ITEM_STATUS.DONE ? Color.rgb(  248,248,248 ): Color.WHITE}"
         android:orientation="vertical"
         android:padding="30dp"
         app:cardCornerRadius="5dp"
-        android:background="@{mItem.status == REFUEL_ITEM_STATUS.DONE ? Color.rgb(  248,248,248 ): Color.WHITE}">
+
+        >
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -30,8 +42,10 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="@{mItem.status == REFUEL_ITEM_STATUS.DONE ? Color.rgb(  200,200,200): Color.rgb(  240,240,240)}"
                 android:orientation="horizontal"
-                android:padding="10dp">
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp">
 
                 <CheckedTextView
                     android:id="@+id/refuel_item_chk"
@@ -41,43 +55,106 @@
                     android:checkMark="@{mItem.status == REFUEL_ITEM_STATUS.DONE ? @drawable/ic_check: null}"
                     android:checked="@{mItem.status== REFUEL_ITEM_STATUS.DONE}"
                     android:gravity="center"
-                    android:padding="5dp"
-                    />
+                    android:padding="5dp" />
 
-                <TextView
-                    android:id="@+id/refuel_item_flightCode"
+                <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight=".5"
-                    android:gravity="start"
-                    android:padding="5dp"
-                    android:text="@{mItem.flightCode}"
-                    android:textAllCaps="true"
-                    android:textFontWeight="8"
-                    android:textSize="@dimen/large_text"
-                    android:textStyle="bold" />
+                    android:layout_weight="0.4"
+                    android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/refuel_item_aircraftCode"
+                    <TextView
+                        android:id="@+id/refuel_item_flightCode"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+
+                        android:gravity="start"
+                        android:text="@{mItem.flightCode}"
+                        android:textAllCaps="true"
+                        android:textColor="@color/colorBrown"
+                        android:textFontWeight="8"
+                        android:textSize="@dimen/large_text"
+                        android:textStyle="bold" />
+
+                    <TextView
+
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+
+                        android:gravity="start"
+
+                        android:text="@{mItem.routeName}"
+                        android:textAllCaps="true"
+                        android:textColor="@color/colorPrimaryDark"
+                        android:textSize="@dimen/medium_text"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+
+                <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight=".25"
-                    android:gravity="center"
-                    android:padding="5dp"
-                    android:text="@{mItem.aircraftCode}"
-                    android:textSize="@dimen/medium_text"
-                    android:textStyle="bold" />
+                    android:layout_weight="0.3"
+                    android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/refuel_item_parlingLot"
+                    <TextView
+                        android:id="@+id/refuel_item_aircraftCode"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="start"
+                        android:text="@{mItem.aircraftCode}"
+                        android:textColor="@color/colorBrown"
+                        android:textSize="@dimen/large_text"
+                        android:textStyle="bold" />
+
+                    <TextView
+
+                        android:id="@+id/textView16"
+                        android:layout_width="match_parent"
+
+                        android:layout_height="wrap_content"
+
+                        android:gravity="start"
+                        android:text="@{mItem.aircraftType}"
+                        android:textAllCaps="true"
+                        android:textColor="@color/colorPrimaryDark"
+                        android:textSize="@dimen/medium_text"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+                <LinearLayout
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight=".25"
-                    android:gravity="center"
-                    android:padding="5dp"
-                    android:text="@{mItem.parkingLot}"
-                    android:textSize="@dimen/medium_text"
-                    android:textStyle="bold" />
+                    android:layout_height="match_parent"
+                    android:layout_weight="0.2"
+                    android:orientation="vertical">
+
+
+                    <TextView
+                        android:id="@+id/refuel_item_parlingLot"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="start"
+                        android:text="@{mItem.parkingLot}"
+                        android:textColor="@color/colorBrown"
+                        android:textSize="@dimen/large_text"
+                        android:textStyle="bold" />
+
+                    <TextView
+
+
+                        android:layout_width="match_parent"
+
+                        android:layout_height="wrap_content"
+
+                        android:gravity="start"
+                        android:text="@{mItem.truckNo}"
+                        android:textAllCaps="true"
+                        android:textColor="@color/colorPrimaryDark"
+                        android:textSize="@dimen/medium_text"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
 
 
             </LinearLayout>
@@ -86,24 +163,43 @@
                 android:id="@+id/card_refuel_item_expand"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:visibility="visible"
                 android:orientation="horizontal"
-                android:padding="10dp">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="@dimen/medium_text"
-                    android:text='@{String.format("%-20s%-18s",@string/estimateAmount,NumberFormat.format("#,##0.00",mItem.estimateAmount))}'></TextView>
+                android:paddingVertical="5dp"
+                android:visibility="visible">
 
 
+                <ImageView
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0.05"
+                    android:src="@drawable/ic_clock" />
+
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:textSize="@dimen/medium_text"
-                    android:text='@{String.format("%-15s%s",@string/departureTime,DateUtils.formatDate(mItem.departureTime,"dd/MM/yyyy HH:mm"))}'></TextView>
+                    android:layout_weight="0.3"
+
+                    android:text='@{String.format("%-12s%-12s","Hạ cánh", DateUtils.formatDate(mItem.arrivalTime,"HH:mm"))}'
+                    android:textSize="@dimen/medium_text"></TextView>
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.3"
+                    android:textColor="@color/colorPrimaryDark"
+                    android:textStyle="bold"
+                    android:text='@{String.format("%-12s%-12s", mItem.refuelItemType == REFUEL_ITEM_TYPE.EXTRACT?"Hút": "Tra nạp", DateUtils.formatDate(mItem.refuelTime,"HH:mm"))}'
+                    android:textSize="@dimen/medium_text"></TextView>
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.3"
+                    android:text='@{String.format("%-12s%-12s","Cất cánh", DateUtils.formatDate(mItem.departureTime,"HH:mm"))}'
+                    android:textSize="@dimen/medium_text"></TextView>
 
             </LinearLayout>
-            
+
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 </layout>

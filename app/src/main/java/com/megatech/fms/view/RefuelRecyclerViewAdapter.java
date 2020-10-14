@@ -4,10 +4,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckedTextView;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -25,30 +28,34 @@ import com.megatech.fms.databinding.CardviewRefuelItemBinding;
 import com.megatech.fms.model.REFUEL_ITEM_STATUS;
 import com.megatech.fms.model.RefuelItemData;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class RefuelRecyclerViewAdapter extends RecyclerView.Adapter<RefuelRecyclerViewAdapter.MyViewHolder> {
+public class RefuelRecyclerViewAdapter extends RecyclerView.Adapter<RefuelRecyclerViewAdapter.MyViewHolder> implements Filterable {
 
     private UserBaseActivity mContext;
 
     private List<RefuelItemData> mData;
+
+    private List<RefuelItemData> mDataFiltered;
+
 
     private UserBaseActivity mParentActivity;
 
     public RefuelRecyclerViewAdapter(UserBaseActivity mContext, List<RefuelItemData> mData) {
         this.mContext = mContext;
         this.mData = mData;
+        this.mDataFiltered = mData;
 
     }
-
 
 
     @NonNull
     @Override
     public MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view;
+        //View view;
         LayoutInflater inflater = LayoutInflater.from(mContext);
-        view = inflater.inflate(R.layout.cardview_refuel_item,parent,false);
+        //view = inflater.inflate(R.layout.cardview_refuel_item,parent,false);
         //return new MyViewHolder(view);
         CardviewRefuelItemBinding itemBinding = CardviewRefuelItemBinding.inflate(inflater,parent,false);
         return new MyViewHolder(itemBinding);
@@ -56,43 +63,23 @@ public class RefuelRecyclerViewAdapter extends RecyclerView.Adapter<RefuelRecycl
 
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
+        if (mDataFiltered.size() > 0) {
+            RefuelItemData model = mDataFiltered.get(position);
 
-        RefuelItemData model = mData.get(position);
+            holder.itemView.setOnClickListener(subClick);
 
-        holder.itemView.setOnClickListener(subClick);
+            holder.bind(model);
 
-        holder.bind(model);
-
-//        holder.mParkingLot.setText(mData.get(position).getParkingLot());
-//        holder.mAircraftCode.setText(mData.get(position).getAircraftCode());
-//        holder.mFlightCode.setText(mData.get(position).getFlightCode());
 //
-//
-//        if (model.getStatus() == REFUEL_ITEM_STATUS.DONE) {
-//            if (model.getPostStatus() == RefuelItemData.ITEM_POST_STATUS.ERROR)
-//                holder.mCheck.setCheckMarkDrawable(R.drawable.ic_error);
-//            else
-//                holder.mCheck.setCheckMarkDrawable(R.drawable.ic_check);
-//            holder.mCheck.setChecked(true);
-//            holder.itemView.setBackgroundColor(Color.LTGRAY);
-//        }
-//        else
-//        {
-//            holder.mCheck.setCheckMarkDrawable(null);
-//            holder.mCheck.setChecked(false);
-//            holder.itemView.setBackgroundColor(Color.WHITE);
-//        }
-//        holder.itemView.setTag(mData.get(position));
-//
-//        holder.itemView.setOnClickListener(mOnClickListener);
-//        holder.itemView.setTag(mData.get(position));
-        holder.itemView.setOnClickListener(mOnClickListener);
-        holder.itemView.setTag(mData.get(position));
+            holder.itemView.setOnClickListener(mOnClickListener);
+            holder.itemView.setTag(mDataFiltered.get(position));
+        } else
+            Log.e("Error", "Out of bound");
     }
 
     @Override
     public int getItemCount() {
-        return mData.size();
+        return mDataFiltered.size();
     }
     private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
         @Override
@@ -108,7 +95,8 @@ public class RefuelRecyclerViewAdapter extends RecyclerView.Adapter<RefuelRecycl
                 intent = new Intent(mContext, RefuelDetailActivity.class);
             Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
 
-            intent.putExtra("REFUEL", gson.toJson(item));
+            intent.putExtra("REFUEL_ID", item.getId());
+            //intent.putExtra("REFUEL", gson.toJson(item));
 
             mContext.startActivityForResult(intent, item.getId());
         }
@@ -120,6 +108,43 @@ public class RefuelRecyclerViewAdapter extends RecyclerView.Adapter<RefuelRecycl
 
         }
     };
+
+    @Override
+    public Filter getFilter() {
+        return new Filter() {
+            @Override
+            protected FilterResults performFiltering(CharSequence charSequence) {
+                String charString = charSequence.toString();
+
+                if (charString.isEmpty()) {
+                    mDataFiltered = mData;
+                } else {
+                    List<RefuelItemData> filteredList = new ArrayList<RefuelItemData>();
+                    for (RefuelItemData row : mData) {
+
+                        // name match condition. this might differ depending on your requirement
+                        // here we are looking for name or phone number match
+                        if (row.getFlightCode().toLowerCase().contains(charString.toLowerCase())) {
+                            filteredList.add(row);
+                        }
+                    }
+
+                    mDataFiltered = filteredList;
+                }
+                FilterResults filterResults = new FilterResults();
+                filterResults.values = mDataFiltered;
+                return filterResults;
+            }
+
+            @Override
+            protected void publishResults(CharSequence constraint, FilterResults results) {
+
+                mDataFiltered = (ArrayList<RefuelItemData>) results.values;
+                notifyDataSetChanged();
+
+            }
+        };
+    }
 
     public class MyViewHolder extends RecyclerView.ViewHolder
     {

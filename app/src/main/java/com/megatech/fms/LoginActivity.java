@@ -28,7 +28,9 @@ public class LoginActivity extends BaseActivity {
 
         if (currentApp.isLoggedin())
         {
+
             showMain();
+            return;
         }
 
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
@@ -60,7 +62,7 @@ public class LoginActivity extends BaseActivity {
                         if (loginData.has("userName"))
                         {
                             try {
-                                currentUser = new UserInfo(0, loginData.getString("userName"), loginData.getString("access_token"));
+                                currentUser = new UserInfo(0, loginData.getString("userName"), loginData.getString("access_token"), loginData.getInt("permission"));
                                 currentUser.addToSharePreferences(currentApp);
                                 showMain();
                             }

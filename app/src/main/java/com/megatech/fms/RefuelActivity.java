@@ -101,7 +101,7 @@ public class RefuelActivity extends UserBaseActivity  implements View.OnClickLis
         btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                start();
+                showConfirmDialog(R.id.btnStart);
 
             }
         });
@@ -117,7 +117,8 @@ public class RefuelActivity extends UserBaseActivity  implements View.OnClickLis
         btnStop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                stop();
+                showConfirmDialog(R.id.btnStop);
+
 
             }
         });
@@ -290,11 +291,37 @@ public class RefuelActivity extends UserBaseActivity  implements View.OnClickLis
 
     private void start() {
 
+
         startButtonPress = true;
 
         reader.start();
 
     }
+
+    private void showConfirmDialog(int id) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(id == R.id.btnStart ? R.string.start_confirm : R.string.stop_confirm);
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                dialog.dismiss();
+                if (id == R.id.btnStop) {
+                    stop();
+                } else if (id == R.id.btnStart) {
+                    start();
+
+                }
+            }
+        });
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                dialog.dismiss();
+            }
+        });
+
+        builder.create().show();
+
+    }
+
     private void pause()
     {
         reader.pause();
@@ -326,7 +353,7 @@ public class RefuelActivity extends UserBaseActivity  implements View.OnClickLis
                 reconnect();
             return;
         }
-            CheckedTextView chkTxt = (CheckedTextView) findViewById(id);
+        CheckedTextView chkTxt = findViewById(id);
 
             boolean isChecked = chkTxt.isChecked();
             chkTxt.setChecked(!isChecked);
@@ -341,7 +368,7 @@ public class RefuelActivity extends UserBaseActivity  implements View.OnClickLis
     }
 
     private void reconnect() {
-        CheckedTextView chkTxt = (CheckedTextView) findViewById(R.id.refuel_chk_connect_lcr);
+        CheckedTextView chkTxt = findViewById(R.id.refuel_chk_connect_lcr);
         chkTxt.setCheckMarkDrawable(null);
         findViewById(R.id.progressBar2).setVisibility(View.VISIBLE);
         reader.doConnectDevice();

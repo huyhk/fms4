@@ -74,84 +74,118 @@ public class RefuelListFragment extends Fragment {
         return fragment;
     }
 
+    private Timer timer = new Timer();
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
-        Timer t = new Timer();
-        t.scheduleAtFixedRate(new TimerTask() {
+
+
+        timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                Activity a = getActivity();
-                if (a!=null)
-                a.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
+
                         refreshdata(Activity.RESULT_OK);
-                    }
-                });
-
-
             }
         },1000*60*5,1000*60*5);
 
     }
 
+    RefuelRecyclerViewAdapter mAdapter;
     public  void refresh()
     {
         refreshdata(Activity.RESULT_OK);
     }
+
     private void refreshdata(int resultOk) {
-        lstData = (new HttpClient()).getRefuelList(_self);
-        if (lstData == null)
-        {
-            //Toast.makeText(this.getContext(),R.string.no_internet_error, Toast.LENGTH_LONG).show();
-            //this.getActivity().finishAffinity();
-        }
-        else {
-            RefuelRecyclerViewAdapter adapter = new RefuelRecyclerViewAdapter((UserBaseActivity) getActivity(), lstData);
-            if (rv == null)
-                rv = (RefuelRecyclerView) this.getView();
-            if (rv != null)
-                rv.setAdapter(adapter);
-        }
+
+        final View view = this.getView();
+        final Activity activity = getActivity();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                lstData = (new HttpClient()).getRefuelList(_self);
+                if (activity != null)
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (lstData == null) {
+                                Toast.makeText(activity, R.string.no_internet_error, Toast.LENGTH_LONG).show();
+                                //this.getActivity().finishAffinity();
+                            } else {
+                                mAdapter = new RefuelRecyclerViewAdapter((UserBaseActivity) getActivity(), lstData);
+                                if (rv == null)
+                                    rv = (RefuelRecyclerView) view;
+                                if (rv != null)
+                                    rv.setAdapter(mAdapter);
+                                filter(filterQuery);
+                            }
+                        }
+                    });
+
+            }
+        }).start();
+
+    }
+
+    private CharSequence filterQuery = "";
+
+    public void filter(CharSequence sequence) {
+        filterQuery = sequence;
+        if (mAdapter != null)
+            mAdapter.getFilter().filter(sequence);
+    }
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        refreshdata(Activity.RESULT_OK);
+        /*timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+
+                refreshdata(Activity.RESULT_OK);
+            }
+        },1000*60*5,1000*60*5);
+        */
+
 
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        refreshdata(Activity.RESULT_OK);
+    public void onPause() {
+        super.onPause();
+        //timer.cancel();
     }
 
+    View rootview;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        //View rootview =  inflater.inflate(R.layout.fragment_self_refuel, container, false);
-
-
+        rootview = inflater.inflate(R.layout.fragment_self_refuel, container, false);
 
 
         //RecyclerView rv = rootview.findViewById(R.id.refuelitem_list);
-        rv = new RefuelRecyclerView(getActivity());
 
-        rv.setLayoutManager( new GridLayoutManager((UserBaseActivity)getActivity(),1));
+        if (activity == null)
+            activity = getActivity();
+        rv = new RefuelRecyclerView(activity);
 
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                refreshdata(Activity.RESULT_OK);
-            }
-        });
+        rv.setLayoutManager(new GridLayoutManager(getActivity(), 1));
+        if (activity != null)
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    refreshdata(Activity.RESULT_OK);
+                }
+            });
 
 
 
         return  rv;
     }
+
+    protected Activity activity;
     protected RecyclerView rv;
     // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {

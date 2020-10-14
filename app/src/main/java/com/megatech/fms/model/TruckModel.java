@@ -1,18 +1,18 @@
 package com.megatech.fms.model;
 
+import androidx.annotation.NonNull;
+
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 
-import java.util.Set;
+public class TruckModel {
 
-public class SettingModel {
-
-    public SettingModel() {
+    public TruckModel() {
     }
 
-    public SettingModel(String code, float currentAmount) {
+    public TruckModel(String code, float currentAmount) {
         this.truckNo = code;
         this.currentAmount = currentAmount;
 
@@ -26,9 +26,39 @@ public class SettingModel {
 
 
     private String deviceIP = "192.168.1.30";
-    private String printerIP = "192.168.1.25";
+    private String printerIP = "192.168.1.1";
     private Integer devicePort = 10001;
     private Integer printerPort = 9100;
+
+    private Integer airportId;
+
+    private String airportCode;
+
+    private boolean allowNewRefuel;
+
+    public boolean isAllowNewRefuel() {
+        return allowNewRefuel;
+    }
+
+    public void setAllowNewRefuel(boolean allowNewRefuel) {
+        this.allowNewRefuel = allowNewRefuel;
+    }
+
+    public String getAirportCode() {
+        return airportCode;
+    }
+
+    public void setAirportCode(String airportCode) {
+        this.airportCode = airportCode;
+    }
+
+    public Integer getAirportId() {
+        return airportId;
+    }
+
+    public void setAirportId(Integer airportId) {
+        this.airportId = airportId;
+    }
 
     public String getDeviceIP() {
         return deviceIP;
@@ -82,6 +112,20 @@ public class SettingModel {
         return truckNo;
     }
 
+    public void setTruckNo(String truckNo) {
+        this.truckNo = truckNo;
+    }
+
+    private int truckId;
+
+    public int getTruckId() {
+        return truckId;
+    }
+
+    public void setTruckId(int truckId) {
+        this.truckId = truckId;
+    }
+
     public void setCode(String code) {
         this.truckNo = code;
     }
@@ -99,17 +143,24 @@ public class SettingModel {
         return gson.toJson(this);
     }
 
-    public static SettingModel fromJson(String json) {
+    public static TruckModel fromJson(String json) {
 
         try {
             Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
-            SettingModel model = gson.fromJson(json, SettingModel.class);
+            TruckModel model = gson.fromJson(json, TruckModel.class);
             if (model == null)
-                model = new SettingModel();
+                model = new TruckModel();
             return  model;
         }catch (JsonSyntaxException ex)
         {
-            return new SettingModel();
+            return new TruckModel();
         }
+    }
+
+
+    @NonNull
+    @Override
+    public String toString() {
+        return truckNo;
     }
 }

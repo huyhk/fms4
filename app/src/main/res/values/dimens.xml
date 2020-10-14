@@ -7,13 +7,14 @@
 
     <dimen name="margin_start">10dp</dimen>
     <dimen name="margin_top">12dp</dimen>
+    <dimen name="small_text">12sp</dimen>
     <dimen name="medium_text">18sp</dimen>
     <dimen name="large_text">24sp</dimen>
     <dimen name="largest_text">48sp</dimen>
     <dimen name="item_width">400dp</dimen>
     <dimen name="item_width_plus">432dp</dimen>
     <dimen name="item_height_24">24dp</dimen>
-    <dimen name="toolbar_height">56dp</dimen>
+    <dimen name="toolbar_height">48dp</dimen>
     <dimen name="refuel_preview_truck_width">110dp</dimen>
 
 </resources>

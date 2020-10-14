@@ -2,13 +2,15 @@ package com.megatech.fms.helpers;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 
 
 public class ReadNumber {
 
     public static String formatNumberForRead(double number) {
-        NumberFormat nf = NumberFormat.getInstance();
+        NumberFormat nf = NumberFormat.getInstance(Locale.US);
+
         String temp = nf.format(number);
         String strReturn = "";
         int slen = temp.length();
@@ -38,7 +40,7 @@ public class ReadNumber {
         int iRe = 0;
         do {
             // Tao mot bien cat tam
-            String sCut = "";
+            String sCut;
             if (iLen > 3) {
                 sCut = sNumber1.substring((iRe * 3), (iRe * 3) + 3);
                 sReturn = Read(sCut, iRe) + sReturn;
@@ -62,15 +64,15 @@ public class ReadNumber {
         // Tao mot bien tra ve
         String sReturn = "";
         // Tao mot bien so
-        String sPo[] = { "", "ngàn" + " ",
-                "triệu" + " ", "tỷ" + " " };
-        String sSo[] = { "không" + " ", "một" + " ",
+        String[] sPo = {"", "ngàn" + " ",
+                "triệu" + " ", "tỷ" + " "};
+        String[] sSo = {"không" + " ", "một" + " ",
                 "hai" + " ", "ba" + " ",
                 "bốn" + " ", "năm" + " ",
                 "sáu" + " ", "bảy" + " ",
-                "tám" + " ", "chín" + " " };
-        String sDonvi[] = { "", "mươi" + " ",
-                "trăm" + " " };
+                "tám" + " ", "chín" + " "};
+        String[] sDonvi = {"", "mươi" + " ",
+                "trăm" + " "};
         // Tim chieu dai cua chuoi
         int iLen = sNumber.length();
         // Tao mot bien nho vi tri doc

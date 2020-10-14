@@ -34,7 +34,6 @@ public class TruckArrayAdapter extends ArrayAdapter<RefuelItemData> {
         }
 
 
-
         // Perform the binding
 
         RefuelPreviewItemBinding binding = DataBindingUtil.bind(convertView);
@@ -43,4 +42,5 @@ public class TruckArrayAdapter extends ArrayAdapter<RefuelItemData> {
         binding.executePendingBindings();
         return binding.getRoot();
     }
+
 }

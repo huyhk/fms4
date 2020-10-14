@@ -11,6 +11,11 @@ public class AirlineModel {
     private String productName;
     private String code;
 
+    private String invoiceName;
+    private String invoiceTaxCode;
+    private String invoiceAddress;
+
+
     public String getCode() {
         return code;
     }
@@ -69,9 +74,40 @@ public class AirlineModel {
         this.productName = productName;
     }
 
+    public String getInvoiceName() {
+        if (invoiceName == null || invoiceName.isEmpty())
+            return name;
+        return invoiceName;
+
+    }
+
+    public void setInvoiceName(String invoiceName) {
+        this.invoiceName = invoiceName;
+    }
+
+    public String getInvoiceTaxCode() {
+        if (invoiceTaxCode == null || invoiceTaxCode.isEmpty())
+            return taxCode;
+        return invoiceTaxCode;
+    }
+
+    public void setInvoiceTaxCode(String invoiceTaxCode) {
+        this.invoiceTaxCode = invoiceTaxCode;
+    }
+
+    public String getInvoiceAddress() {
+        if (invoiceAddress == null || invoiceAddress.isEmpty())
+            return address;
+        return invoiceAddress;
+    }
+
+    public void setInvoiceAddress(String invoiceAddress) {
+        this.invoiceAddress = invoiceAddress;
+    }
+
     @NonNull
     @Override
     public String toString() {
-        return code;
+        return name;
     }
 }

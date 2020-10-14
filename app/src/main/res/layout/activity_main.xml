@@ -12,7 +12,6 @@
         android:id="@+id/toolbar"
         layout="@layout/toolbar"></include>
 
-
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/main_tablayout"
         android:layout_width="match_parent"
@@ -36,5 +35,6 @@
         android:id="@+id/main_viewpager"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
+
 
 </LinearLayout>

@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout >
+<layout xmlns:app="http://schemas.android.com/apk/res-auto">
     <data>
-        <variable name="mItem" type="com.megatech.fms.model.RefuelItemData"></variable>
+
+        <variable
+            name="mItem"
+            type="com.megatech.fms.model.RefuelItemData" />
     </data>
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+
     android:orientation="vertical">
 
     <androidx.cardview.widget.CardView
@@ -30,7 +33,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:padding="5dp"
-                android:text="VAT (%)"
+                android:text="@string/vat_rate"
                 app:layout_constraintStart_toEndOf="@id/guideline_left"
                 app:layout_constraintTop_toBottomOf="@id/refuelitem_detail_qc_no" />
 
@@ -61,7 +64,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:padding="5dp"
-                android:text="Hãng bay"
+                android:text="@string/airline"
                 app:layout_constraintStart_toEndOf="@id/guideline_left"
                 app:layout_constraintTop_toBottomOf="@id/btnEdit" />
 
@@ -91,12 +94,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:padding="5dp"
-                android:text="Mã chuyến bay"
+                android:text="@string/aircraft_code"
                 app:layout_constraintStart_toEndOf="@id/guideline_left"
                 app:layout_constraintTop_toBottomOf="@id/refuelitem_detail_airline" />
 
             <TextView xmlns:tools="http://schemas.android.com/tools"
-                android:id="@+id/refuelitem_detail_flightCode"
+                android:id="@+id/new_refuel_flightCode"
                 style="?android:attr/textAppearanceMedium"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -125,14 +128,14 @@
                 android:textIsSelectable="true"
                 android:text="@{mItem.aircraftCode}"
                 app:layout_constraintStart_toEndOf="@id/guideline_center_left"
-                app:layout_constraintTop_toBottomOf="@id/refuelitem_detail_flightCode" />
+                app:layout_constraintTop_toBottomOf="@id/new_refuel_flightCode" />
 
             <TextView
                 style="?android:attr/textAppearanceMedium"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:padding="5dp"
-                android:text="Bãi đỗ"
+                android:text="@string/parking_lot"
                 app:layout_constraintStart_toEndOf="@id/guideline_left"
                 app:layout_constraintTop_toTopOf="@id/refuelitem_detail_parking" />
 
@@ -152,7 +155,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:padding="5dp"
-                android:text="Giờ hạ cánh"
+                android:text="@string/arrival_time"
                 app:layout_constraintStart_toEndOf="@id/guideline_left"
                 app:layout_constraintTop_toTopOf="@id/refuelitem_detail_arrival" />
 
@@ -190,7 +193,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:padding="5dp"
-                android:text="Sản lượng dự kiến"
+                android:text="@string/estimate_amount"
                 app:layout_constraintStart_toEndOf="@id/guideline_left"
                 app:layout_constraintTop_toTopOf="@id/refuelitem_detail_estimateAmount" />
 
@@ -200,7 +203,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:padding="5dp"
-                android:text='@{String.format("%.2f",mItem.estimateAmount)}'
+                android:text='@{String.format("%,.0f",mItem.estimateAmount)}'
                 android:textIsSelectable="true"
 
                 app:layout_constraintStart_toEndOf="@id/guideline_center_left"
@@ -212,7 +215,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:padding="5dp"
-                android:text="Sản lượng thực tế"
+                android:text="@string/real_amount"
                 app:layout_constraintStart_toEndOf="@id/guideline_left"
                 app:layout_constraintTop_toTopOf="@id/refuelitem_detail_realAmount" />
 
@@ -223,7 +226,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:padding="5dp"
-                android:text='@{String.format("%.2f",mItem.realAmount)}'
+                android:text='@{String.format("%,.0f",mItem.realAmount)}'
                 android:textIsSelectable="true"
                 app:layout_constraintStart_toEndOf="@id/guideline_center_left"
                 app:layout_constraintTop_toBottomOf="@id/refuelitem_detail_estimateAmount" />
@@ -245,7 +248,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:padding="5dp"
-                android:text="Nhiệt độ"
+                android:text="@string/temperature"
                 app:layout_constraintStart_toEndOf="@id/guideline_left"
                 app:layout_constraintTop_toTopOf="@id/refuelitem_detail_Temperature" />
 
@@ -256,7 +259,7 @@
                 android:layout_height="wrap_content"
                 android:padding="5dp"
                 android:textIsSelectable="true"
-                android:text='@{String.format("%.2f",mItem.density)}'
+                android:text='@{String.format("%.4f",mItem.density)}'
                 app:layout_constraintStart_toEndOf="@id/guideline_center_left"
                 app:layout_constraintTop_toBottomOf="@id/refuelitem_detail_Temperature" />
 
@@ -297,7 +300,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:text="@string/print_order"
-                app:layout_constraintEnd_toStartOf="@id/btnSave"
+                app:layout_constraintEnd_toStartOf="@id/btnUpdate"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:ignore="InvalidId" />
 
@@ -340,7 +343,7 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
             <Button
-                android:id="@+id/btnSave"
+                android:id="@+id/btnUpdate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
@@ -359,6 +362,7 @@
                 android:inputType="textVisiblePassword|textCapCharacters"
                 android:selectAllOnFocus="true"
                 android:visibility="invisible"
+                android:text='@{mItem.aircraftCode}'
                 app:layout_constraintStart_toStartOf="@id/refuelitem_detail_aircraftCode"
                 app:layout_constraintTop_toTopOf="@id/refuelitem_detail_aircraftCode" />
 
@@ -370,6 +374,7 @@
                 android:inputType="numberDecimal"
                 android:selectAllOnFocus="true"
                 android:visibility="invisible"
+                android:text='@{String.format("%.4f",mItem.density)}'
                 app:layout_constraintStart_toStartOf="@id/refuelitem_detail_aircraftCode"
                 app:layout_constraintTop_toTopOf="@id/refuelitem_detail_Density" />
 
@@ -400,7 +405,7 @@
                 style="?android:attr/textAppearanceMedium"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Giờ bắt đầu tra nạp"
+                android:text="@string/refuel_start"
                 android:visibility="invisible"
                 app:layout_constraintStart_toEndOf="@id/guideline_center_left4"
                 app:layout_constraintTop_toTopOf="@id/lblStartMeter" />
@@ -410,7 +415,7 @@
                 style="?android:attr/textAppearanceMedium"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Giờ kết thúc tra nạp"
+                android:text="@string/refuel_end"
                 android:visibility="invisible"
                 app:layout_constraintStart_toEndOf="@id/guideline_center_left4"
                 app:layout_constraintTop_toTopOf="@id/lblEndMeter" />
@@ -422,7 +427,7 @@
                 android:layout_height="wrap_content"
                 android:textIsSelectable="true"
                 android:visibility="invisible"
-                app:layout_constraintEnd_toStartOf="@id/guideline_right3"
+                app:layout_constraintEnd_toStartOf="@id/guideline_center2"
                 app:layout_constraintTop_toTopOf="@id/lblStartMeter" />
 
             <TextView
@@ -432,7 +437,7 @@
                 android:layout_height="wrap_content"
                 android:textIsSelectable="true"
                 android:visibility="invisible"
-                app:layout_constraintEnd_toStartOf="@id/guideline_right3"
+                app:layout_constraintEnd_toStartOf="@id/guideline_center2"
                 app:layout_constraintTop_toTopOf="@id/lblEndMeter" />
 
             <TextView
@@ -462,7 +467,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/margin_start"
                 android:layout_marginTop="@dimen/margin_top"
-                android:text="Số đồng hồ kết thúc"
+                android:text="@string/end_meter"
                 app:layout_constraintStart_toEndOf="@id/guideline_left3"
                 app:layout_constraintTop_toBottomOf="@id/lblStartMeter" />
 
@@ -476,28 +481,16 @@
                 app:layout_constraintTop_toBottomOf="@id/lblStartMeter" />
 
             <Button
-                android:id="@+id/btnStop"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-
-                android:enabled="false"
-                android:padding="10dp"
-                android:text="@string/stop"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="@id/guideline_right3"
-                app:layout_constraintHorizontal_bias="0.0"
-                app:layout_constraintStart_toEndOf="@id/guideline_center_left4" />
-
-            <Button
                 android:id="@+id/btnStart"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
 
                 android:enabled="false"
-                android:padding="10dp"
+                android:paddingTop="30dp"
+                android:paddingBottom="30dp"
                 android:text="@string/start"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/guideline_center_left4"
+                app:layout_constraintEnd_toStartOf="@id/guideline_center2"
                 app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toStartOf="@id/guideline_left3" />
 
@@ -516,7 +509,7 @@
                 app:layout_constraintGuide_percent=".5" />
 
             <androidx.constraintlayout.widget.Guideline
-                android:id="@+id/guideline_right3"
+                android:id="@+id/guideline_center2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
@@ -546,7 +539,7 @@
                 android:layout_marginTop="@dimen/margin_top"
                 android:checkMark="@drawable/ic_unchecked"
                 android:onClick="onClick"
-                android:text="Kiểm tra xe"
+                android:text="@string/truck_check"
                 app:layout_constraintEnd_toStartOf="@id/guideline_center_left4"
                 app:layout_constraintStart_toStartOf="@id/guideline_left3"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -560,7 +553,7 @@
                 android:layout_marginTop="@dimen/margin_top"
                 android:checkMark="@drawable/ic_unchecked_2"
                 android:onClick="onClick"
-                android:text="Kiểm tra hàng"
+                android:text="@string/inventory_check"
                 app:layout_constraintEnd_toStartOf="@id/guideline_center_left4"
                 app:layout_constraintStart_toStartOf="@id/guideline_left3"
                 app:layout_constraintTop_toBottomOf="@id/refuel_detail_chk_condition" />
@@ -581,9 +574,10 @@
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/cardTemperatur"
-                android:layout_width="185dp"
+                android:layout_width="250dp"
                 android:layout_height="120dp"
-                app:layout_constraintEnd_toStartOf="@id/guideline_right3"
+                android:visibility="visible"
+                app:layout_constraintEnd_toStartOf="@id/guideline_center2"
                 app:layout_constraintStart_toEndOf="@id/guideline_center_left4"
                 app:layout_constraintTop_toBottomOf="@id/refuel_detail_chk_connect_lcr">
 
@@ -591,7 +585,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:padding="5dp"
-                    android:text="Nhiệt độ" />
+                    android:text="@string/temperature" />
 
                 <TextView
                     android:id="@+id/txtTemp"
@@ -606,7 +600,7 @@
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/cardAmount"
-                android:layout_width="185dp"
+                android:layout_width="250dp"
                 android:layout_height="120dp"
                 app:layout_constraintEnd_toStartOf="@id/guideline_center_left4"
                 app:layout_constraintStart_toEndOf="@id/guideline_left3"
@@ -616,7 +610,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:padding="5dp"
-                    android:text="Thể tích" />
+                    android:text="@string/volume" />
 
                 <TextView
                     android:id="@+id/txtGrossQty"
@@ -624,7 +618,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal|center_vertical"
                     android:gravity="center"
-                    android:text="0.0"
+                    android:text="0"
 
                     android:textSize="@dimen/largest_text" />
             </androidx.cardview.widget.CardView>

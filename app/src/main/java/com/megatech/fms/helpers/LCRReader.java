@@ -52,7 +52,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
-
+import java.text.NumberFormat;
 
 
 public class LCRReader {
@@ -156,6 +156,10 @@ public class LCRReader {
 
     }
 
+    public void quit() {
+        if (lcrSdk != null)
+            lcrSdk.quit();
+    }
     public interface LCRDataListener {
         void onDataChanged(LCRDataModel dataModel);
         void onErrorMessage(String errorMsg);
@@ -741,9 +745,13 @@ public class LCRReader {
             String strMeasureUnit = "unknown";
             String strRateBaseUnit = "unknown";
 
+            Locale locale = Locale.getDefault();
+            NumberFormat numberFormat = NumberFormat.getInstance(locale);
+
+
             // For not log items what is displayed in separated fields
             Boolean showInLog = true;
-            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
+            SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yy HH:mm:ss");
 
             // Get data to show in text views
 
@@ -753,10 +761,10 @@ public class LCRReader {
                 // Format setText string
                 if (dataListener!=null) {
                     try {
-                        model.setGrossQty(Float.parseFloat(responseField.getNewValue()));
+                        model.setGrossQty(numberFormat.parse(responseField.getNewValue()).floatValue());
                         dataListener.onDataChanged(model);
+                    } catch (ParseException e) {
                     }
-                    catch(NumberFormatException e){}
                 }
             }
             if(requestField.getItemToRequest().equals(startTime)) {
@@ -792,11 +800,11 @@ public class LCRReader {
                 if (dataListener!=null) {
                     try {
                         if (model.getStartMeterNumber() <= 0)
-                            model.setStartMeterNumber(Float.parseFloat(responseField.getNewValue()));
+                            model.setStartMeterNumber(numberFormat.parse(responseField.getNewValue()).floatValue());
 
-                        model.setEndMeterNumber(Float.parseFloat(responseField.getNewValue()));
+                        model.setEndMeterNumber(numberFormat.parse(responseField.getNewValue()).floatValue());
                         dataListener.onDataChanged(model);
-                    }catch (NumberFormatException e)
+                    } catch (ParseException e)
                     {}
 
                 }
@@ -807,10 +815,9 @@ public class LCRReader {
                 // Format setText string
                 if (dataListener!=null) {
                     try {
-                        model.setTemperature(Float.parseFloat(responseField.getNewValue()));
+                        model.setTemperature(numberFormat.parse(responseField.getNewValue()).floatValue());
                         dataListener.onDataChanged(model);
-                    }
-                    catch (NumberFormatException e)
+                    } catch (ParseException e)
                     {}
                 }
             }
@@ -1361,7 +1368,7 @@ public class LCRReader {
             Integer lineNumber = 1;
             for(InternalEvent event : cause.getEvents()) {
                 // Print events (all type of events)
-                Log.e("ERROR_EVENT", String.valueOf(lineNumber++) + " - " );
+                Log.e("ERROR_EVENT", lineNumber++ + " - " + event.getData());
             }
             Log.e("ERROR_EVENT", "--------- event data end ---------");
         }

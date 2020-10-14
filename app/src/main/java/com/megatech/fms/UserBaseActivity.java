@@ -1,23 +1,49 @@
 package com.megatech.fms;
 
+import android.Manifest;
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 
+import android.os.Environment;
+import android.os.StrictMode;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.megatech.fms.helpers.HttpClient;
+import com.megatech.fms.model.ShiftModel;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
+
+import static com.megatech.fms.BuildConfig.API_BASE_URL;
+import static com.megatech.fms.BuildConfig.DEBUG;
 
 public class UserBaseActivity extends BaseActivity {
     @Override
     protected  void onCreate(@Nullable Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
 
         if (!checkLogin()) {
@@ -47,7 +73,16 @@ public class UserBaseActivity extends BaseActivity {
     protected void setTruckInfo() {
         TextView lblInventory = findViewById(R.id.lbltoolbar_Inventory);
         if (lblInventory!=null)
-            lblInventory.setText(String.format("%s: %.2f", currentApp.getTruckNo(), currentApp.getCurrentAmount()));
+            lblInventory.setText(String.format("%s: %.0f", currentApp.getTruckNo(), currentApp.getCurrentAmount()));
+
+        TextView lblShift = findViewById(R.id.lblShiftInfo);
+        if (lblShift != null) {
+            ShiftModel model = new HttpClient().getShift();
+            if (model != null) {
+
+                lblShift.setText(String.format("%s: %s ", getString(R.string.shift), model.toString()));
+            }
+        }
     }
 
     protected void setToolbar() {
@@ -76,6 +111,18 @@ public class UserBaseActivity extends BaseActivity {
                     setting();
                 }
             });
+
+
+            Button btnRefuel = findViewById(R.id.btnRefuel);
+            btnRefuel.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    refuel();
+                }
+            });
+
+            Button btnExtract = findViewById(R.id.btnExtract);
+            btnExtract.setOnClickListener(v -> extract());
             Button btnLogout = findViewById(R.id.btnLogout);
             btnLogout.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -87,6 +134,16 @@ public class UserBaseActivity extends BaseActivity {
             setTruckInfo();
         }
 
+    }
+
+    private void refuel() {
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+    }
+
+    private void extract() {
+        Intent intent = new Intent(this, ExtractActivity.class);
+        startActivity(intent);
     }
 
     private void addInventory() {
@@ -117,13 +174,14 @@ public class UserBaseActivity extends BaseActivity {
     public void setting()
     {
         Intent intent = new Intent(this, SettingActivity.class);
+        //intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivityForResult(intent, SETTING_CODE);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        //getMenuInflater().inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
@@ -136,19 +194,185 @@ public class UserBaseActivity extends BaseActivity {
         int id = item.getItemId();
 
         switch (id){
-            case R.id.action_logout:
-                logout();
-                return true;
-            case R.id.action_settings:
-                setting();
-                return true;
-            case R.id.action_extract:
+
+
+            case R.id.action_info:
+                showUpdate();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
 
     }
+
+    private void showUpdate() {
+        Intent intent = new Intent(this, VersionUpdateActivity.class);
+        startActivity(intent);
+    }
+
+    private void checkVersion() {
+
+    }
+
+    private Dialog dlg;
+    private String update_url;
+
+    private void showInfoDialog() {
+
+        dlg = new Dialog(this);
+
+        dlg.setContentView(R.layout.info_dialog);
+        dlg.setTitle(R.string.update_version);
+        TextView txt = dlg.findViewById(R.id.info_dialog_version);
+        txt.setText(String.format("%d", BuildConfig.VERSION_CODE));
+
+        dlg.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialog) {
+                new CheckVersionAsyncTask().execute(API_BASE_URL + "files/version.txt");
+            }
+        });
+
+        dlg.findViewById(R.id.btn_version_close).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dlg.dismiss();
+            }
+        });
+
+        dlg.findViewById(R.id.btn_version_update).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dlg.findViewById(R.id.btn_version_update).setEnabled(false);
+                ((Button) dlg.findViewById(R.id.btn_version_update)).setText(R.string.version_updating);
+                if (checkStoragePermission())
+                    new UpdateAsyncTask().execute(update_url);
+            }
+        });
+        dlg.show();
+    }
+
+
+    private final class CheckVersionAsyncTask extends AsyncTask<String, Integer, String> {
+        @Override
+        protected String doInBackground(String... strings) {
+            String url = strings[0];
+            HttpClient client = new HttpClient();
+            String data = client.getContent(url);
+            if (data != null) {
+                String[] info = data.split("\\-");
+                String version = info[0];
+                return data;
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String versionInfo) {
+            String[] info = versionInfo.split("\\-");
+            String version = info[0];
+            long newVersion = Long.parseLong(version);
+            long currentVersion = BuildConfig.VERSION_CODE;
+
+            if (newVersion > currentVersion) {
+                ((TextView) dlg.findViewById(R.id.version_check_message)).setText(getString(R.string.new_version_available));
+                dlg.findViewById(R.id.btn_version_update).setEnabled(true);
+            } else {
+                ((TextView) dlg.findViewById(R.id.version_check_message)).setText(getString(R.string.newest_version_using));
+            }
+            update_url = API_BASE_URL + "/files/" + "fms-release-" + versionInfo + ".apk";
+            if (DEBUG)
+                update_url = API_BASE_URL + "/files/" + "fms-debug-" + versionInfo + ".apk";
+
+            //super.onPostExecute(aLong);
+        }
+    }
+
+    private final class UpdateAsyncTask extends AsyncTask<String, Integer, String> {
+
+        @Override
+        protected String doInBackground(String... urls) {
+            try {
+
+                URL url = new URL(urls[0]);
+
+
+                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setRequestMethod("GET");
+
+                urlConnection.setRequestProperty("Content-Type", "application/octet-stream");
+                urlConnection.setRequestProperty("User-Agent", "Mozilla/5.0 ( compatible ) ");
+                urlConnection.setRequestProperty("Accept", "*/*");
+
+                urlConnection.connect();
+                File sdcard = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + File.separator + "fms");
+
+                if (!sdcard.exists())
+                    sdcard.mkdirs();
+                File file = new File(sdcard, "fms-release.apk");
+
+                FileOutputStream fileOutput = new FileOutputStream(file);
+                InputStream inputStream = urlConnection.getInputStream();
+
+                byte[] buffer = new byte[1024];
+                int bufferLength = 0;
+
+                while ((bufferLength = inputStream.read(buffer)) > 0) {
+                    fileOutput.write(buffer, 0, bufferLength);
+                }
+                fileOutput.close();
+                return file.toString();
+
+
+            } catch (IOException e) {
+                Log.e("FMS", e.getMessage());
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String filePath) {
+
+            try {
+                if (filePath != null) {
+                    StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+                    StrictMode.setVmPolicy(builder.build());
+                    Intent intent = new Intent(Intent.ACTION_INSTALL_PACKAGE);
+
+                    //i.setDataAndType(Uri.fromFile(new File(filePath)), "application/vnd.android.package-archive");
+                    intent.setData(Uri.fromFile(new File(filePath)));
+                    intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    //intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                    getApplicationContext().startActivity(intent);
+                }
+            } catch (Exception ex) {
+                Toast.makeText(getApplicationContext(), ex.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    private int REQUEST_WRITE_PERMISSION = 1;
+
+    protected boolean checkStoragePermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED &&
+                    checkSelfPermission(Manifest.permission.REQUEST_INSTALL_PACKAGES) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{
+                        android.Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.REQUEST_INSTALL_PACKAGES}, REQUEST_WRITE_PERMISSION);
+                return false;
+            }
+            return true;
+        }
+        return true;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        new UpdateAsyncTask().execute(update_url);
+    }
+
     private  void logout()
     {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -175,8 +399,8 @@ public class UserBaseActivity extends BaseActivity {
     private void doLogout() {
         currentApp.logout();
         finish();
-        Intent intent = new Intent(this, LoginActivity.class);
-        startActivity(intent);
+//        Intent intent = new Intent(this, LoginActivity.class);
+//        startActivity(intent);
     }
 
 

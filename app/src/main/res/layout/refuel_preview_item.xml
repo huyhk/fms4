@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout>
     <data>
-        <import type="com.megatech.fms.model.REFUEL_ITEM_STATUS"></import>
+
+        <import type="com.megatech.fms.helpers.DateUtils" />
+
+        <import type="com.megatech.fms.model.REFUEL_ITEM_STATUS" />
         <variable
             name="truckItem"
             type="com.megatech.fms.model.RefuelItemData" />
@@ -9,33 +12,63 @@
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:orientation="horizontal" android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="10dp">
+        android:padding="5dp">
 
         <TextView
-            android:layout_width="@dimen/refuel_preview_truck_width"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
+            android:layout_weight=".15"
+            android:gravity="center"
+            android:hint="@string/refuel_start"
             android:text="@{truckItem.truckNo}" />
 
         <TextView
-            android:layout_width="@dimen/refuel_preview_truck_width"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:text='@{String.format("%20.2f",truckItem.startNumber)}' />
+            android:layout_weight=".15"
+            android:gravity="center"
+            android:hint="@string/refuel_start"
+            android:text='@{String.format("%,20d",Math.round(truckItem.startNumber))}' />
 
         <TextView
-            android:layout_width="@dimen/refuel_preview_truck_width"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:text='@{String.format("%20.2f",truckItem.endNumber)}' />
+            android:layout_weight=".15"
+            android:gravity="center"
+            android:hint="@string/refuel_start"
+            android:text='@{String.format("%,20d",Math.round(truckItem.startNumber + truckItem.realAmount))}' />
 
         <TextView
-            android:layout_width="@dimen/refuel_preview_truck_width"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:text='@{String.format("%20.2f",truckItem.realAmount)}' />
+            android:layout_weight=".15"
+            android:gravity="center"
+            android:hint="@string/refuel_start"
+            android:text='@{String.format("%,20.0f",truckItem.realAmount)}' />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight=".15"
+            android:gravity="center"
+            android:hint="@string/refuel_start"
+            android:text='@{truckItem.status == REFUEL_ITEM_STATUS.DONE ? DateUtils.formatDate(truckItem.startTime,"HH:mm:ss"):""}' />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight=".15"
+            android:gravity="center"
+            android:hint="@string/refuel_end"
+            android:text='@{truckItem.status == REFUEL_ITEM_STATUS.DONE ?DateUtils.formatDate(truckItem.endTime,"HH:mm:ss"):""}' />
 
         <CheckedTextView
-            android:layout_width="140dp"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight=".1"
             android:checkMark="@{truckItem.status == REFUEL_ITEM_STATUS.DONE ? @drawable/ic_check: null}"
-            android:checked="@{truckItem.status== REFUEL_ITEM_STATUS.DONE}"/>
+            android:checked="@{truckItem.status== REFUEL_ITEM_STATUS.DONE}"
+            android:gravity="center" />
 
     </LinearLayout>
 </layout>

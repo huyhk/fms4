@@ -1,37 +1,20 @@
 package com.megatech.fms;
 
-import android.Manifest;
 import android.app.Application;
-import android.app.DownloadManager;
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
-import android.os.AsyncTask;
-import android.os.Build;
-import android.os.Environment;
-import android.os.StrictMode;
 import android.util.Log;
 
-import androidx.core.content.ContextCompat;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.OnLifecycleEvent;
 
-import com.google.gson.Gson;
-import com.megatech.fms.model.SettingModel;
+import com.megatech.fms.data.AppDatabase;
+import com.megatech.fms.data.DataRepository;
+import com.megatech.fms.model.TruckModel;
 import com.megatech.fms.model.UserInfo;
 import com.megatech.fms.helpers.HttpClient;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
-
-import static com.megatech.fms.BuildConfig.API_BASE_URL;
-import static com.megatech.fms.BuildConfig.DEBUG;
+import java.util.Date;
 
 public class FMSApplication extends Application implements LifecycleObserver {
 
@@ -40,10 +23,15 @@ public class FMSApplication extends Application implements LifecycleObserver {
     public void onCreate() {
         super.onCreate();
         cApp = this;
-
     }
 
+    public AppDatabase getDatabase() {
+        return AppDatabase.getInstance(this);
+    }
 
+    public DataRepository getRepository() {
+        return DataRepository.getInstance(getDatabase());
+    }
 
     public static FMSApplication getApplication()
     {
@@ -72,9 +60,9 @@ public class FMSApplication extends Application implements LifecycleObserver {
     private String deviceIP;
 
     public String getDeviceIP() {
-        final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
-        deviceIP = preferences.getString("IP","192.168.1.30");
-        return deviceIP;
+        //if (BuildConfig.DEBUG)
+        //    return "viennam.ddns.net";
+        return getSetting().getDeviceIP();
     }
 
     public void setDeviceIP(String deviceIP) {
@@ -83,7 +71,7 @@ public class FMSApplication extends Application implements LifecycleObserver {
 
         SharedPreferences.Editor editor = preferences.edit();
         editor.putString("IP",deviceIP);
-        editor.commit();
+        editor.apply();
 
     }
 
@@ -95,7 +83,10 @@ public class FMSApplication extends Application implements LifecycleObserver {
     {
         final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
         String token = preferences.getString("TOKEN",null);
-        return token!=null;
+        long loginTime = preferences.getLong("LOGIN_TIME", 0);
+        long currentTime = new Date().getTime();
+
+        return token != null && (currentTime - loginTime) / 1000 / 60 < 30;
 
     }
     private String printerAddress;
@@ -117,17 +108,17 @@ public class FMSApplication extends Application implements LifecycleObserver {
 
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean("FCM_SUBSCRIBED",val);
-        editor.commit();
+        editor.apply();
 
     }
 
     public boolean isFirstUse() {
 
 
-        return getTruckNo() == "";
+        return getTruckNo() == null || getTruckNo().equals("");
     }
 
-    public  void saveSetting(SettingModel settingModel)
+    public void saveSetting(TruckModel settingModel)
     {
         final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
 
@@ -140,15 +131,14 @@ public class FMSApplication extends Application implements LifecycleObserver {
         editor.commit();
     }
 
-    public SettingModel getSetting()
+    public TruckModel getSetting()
     {
         final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
         String json = preferences.getString("SETTING","");
-        return  SettingModel.fromJson(json);
+        return TruckModel.fromJson(json);
     }
     public String getTruckNo() {
-        final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
-        return preferences.getString("TRUCK_NO","");
+        return getSetting().getTruckNo();
     }
 
     public float getCurrentAmount() {
@@ -159,8 +149,8 @@ public class FMSApplication extends Application implements LifecycleObserver {
     public void setCurrentAmount(float currentAmount) {
         final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
-        editor.putFloat("CURRENT_AMOUNT",(float) currentAmount);
-        editor.commit();
+        editor.putFloat("CURRENT_AMOUNT", currentAmount);
+        editor.apply();
         HttpClient client = new HttpClient();
         client.updateTruckAmount(getTruckNo(), currentAmount);
 
@@ -171,14 +161,20 @@ public class FMSApplication extends Application implements LifecycleObserver {
         return preferences.getString("QC_NO","");
     }
 
-    public void setInventory(float currentAmount, String qcNo) {
+    public void setInventory(final float currentAmount, String qcNo) {
         final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
-        editor.putFloat("CURRENT_AMOUNT",(float) currentAmount);
+        editor.putFloat("CURRENT_AMOUNT", currentAmount);
         editor.putString("QC_NO",qcNo);
-        editor.commit();
-        HttpClient client = new HttpClient();
-        client.updateTruckAmount(getTruckNo(), currentAmount);
+        editor.apply();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                HttpClient client = new HttpClient();
+                client.updateTruckAmount(getTruckNo(), currentAmount);
+            }
+        }).start();
+
 
     }
 

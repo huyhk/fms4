@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout
+<layout xmlns:tools="http://schemas.android.com/tools"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <data>
@@ -141,18 +141,18 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="5dp"
-            android:text="Giờ hạ cánh"
+            android:text="Giờ bắt đầu tra nạp"
             app:layout_constraintStart_toEndOf="@id/guideline_left"
-            app:layout_constraintTop_toTopOf="@id/refuel_preview_arrival" />
+            app:layout_constraintTop_toTopOf="@id/refuel_preview_starttime" />
 
         <TextView
-            android:id="@+id/refuel_preview_arrival"
+            android:id="@+id/refuel_preview_starttime"
             style="?android:attr/textAppearanceMedium"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="5dp"
             android:textIsSelectable="true"
-            android:text='@{DateUtils.formatDate(mItem.arrivalTime,"dd/MM/yyyy HH:mm")}'
+            android:text='@{DateUtils.formatDate(mItem.startTime,"dd/MM/yyyy HH:mm")}'
             app:layout_constraintStart_toEndOf="@id/guideline_center_left"
             app:layout_constraintTop_toBottomOf="@id/refuel_preview_parking" />
 
@@ -161,20 +161,20 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="5dp"
-            android:text="Giờ cất cánh"
+            android:text="Giờ kết thúc tra nạp"
             app:layout_constraintStart_toEndOf="@id/guideline_left"
-            app:layout_constraintTop_toTopOf="@id/refuel_preview_departure" />
+            app:layout_constraintTop_toTopOf="@id/refuel_preview_endtime" />
 
         <TextView
-            android:id="@+id/refuel_preview_departure"
+            android:id="@+id/refuel_preview_endtime"
             style="?android:attr/textAppearanceMedium"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="5dp"
             android:textIsSelectable="true"
-            android:text='@{DateUtils.formatDate(mItem.departureTime,"dd/MM/yyyy HH:mm")}'
+            android:text='@{DateUtils.formatDate(mItem.endTime,"dd/MM/yyyy HH:mm")}'
             app:layout_constraintStart_toEndOf="@id/guideline_center_left"
-            app:layout_constraintTop_toBottomOf="@id/refuel_preview_arrival" />
+            app:layout_constraintTop_toBottomOf="@id/refuel_preview_starttime" />
 
         <TextView
             style="?android:attr/textAppearanceMedium"
@@ -191,11 +191,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="5dp"
-            android:text='@{String.format("%.2f",mItem.estimateAmount)}'
+            android:text='@{String.format("%,.0f",mItem.estimateAmount)}'
             android:textIsSelectable="true"
 
             app:layout_constraintStart_toEndOf="@id/guideline_center_left"
-            app:layout_constraintTop_toBottomOf="@id/refuel_preview_departure" />
+            app:layout_constraintTop_toBottomOf="@id/refuel_preview_endtime" />
 
         <TextView
             android:id="@+id/textView4"
@@ -214,10 +214,26 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="5dp"
-            android:text='@{String.format("%.2f",mItem.realAmount)}'
+            android:ems="10"
+            android:text='@{String.format("%,.0f",mItem.realAmount)}'
             android:textIsSelectable="true"
             app:layout_constraintStart_toEndOf="@id/guideline_center_left"
             app:layout_constraintTop_toBottomOf="@id/refuel_preview_estimateAmount" />
+
+        <EditText
+            android:id="@+id/refuel_preview_edtAmount"
+            style="?android:attr/textAppearanceMedium"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="numberDecimal"
+            android:padding="5dp"
+            android:selectAllOnFocus="true"
+            android:text='@{String.format("%,.0f",mItem.realAmount)}'
+            android:visibility="invisible"
+            app:layout_constraintStart_toEndOf="@id/guideline_center_left"
+            app:layout_constraintTop_toBottomOf="@id/refuel_preview_estimateAmount"
+            tools:inputType="none" />
 
         <TextView
             android:id="@+id/refuel_preview_Temperature"
@@ -247,7 +263,7 @@
             android:layout_height="wrap_content"
             android:padding="5dp"
             android:textIsSelectable="true"
-            android:text='@{String.format("%.2f",mItem.density)}'
+            android:text='@{String.format("%.4f",mItem.density)}'
             app:layout_constraintStart_toEndOf="@id/guideline_center_left"
             app:layout_constraintTop_toBottomOf="@id/refuel_preview_Temperature" />
 
@@ -321,7 +337,7 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <Button
-            android:id="@+id/btnSave"
+            android:id="@+id/btnUpdate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
@@ -353,7 +369,7 @@
             android:inputType="numberDecimal"
             android:selectAllOnFocus="true"
             android:visibility="invisible"
-            android:text='@{String.format("%.2f",mItem.density)}'
+            android:text='@{String.format("%.4f",mItem.density)}'
             app:layout_constraintStart_toStartOf="@id/refuel_preview_aircraftCode"
             app:layout_constraintTop_toTopOf="@id/refuel_preview_Density" />
 

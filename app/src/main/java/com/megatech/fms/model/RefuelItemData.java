@@ -3,16 +3,31 @@ package com.megatech.fms.model;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-public class RefuelItemData {
+public class RefuelItemData implements Cloneable {
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
 
     public RefuelItemData()
     {
+        Calendar c = Calendar.getInstance();
 
+        refuelTime = new Date();
+        c.setTime(refuelTime);
+        c.add(Calendar.MINUTE, 15);
+
+        departureTime = c.getTime();
+        c.add(Calendar.MINUTE, -30);
+        arrivalTime = c.getTime();
         status = REFUEL_ITEM_STATUS.NONE;
     }
+
     private  Integer id;
 
     public Integer getId() {
@@ -34,21 +49,24 @@ public class RefuelItemData {
     private double realAmount;
     private double temperature;
     private Date endTime = new Date();
-    private Integer userId;
-    private Integer truckId;
     private Date startTime = new Date();
+    private Date deviceStartTime = new Date();
+    private Date deviceEndTime = new Date();
     private Date arrivalTime;
     private Date departureTime;
     private  double startNumber;
     private  double endNumber;
     private double manualTemperature;
 
+    private Integer userId;
+    private Integer truckId;
+
     private double density;
 
     private int airlineId;
 
-    private double weight;
-    private double volume;
+    //private double weight;
+    //private double volume;
 
     private double price;
 
@@ -61,11 +79,12 @@ public class RefuelItemData {
     private String qualityNo;
     private double taxRate;
 
+    public static double GALLON_TO_LITTER = 3.7854;
     public double getVolume (){
-        return realAmount * 3.7856;
+        return Math.round(realAmount * RefuelItemData.GALLON_TO_LITTER);
     }
     public  double getWeight(){
-            return density * getVolume();
+        return Math.round(density * getVolume());
     }
     public int getAirlineId() {
         return airlineId;
@@ -76,7 +95,7 @@ public class RefuelItemData {
     }
 
     public double getAmount(){
-        return getWeight()*getPrice();
+        return Math.round(getWeight() * getPrice());
     }
 
     public double getTaxRate(){
@@ -179,9 +198,7 @@ public class RefuelItemData {
         this.userId = userId;
     }
 
-    public void setTruckId(Integer truckId) {
-        this.truckId = truckId;
-    }
+
 
     public Date getStartTime() {
         return startTime;
@@ -295,13 +312,13 @@ public class RefuelItemData {
         this.flightId = flightId;
     }
 
-    public void setWeight(double weight) {
+    /*public void setWeight(double weight) {
         this.weight = weight;
     }
 
     public void setVolume(double volume) {
         this.volume = volume;
-    }
+    }*/
 
     public String getRouteName() {
         return routeName;
@@ -336,6 +353,33 @@ public class RefuelItemData {
         this.qualityNo = qcNo;
     }
 
+
+    public Date getDeviceStartTime() {
+        return deviceStartTime;
+    }
+
+    public void setDeviceStartTime(Date deviceStartTime) {
+        this.deviceStartTime = deviceStartTime;
+    }
+
+    public Date getDeviceEndTime() {
+        return deviceEndTime;
+    }
+
+    public void setDeviceEndTime(Date deviceEndTime) {
+        this.deviceEndTime = deviceEndTime;
+    }
+
+    private double gallon;
+
+    public double getGallon() {
+        return gallon;
+    }
+
+    public void setGallon(double gallon) {
+        this.gallon = gallon;
+    }
+
     private String truckNo;
     public String getTruckNo() {
         return  this.truckNo;
@@ -363,7 +407,10 @@ public class RefuelItemData {
     }
 
     public void setOthers(List<RefuelItemData> others) {
-        this.others = others;
+
+        if (others != null)
+            this.others = others;
+        else this.others = new ArrayList<>();
     }
     private FLIGHT_STATUS flightStatus;
 
@@ -375,18 +422,45 @@ public class RefuelItemData {
         this.flightStatus = flightStatus;
     }
 
-    public enum FLIGHT_STATUS
-    {
+    private REFUEL_ITEM_TYPE refuelItemType;
+
+    public void setTruckId(Integer truckId) {
+        this.truckId = truckId;
+    }
+
+    public REFUEL_ITEM_TYPE getRefuelItemType() {
+        return refuelItemType;
+    }
+
+    public void setRefuelItemType(REFUEL_ITEM_TYPE refuelItemType) {
+        this.refuelItemType = refuelItemType;
+    }
+
+    public enum FLIGHT_STATUS {
         @SerializedName("0")    NONE(0),
         @SerializedName("1") ASSIGNED(1),
         @SerializedName("2") REFUELING(2),
         @SerializedName("3") REFUELED(3);
 
         private  int value;
+
         FLIGHT_STATUS(int i) {
             value = i;
         }
 
+    }
+
+    public enum REFUEL_ITEM_TYPE {
+        @SerializedName("0") REFUEL(0),
+        @SerializedName("1") EXTRACT(1),
+        @SerializedName("2") TEST(2);
+
+
+        private int value;
+
+        REFUEL_ITEM_TYPE(int i) {
+            value = i;
+        }
     }
 
 }

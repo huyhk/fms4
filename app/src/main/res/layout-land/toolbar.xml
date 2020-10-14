@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.appcompat.widget.Toolbar xmlns:android="http://schemas.android.com/apk/res/android"
 
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="56dp"
+    android:layout_height="@dimen/toolbar_height"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@color/colorPrimary"
     app:titleTextColor="@color/colorWhite"
@@ -19,6 +20,15 @@
             android:layout_height="match_parent"
             android:text="@string/refuel"
             android:visibility="gone"
+
+            />
+
+        <Button
+            android:id="@+id/btnExtract"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="@string/extract_list"
+            android:visibility="visible"
 
             />
 
@@ -57,10 +67,20 @@
             />
 
         <TextView
+            android:id="@+id/lblShiftInfo"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="right"
+            android:layout_weight=".5"
+            android:gravity="right|center_vertical"
+            android:textColor="@color/colorWhite" />
+
+        <TextView
             android:id="@+id/lbltoolbar_Inventory"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="right"
+            android:layout_weight=".5"
             android:gravity="right|center_vertical"
             android:textColor="@color/colorWhite" />
     </LinearLayout>

@@ -87,7 +87,7 @@ public class RefuelItemDetailFragment extends Fragment  {
                  }
              });
 
-            ((TextView) rootView.findViewById(R.id.refuelitem_detail_flightCode)).setText(mItem.getFlightCode());
+            ((TextView) rootView.findViewById(R.id.new_refuel_flightCode)).setText(mItem.getFlightCode());
             ((TextView) rootView.findViewById(R.id.refuelitem_detail_aircraftCode)).setText(mItem.getAircraftCode());
             ((TextView) rootView.findViewById(R.id.refuelitem_detail_parking)).setText(mItem.getParkingLot());
             ((TextView) rootView.findViewById(R.id.refuelitem_detail_estimateAmount)).setText(String.format("%.2f",mItem.getEstimateAmount()));

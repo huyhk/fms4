@@ -1,102 +1,163 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".SettingActivity">
-    <include
+
+    <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
-        layout="@layout/toolbar"
-        app:layout_constraintBottom_toTopOf="parent"></include>
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/toolbar_height"
+        android:background="@color/colorPrimary">
 
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:text="@string/lcr_ip_address"
-        android:visibility="visible"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/txtTruckNo" />
+        <Button
+            android:id="@+id/btnTest"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="112dp"
+            android:text="@string/connection_check"
+            android:visibility="gone"
+            app:layout_constraintStart_toEndOf="@id/txtIP"
+            app:layout_constraintTop_toTopOf="parent" />
 
+        <Button
+            android:id="@+id/btnUpdate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:enabled="true"
+            android:text="@string/save"
+            android:layout_gravity="right"
+            app:layout_constraintStart_toEndOf="@id/txtPrinter"
+            app:layout_constraintTop_toTopOf="@id/txtPrinter" />
+    </androidx.appcompat.widget.Toolbar>
 
-    <EditText
-        android:id="@+id/txtIP"
-        android:layout_width="268dp"
-        android:layout_height="46dp"
-        android:layout_marginStart="16dp"
-        android:digits="0123456789."
-        android:ems="10"
-        android:hint="192.168.1.30"
-        android:inputType="number"
-        android:visibility="visible"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/textView" />
-
-    <Button
-        android:id="@+id/btnTest"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="44dp"
-        android:layout_marginTop="112dp"
-        android:text="@string/connection_check"
-        app:layout_constraintStart_toEndOf="@+id/txtIP"
-        app:layout_constraintTop_toTopOf="parent"
+    <ProgressBar
+        android:id="@+id/loading_bar"
+        style="@style/Widget.AppCompat.ProgressBar"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
         android:visibility="gone" />
+
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp">
+
+        <TextView
+            android:id="@+id/lblIMEI"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.25"
+            android:gravity="right"
+            android:text="Số IMEI"
+            android:visibility="visible"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/toolbar" />
+
+        <EditText
+            android:id="@+id/txtIMEI"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_weight="0.25"
+            android:digits="0123456789."
+            android:editable="false"
+            android:inputType="number"
+            android:visibility="visible"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/lblIMEI" />
+
+        <TextView
+            android:id="@+id/lblTruckNo"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.25"
+            android:gravity="right"
+            android:text="Số xe"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/txtIMEI" />
+
+        <Spinner
+            android:id="@+id/spinner_truck"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="10dp"
+            android:layout_weight="0.25"
+            android:spinnerMode="dropdown" />
+    </TableRow>
+
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp">
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.25"
+            android:gravity="right"
+            android:text="@string/lcr_ip_address"
+            android:visibility="visible"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/txtTruckNo" />
+
+        <EditText
+            android:id="@+id/txtIP"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_weight="0.25"
+            android:digits="0123456789."
+            android:ems="10"
+            android:hint="192.168.1.30"
+            android:inputType="number"
+            android:visibility="visible"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/textView" />
+
+        <TextView
+            android:id="@+id/lblPrinter"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.25"
+            android:gravity="right"
+            android:text="@string/printer_address"
+            android:visibility="visible"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/txtIP" />
+
+        <EditText
+            android:id="@+id/txtPrinter"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_weight="0.25"
+            android:digits="0123456789."
+            android:ems="10"
+            android:inputType="number"
+            android:visibility="visible"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/lblPrinter" />
+
+    </TableRow>
+
 
     <EditText
         android:id="@+id/txtTruckNo"
         android:layout_width="268dp"
         android:layout_height="46dp"
         android:layout_marginStart="16dp"
-        android:textAllCaps="true"
+        android:ems="10"
         android:inputType="textCapCharacters"
-        android:ems="10"
+        android:textAllCaps="true"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/lblTruckNo" />
+        app:layout_constraintTop_toBottomOf="@id/lblTruckNo"
+        android:visibility="gone" />
 
-    <EditText
-        android:id="@+id/txtPrinter"
-        android:layout_width="268dp"
-        android:layout_height="46dp"
-        android:layout_marginStart="16dp"
-        android:digits="0123456789."
-        android:ems="10"
-        android:inputType="number"
-        android:visibility="visible"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/lblPrinter" />
 
-    <Button
-        android:id="@+id/btnSave"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:enabled="true"
-        android:text="@string/save"
-        app:layout_constraintStart_toEndOf="@id/txtTruckNo"
-        app:layout_constraintTop_toTopOf="@id/txtTruckNo" />
-
-    <TextView
-        android:id="@+id/lblTruckNo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="10dp"
-        android:text="Số xe"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbar" />
-
-    <TextView
-        android:id="@+id/lblPrinter"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="10dp"
-        android:text="Địa chỉ IP máy in"
-        android:visibility="visible"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/txtIP" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>
