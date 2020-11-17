@@ -66,8 +66,6 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
         {
            setConnectionCheckmark(CONNECTION_STATUS.OK);
         }
-
-
     }
 
     private void setConnectionCheckmark(CONNECTION_STATUS status) {
@@ -180,7 +178,10 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
 
             Spinner airline_spinner = findViewById(R.id.refuelitem_detail_airline_spinner);
             airline_spinner.setAdapter(spinnerAdapter);
-
+//            if (mItem.getAirlineId()<=0 && airline_spinner.getCount()>0)
+//            {
+//                mItem.setAirlineId(((AirlineModel) airline_spinner.getItemAtPosition(0)).getId());
+//            }
             if (mItem.getAirlineId()>0) {
                 for (int i=0;i<airline_spinner.getCount();i++)
                 {

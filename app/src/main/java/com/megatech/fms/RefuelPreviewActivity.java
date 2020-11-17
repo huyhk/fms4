@@ -110,7 +110,10 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
 
         Spinner airline_spinner = findViewById(R.id.refuel_preview_airline_spinner);
         airline_spinner.setAdapter(spinnerAdapter);
+        if (refuelData.getAirlineId()<=0)
+        {
 
+        }
         if (refuelData.getAirlineId() > 0) {
             for (int i = 0; i < airline_spinner.getCount(); i++) {
                 AirlineModel item = (AirlineModel) airline_spinner.getItemAtPosition(i);
