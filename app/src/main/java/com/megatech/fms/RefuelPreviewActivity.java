@@ -175,7 +175,7 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
         dialog.findViewById(R.id.btnPrintConfirm).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                printInvoice();
+                printInvoice(!single);
                 dialog.dismiss();
             }
         });
@@ -190,8 +190,8 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
         dialog.show();
     }
 
-    private void printInvoice() {
-        if (!new PrintWorker(this).printItem(refuelData, true)) {
+    private void printInvoice(boolean printInvoice) {
+        if (!new PrintWorker(this).printItem(refuelData, printInvoice)) {
             refuelData.setPrintStatus(RefuelItemData.ITEM_PRINT_STATUS.ERROR);
         }
 

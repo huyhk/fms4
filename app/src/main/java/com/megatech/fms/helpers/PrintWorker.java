@@ -40,7 +40,8 @@ public class PrintWorker implements Observer {
     }
 
     public boolean printItem(RefuelItemData mItem, boolean printInvoice) {
-
+        if (!printInvoice)
+            return printSingle(mItem);
         Locale locale = new Locale("vi", "VN");
         Locale.setDefault(locale);
         String truckInfo = String.format("%12s %,15.0f / %,-15.0f   %,12.0f\n", mItem.getTruckNo(), mItem.getStartNumber(), mItem.getStartNumber() + mItem.getRealAmount(), mItem.getVolume());
@@ -130,6 +131,72 @@ public class PrintWorker implements Observer {
         }
         return true;
     }
+
+    public boolean printSingle(RefuelItemData mItem) {
+
+        Locale locale = new Locale("vi", "VN");
+        Locale.setDefault(locale);
+        String truckInfo = String.format("%12s %,15.0f / %,-15.0f   %,12.0f\n", mItem.getTruckNo(), mItem.getStartNumber(), mItem.getStartNumber() + mItem.getRealAmount(), mItem.getVolume());
+        double realAmount = mItem.getRealAmount();
+        double saleAmount = mItem.getAmount();
+        double volume = mItem.getVolume();
+        double weight = mItem.getWeight();
+        double taxRate = mItem.getTaxRate();
+        double vatAmount = mItem.getVATAmount();
+        double totalSaleAmount = mItem.getTotalAmount();
+        double price = mItem.getPrice();
+        double temperature = mItem.getManualTemperature();
+        double density = mItem.getDensity();
+
+        double totalT = volume;
+        double totalP = temperature * volume;
+
+
+        truckInfo +=" \n \n \n \n \n";
+
+        itemToPrint = mItem;
+        FMSApplication app = FMSApplication.getApplication();
+        SimpleDateFormat format = new SimpleDateFormat("          dd           MM         yyyy\n");
+        SimpleDateFormat timeformat = new SimpleDateFormat("HH:mm");
+        dataToPrint = new ArrayList<String>(Arrays.asList(
+                new String(new char[]{27,51,15}),
+                new String(new char[]{27,51,42}),
+                format.format(mItem.getStartTime()) + "\n",
+                new String(new char[]{27,51,20}),
+                "\n",
+                String.format("                         %s\n",mItem.getQualityNo()),
+                String.format("                       %s  %s                       %s\n", timeformat.format((mItem.getStartTime())), timeformat.format(mItem.getEndTime()), VNCharacterUtils.removeAccent(mItem.getProductName())),
+
+                new String(new char[]{27,51,8}),
+
+                new String(new char[]{27,51,14}),
+                //String.format("    %s           %.0f    %.0f                    %.2f\n",mItem.getTruckNo()  ,mItem.getStartNumber(), mItem.getEndNumber(), mItem.getVolume()),
+                truckInfo,
+
+                String.format("                   %s\n", VNCharacterUtils.removeAccent(mItem.getAirlineModel().getInvoiceName())),
+                String.format("                   %s\n", mItem.getAirlineModel().getInvoiceTaxCode()),
+                String.format("             %s\n", VNCharacterUtils.removeAccent(mItem.getAirlineModel().getInvoiceAddress())),
+                String.format("                    %-10s                          %s\n", mItem.getAircraftType(),mItem.getAircraftCode()),
+                String.format("                    %-10s                       %s\n",mItem.getFlightCode(),mItem.getRouteName()),
+                String.format("                            %.2f                       %.4f\n", temperature, density),
+                String.format("                 %,.0f                                %,.0f\n", realAmount, weight),
+                String.format("                 %,.0f                                \n", volume)
+
+        ));
+        try {
+            String printerAddress = FMSApplication.getApplication().getPrinterAddress();
+            this.mTcpClient = new TcpClient(printerAddress, PRINTER_PORT);
+            this.mTcpClient.addObserver(this);
+            this.mTcpClient.connect();
+
+        }
+        catch (Exception e)
+        {
+            Log.e("ERROR", e.toString());
+            return false;
+        }
+        return true;
+    }
     private int printData() {
         //send the first data line and then remove from array
         if (dataToPrint.size()>0) {
@@ -146,8 +213,8 @@ public class PrintWorker implements Observer {
         switch (event.getTcpEventType()) {
             case CONNECTION_FAILED:
                 activity.runOnUiThread(new Runnable() {
-                    public void run() {
-                        new AlertDialog.Builder(activity)
+                       public void run() {
+                            new AlertDialog.Builder(activity)
                                 .setTitle("FMS Delivery")
                                 .setMessage(activity.getString(R.string.printer_error))
                                 .setIcon(R.drawable.ic_error)

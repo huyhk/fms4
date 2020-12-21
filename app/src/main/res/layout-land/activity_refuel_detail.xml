@@ -126,10 +126,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="0.25"
-                            android:drawableLeft="@drawable/ic_edit"
                             android:focusable="false"
-                            android:hint="@string/touch_to_edit"
-                            android:onClick="onClick"
                             android:padding="5dp"
                             android:text="@{mItem.airlineModel.name}" />
 
@@ -156,10 +153,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="0.25"
-                            android:drawableLeft="@drawable/ic_edit"
                             android:focusable="false"
-                            android:hint="@string/touch_to_edit"
-                            android:onClick="onClick"
                             android:padding="5dp"
                             android:text="@{mItem.aircraftCode}"
                             android:textIsSelectable="true"
@@ -189,10 +183,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="0.25"
-                            android:drawableStart="@drawable/ic_edit"
                             android:focusable="false"
-                            android:hint="@string/touch_to_edit"
-                            android:onClick="onClick"
                             android:padding="5dp"
                             android:text="@{mItem.parkingLot}"
                             android:textIsSelectable="true" />
@@ -312,10 +303,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="0.25"
-                            android:drawableLeft="@drawable/ic_edit"
                             android:focusable="false"
-                            android:hint="@string/touch_to_edit"
-                            android:onClick="onClick"
                             android:padding="5dp"
                             android:text='@{String.format("%.2f",mItem.manualTemperature)}'
                             android:textIsSelectable="true" />
@@ -344,10 +332,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="0.25"
-                            android:drawableLeft="@drawable/ic_edit"
                             android:focusable="false"
-                            android:hint="@string/touch_to_edit"
-                            android:onClick="onClick"
                             android:padding="5dp"
                             android:text='@{String.format("%.4f",mItem.density)}'
                             android:textIsSelectable="true" />
@@ -384,10 +369,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="0.25"
-                            android:drawableStart="@drawable/ic_edit"
                             android:focusable="false"
-                            android:hint="@string/touch_to_edit"
-                            android:onClick="onClick"
                             android:padding="5dp"
                             android:text='@{mItem.qualityNo}'
                             android:textIsSelectable="true" />
@@ -407,10 +389,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="0.25"
-                            android:drawableLeft="@drawable/ic_edit"
                             android:focusable="false"
-                            android:hint="@string/touch_to_edit"
-                            android:onClick="onClick"
                             android:padding="5dp"
                             android:text='@{String.format("%.0f%%",mItem.taxRate*100)}' />
 

@@ -25,6 +25,7 @@ public class FMSApplication extends Application implements LifecycleObserver {
         cApp = this;
     }
 
+
     public AppDatabase getDatabase() {
         return AppDatabase.getInstance(this);
     }
