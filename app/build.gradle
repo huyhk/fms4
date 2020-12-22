@@ -3,15 +3,15 @@ apply plugin: 'com.google.gms.google-services'
 android {
     signingConfigs {
         release {
-            storeFile file('C:\\Users\\huy\\Documents\\FMS\\fms-release.jks')
+            storeFile file('C:\\Users\\VNS\\fms.jks')
             storePassword 'megatech'
-            keyAlias = 'key1'
+            keyAlias = 'key0'
             keyPassword 'megatech'
         }
         debug {
-            storeFile file('C:\\Users\\huy\\Documents\\FMS\\fms-release.jks')
+            storeFile file('C:\\Users\\VNS\\fms.jks')
             storePassword 'megatech'
-            keyAlias = 'key1'
+            keyAlias = 'key0'
             keyPassword 'megatech'
         }
     }

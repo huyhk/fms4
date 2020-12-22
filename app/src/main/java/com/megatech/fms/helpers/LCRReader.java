@@ -799,10 +799,13 @@ public class LCRReader {
                 // Format setText string
                 if (dataListener!=null) {
                     try {
-                        if (model.getStartMeterNumber() <= 0)
-                            model.setStartMeterNumber(numberFormat.parse(responseField.getNewValue()).floatValue());
+                        float value = numberFormat.parse(responseField.getNewValue()).floatValue();
 
-                        model.setEndMeterNumber(numberFormat.parse(responseField.getNewValue()).floatValue());
+                        model.setEndMeterNumber(value);
+                        if (model.getStartMeterNumber() <= 0) {
+                            model.setStartMeterNumber(value - model.getGrossQty());
+
+                        }
                         dataListener.onDataChanged(model);
                     } catch (ParseException e)
                     {}
