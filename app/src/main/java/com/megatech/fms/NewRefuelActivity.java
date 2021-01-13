@@ -109,6 +109,7 @@ public class NewRefuelActivity extends UserBaseActivity implements View.OnClickL
                 else {
                     refuelData.setAirlineId(selected.getId());
                     refuelData.setPrice(selected.getPrice());
+                    refuelData.setCurrency(selected.getCurrency());
                     refuelData.setProductName(selected.getProductName());
                     refuelData.setAirlineModel(selected);
 

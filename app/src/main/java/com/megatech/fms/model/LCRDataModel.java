@@ -1,9 +1,13 @@
 package com.megatech.fms.model;
 
+import android.util.Log;
+
 import java.util.Date;
 
 public class LCRDataModel {
 
+    private boolean volFlag = false;
+    private boolean totalFlag = false;
     private int flightId;
 
     public int getFlightId() {
@@ -31,8 +35,15 @@ public class LCRDataModel {
 
         return grossQty;
     }
-    public void setGrossQty(float qty){
+    public void setGrossQty(float qty) {
         this.grossQty = qty;
+
+        //if ( !(volFlag )){
+            Log.e("FMS",Float.toString(endMeterNumber) + " - " + Float.toString(this.grossQty));
+            this.setStartMeterNumber(this.endMeterNumber - this.grossQty);
+        //}
+
+        //volFlag = true;
     }
     private float netQty;
 
@@ -101,5 +112,11 @@ public class LCRDataModel {
 
     public void setEndMeterNumber(float endMeterNumber) {
         this.endMeterNumber = endMeterNumber;
+        //if ( !(totalFlag)){
+            Log.e("FMS",Float.toString(endMeterNumber) + " - " + Float.toString(this.grossQty));
+            this.setStartMeterNumber(this.endMeterNumber - this.grossQty);
+        //}
+
+        //totalFlag = true;
     }
 }

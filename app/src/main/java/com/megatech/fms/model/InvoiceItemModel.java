@@ -8,6 +8,7 @@ public class InvoiceItemModel {
     private double endNumber;
     private double realAmount;
     private double volume;
+    private boolean isReturn;
 
     public double getStartNumber() {
         return startNumber;
@@ -26,7 +27,7 @@ public class InvoiceItemModel {
     }
 
     public double getVolume() {
-        return realAmount * GALLON_TO_LITTER;
+        return volume;
     }
 
     public void setVolume(double volume) {
@@ -48,5 +49,13 @@ public class InvoiceItemModel {
 
     public void setRealAmount(double realAmount) {
         this.realAmount = realAmount;
+    }
+
+    public boolean isReturn() {
+        return isReturn;
+    }
+
+    public void setReturn(boolean aReturn) {
+        isReturn = aReturn;
     }
 }

@@ -40,7 +40,7 @@
             android:layout_weight=".16"
             android:gravity="center"
             android:hint="@string/refuel_end"
-            android:text='@{String.format("%,20d",Math.round(truckItem.startNumber + truckItem.realAmount))}' />
+            android:text='@{String.format("%,20d",Math.round( truckItem.endNumber))}' />
 
         <TextView
             android:layout_width="0dp"
@@ -48,7 +48,7 @@
             android:layout_weight=".33"
             android:gravity="center"
             android:hint="@string/real_amount"
-            android:text='@{String.format("%,20.0f",truckItem.volume)}' />
+            android:text='@{String.format("%,20.0f %s",truckItem.volume, truckItem.isReturn?"HT":"")}' />
 
     </LinearLayout>
 </layout>

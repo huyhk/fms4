@@ -75,22 +75,27 @@ public class VersionUpdateActivity extends BaseActivity implements View.OnClickL
 
         @Override
         protected void onPostExecute(String versionInfo) {
-            String[] info = versionInfo.split("\\-");
-            String version = info[0];
-            long newVersion = Long.parseLong(version);
-            long currentVersion = BuildConfig.VERSION_CODE;
+            try {
+                String[] info = versionInfo.split("\\-");
+                String version = info[0];
+                long newVersion = Long.parseLong(version);
+                long currentVersion = BuildConfig.VERSION_CODE;
 
-            if (newVersion > currentVersion) {
-                ((TextView) findViewById(R.id.version_check_message)).setText(getString(R.string.new_version_available));
-                ((TextView) findViewById(R.id.version_check_message)).setTextColor(getResources().getColor(R.color.colorPrimary));
-                findViewById(R.id.btnUpdate).setEnabled(true);
-            } else {
-                ((TextView) findViewById(R.id.version_check_message)).setText(getString(R.string.newest_version_using));
+                if (newVersion > currentVersion) {
+                    ((TextView) findViewById(R.id.version_check_message)).setText(getString(R.string.new_version_available));
+                    ((TextView) findViewById(R.id.version_check_message)).setTextColor(getResources().getColor(R.color.colorPrimary));
+                    findViewById(R.id.btnUpdate).setEnabled(true);
+                } else {
+                    ((TextView) findViewById(R.id.version_check_message)).setText(getString(R.string.newest_version_using));
+                }
+                update_url = API_BASE_URL + "/files/" + "fms-release-" + versionInfo + ".apk";
+                //if (DEBUG)
+                 //   update_url = API_BASE_URL + "/files/" + "fms-debug-" + versionInfo + ".apk";
             }
-            update_url = API_BASE_URL + "/files/" + "fms-release-" + versionInfo + ".apk";
-            if (DEBUG)
-                update_url = API_BASE_URL + "/files/" + "fms-debug-" + versionInfo + ".apk";
-
+            catch (Exception ex)
+            {
+                Toast.makeText(getBaseContext(), R.string.file_update_error,Toast.LENGTH_LONG).show();
+            }
             //super.onPostExecute(aLong);
         }
     }

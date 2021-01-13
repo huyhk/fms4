@@ -18,6 +18,8 @@ import androidx.annotation.Nullable;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.liquidcontrols.lcr.iq.sdk.lc.api.constants.LCR.LCR_COMMAND;
+import com.liquidcontrols.lcr.iq.sdk.lc.api.constants.LCR.LCR_DEVICE_CONNECTION_STATE;
 import com.megatech.fms.model.LCRDataModel;
 import com.megatech.fms.model.RefuelItemData;
 import com.megatech.fms.helpers.HttpClient;
@@ -151,11 +153,21 @@ public class RefuelActivity extends UserBaseActivity  implements View.OnClickLis
             public void onDisconnected() {
 
             }
+
+            @Override
+            public void onCommandError(LCR_COMMAND command) {
+
+            }
+
+            @Override
+            public void onConnectionStateChange(LCR_DEVICE_CONNECTION_STATE state) {
+
+            }
         });
 
         reader.setFieldDataListener(new LCRReader.LCRDataListener() {
             @Override
-            public void onDataChanged(LCRDataModel dataModel) {
+            public void onDataChanged(LCRDataModel dataModel, LCRReader.FIELD_CHANGE field_change) {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {

@@ -3,15 +3,16 @@ apply plugin: 'com.google.gms.google-services'
 android {
     signingConfigs {
         release {
-            storeFile file('C:\\Users\\VNS\\fms.jks')
+            storeFile file('C:\\Users\\huy\\Documents\\FMS\\fms-release.jks')
             storePassword 'megatech'
-            keyAlias = 'key0'
+            keyAlias = 'key1'
             keyPassword 'megatech'
         }
+
         debug {
-            storeFile file('C:\\Users\\VNS\\fms.jks')
+            storeFile file('C:\\Users\\huy\\Documents\\FMS\\fms-release.jks')
             storePassword 'megatech'
-            keyAlias = 'key0'
+            keyAlias = 'key1'
             keyPassword 'megatech'
         }
     }
@@ -20,8 +21,8 @@ android {
         applicationId "com.megatech.fms"
         minSdkVersion 21
         targetSdkVersion 27
-        versionCode 3
-        versionName "1.1.0"
+        versionCode 5
+        versionName "1.2.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         javaCompileOptions {
             annotationProcessorOptions {
@@ -66,7 +67,11 @@ android {
                 }
             }
         }
+
+
+
     }
+
     dataBinding {
         enabled = true
     }

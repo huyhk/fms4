@@ -58,7 +58,10 @@ public class BaseActivity extends AppCompatActivity {
 
     }
 
-
+    @Override
+    public void onBackPressed() {
+        return;
+    }
 
     private void subscribeFCMTopic() {
 //        FirebaseMessaging.getInstance().subscribeToTopic("fms")

@@ -95,7 +95,8 @@ public class RefuelItemData implements Cloneable {
     }
 
     public double getAmount(){
-        return Math.round(getWeight() * getPrice());
+        int precise = this.currency == CURRENCY.VND? 1: 100;
+        return (double)Math.round(getWeight() * getPrice()* precise)/precise;
     }
 
     public double getTaxRate(){
@@ -463,4 +464,95 @@ public class RefuelItemData implements Cloneable {
         }
     }
 
+
+    private String invoiceNumber;
+    private  double returnAmount;
+    private String weightNote;
+
+    public String getInvoiceNumber() {
+        return invoiceNumber;
+    }
+
+    public void setInvoiceNumber(String invoiceNumber) {
+        this.invoiceNumber = invoiceNumber;
+    }
+
+    public double getReturnAmount() {
+        return returnAmount;
+    }
+
+    public void setReturnAmount(double returnAmount) {
+        this.returnAmount = returnAmount;
+    }
+
+    public String getWeightNote() {
+        return weightNote;
+    }
+
+    public void setWeightNote(String weightNote) {
+        this.weightNote = weightNote;
+    }
+
+    public enum CURRENCY {
+        @SerializedName("0") VND(0),
+        @SerializedName("1") USD(1),
+        @SerializedName("2") TEST(2);
+
+
+        private int value;
+
+        CURRENCY(int i) {
+            value = i;
+        }
+    }
+
+    private CURRENCY currency;
+
+    public CURRENCY getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(CURRENCY currency) {
+        this.currency = currency;
+    }
+
+    private  int driverId;
+
+    private  String driverName;
+
+    private int operatorId;
+
+    private String operatorName;
+
+    public int getDriverId() {
+        return driverId;
+    }
+
+    public void setDriverId(int driverId) {
+        this.driverId = driverId;
+    }
+
+    public String getDriverName() {
+        return driverName;
+    }
+
+    public void setDriverName(String driverName) {
+        this.driverName = driverName;
+    }
+
+    public int getOperatorId() {
+        return operatorId;
+    }
+
+    public void setOperatorId(int operatorId) {
+        this.operatorId = operatorId;
+    }
+
+    public String getOperatorName() {
+        return operatorName;
+    }
+
+    public void setOperatorName(String operatorName) {
+        this.operatorName = operatorName;
+    }
 }

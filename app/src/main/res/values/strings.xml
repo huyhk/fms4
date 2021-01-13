@@ -158,8 +158,8 @@
     <string name="not_granted_device_title">Thiết bị</string>
     <string name="no_internet_error">Không kết nối được máy chủ, vui lòng kiểm tra lại</string>
     <string name="qc_no">Số phiếu hóa nghiệm</string>
-
-    <string name="print_invoice">In tất cả </string>
+    <string name="print_all">In tất cả </string>
+    <string name="print_invoice">In hóa đơn </string>
     <string name="estimateAmount">Sản lượng dự kiến</string>
     <string name="departureTime">Giờ cất cánh</string>
     <string name="arrivalTime">Giờ hạ cánh</string>
@@ -221,6 +221,32 @@
     <string name="price">Giá bán</string>
     <string name="printer_error">Lỗi: không kết nối được máy in!</string>
     <string name="print_completed">In thành công</string>
+    <string name="force_stop_confirm">Thiết bị LCR đang bị lỗi, có muốn kết thúc mẻ tra nạp không?</string>
+    <string name="reconnect">Kết nối lại</string>
+    <string name="print_bill">In phiếu xuất kho</string>
+    <string name="operator">Nhân viên tra nạp</string>
+    <string name="driver">Nhân viên lái xe</string>
+    <string name="select_operator">Chọn nhân viên tra nạp</string>
+    <string name="select_driver">Chọn lái xe</string>
+    <string name="return_amount">Hoàn trả</string>
+    <string name="weight_note">Khối lượng tham chiếu</string>
+    <string name="select">Chọn</string>
+    <string name="update_return_amount">Cập nhật khối lượng hoàn trả</string>
+    <string name="update_weight_note">Cập nhật khối lượng tham chiếu</string>
+    <string name="edit_not_allow">Không được sửa thông tin tra nạp trên xe khác</string>
+    <string name="print_current">In mẻ hiện tại</string>
+    <string name="print_bill2">Phiếu đường trường</string>
+    <string name="total_amount">Tổng tiền thanh toán</string>
+    <string name="in_words">Số tiền bằng chữ</string>
+    <string name="invoice_number">Số hóa đơn</string>
+    <string name="invalid_data">Dữ liệu không đúng cú pháp, vui lòng kiểm tra lại</string>
+    <string name="validate">Kiểm tra dữ liệu</string>
+    <string name="invalid_density_temperature">Nhiệt độ và tỷ trọng phải lớn hơn 0, vui lòng kiểm tra lại</string>
+    <string name="meter">Số đồng hồ</string>
+    <string name="check">Chọn</string>
+    <string name="file_update_error">Có lỗi truy cập server, không thể cập nhật version mới.</string>
+    <string name="select_user">Chọn nhân viên</string>
+    <string name="error_same_user">Không thể chọn cùng 1 nhân viên cho 2 vị trí</string>
 
 
     <string-array name="vat_array">

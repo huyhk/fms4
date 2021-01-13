@@ -25,7 +25,7 @@ public class TruckModel {
     private String tabletSerial;
 
 
-    private String deviceIP = "192.168.1.30";
+    private String deviceIP = "192.168.1.1";
     private String printerIP = "192.168.1.1";
     private Integer devicePort = 10001;
     private Integer printerPort = 9100;

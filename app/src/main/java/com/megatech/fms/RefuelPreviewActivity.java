@@ -6,10 +6,12 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
@@ -34,6 +36,8 @@ import com.google.gson.GsonBuilder;
 import com.megatech.fms.databinding.ActivityRefuelPreviewBinding;
 import com.megatech.fms.databinding.InvoicePreviewBinding;
 import com.megatech.fms.databinding.PreviewExtractBinding;
+import com.megatech.fms.databinding.RefuelPreviewItemBinding;
+import com.megatech.fms.databinding.SelectUserBinding;
 import com.megatech.fms.model.AirlineModel;
 import com.megatech.fms.model.InvoiceItemModel;
 import com.megatech.fms.model.InvoiceModel;
@@ -41,16 +45,25 @@ import com.megatech.fms.model.REFUEL_ITEM_STATUS;
 import com.megatech.fms.model.RefuelItemData;
 import com.megatech.fms.helpers.HttpClient;
 import com.megatech.fms.helpers.PrintWorker;
+import com.megatech.fms.model.UserModel;
 import com.megatech.fms.view.InvoiceItemAdapter;
 import com.megatech.fms.view.TruckArrayAdapter;
 
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.IntStream;
+
+import static com.megatech.fms.helpers.PrintWorker.*;
 
 public class RefuelPreviewActivity extends UserBaseActivity implements View.OnClickListener {
 
+    private PrintWorker printWorker;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,10 +73,41 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
             setContentView(R.layout.activity_refuel_preview);
         else
             setContentView(R.layout.preview_extract);
+
         bindData();
 
         Drawable drawable = getResources().getDrawable(R.drawable.ic_edit);
         drawable.setAlpha(90);
+
+        printWorker = new PrintWorker(this);
+        printWorker.setPrintStateListener(new PrintStateListener() {
+            @Override
+            public void onError() {
+                if (refuelData != null)
+                    refuelData.setPrintStatus(RefuelItemData.ITEM_PRINT_STATUS.ERROR);
+            }
+
+            @Override
+            public void onSuccess() {
+                if (refuelData != null)
+                    refuelData.setPrintStatus(RefuelItemData.ITEM_PRINT_STATUS.SUCCESS);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        m_Title = getString(R.string.invoice_number);
+                        showEditDialog(R.id.refuel_preview_invoice_number, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
+
+
+                    }
+                });
+
+
+                if (printDialog !=null)
+                    printDialog.dismiss();
+
+            }
+
+        });
         /*Button btnEdit = findViewById(R.id.btnEdit);
         btnEdit.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -76,9 +120,8 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
 
     private void loadData() {
 
-
         Bundle b = getIntent().getExtras();
-        Integer id = b.getInt("REFUEL_ID", 2);
+        Integer id = b.getInt("REFUEL_ID", 0);
         String mData = b.getString("REFUEL", "");
         if (mData != null && mData != "") {
             Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
@@ -93,7 +136,14 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
         }
 
 
+
+
+
     }
+
+    /// bind data to view
+    ArrayList<RefuelItemData> allItems = new ArrayList<RefuelItemData>();
+    ArrayList<RefuelItemData> printItems = new ArrayList<RefuelItemData>();
 
     private void bindData() {
         if (refuelData.getRefuelItemType() == RefuelItemData.REFUEL_ITEM_TYPE.REFUEL) {
@@ -106,14 +156,11 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
         }
         List<AirlineModel> airlines = (new HttpClient()).getAirlines();
         ArrayAdapter<AirlineModel> spinnerAdapter = new ArrayAdapter<AirlineModel>(this, R.layout.support_simple_spinner_dropdown_item, airlines);
-        spinnerAdapter.setDropDownViewResource(R.layout.support_simple_spinner_dropdown_item);
+        spinnerAdapter.setDropDownViewResource(android.R.layout.select_dialog_singlechoice);
 
         Spinner airline_spinner = findViewById(R.id.refuel_preview_airline_spinner);
         airline_spinner.setAdapter(spinnerAdapter);
-        if (refuelData.getAirlineId()<=0)
-        {
 
-        }
         if (refuelData.getAirlineId() > 0) {
             for (int i = 0; i < airline_spinner.getCount(); i++) {
                 AirlineModel item = (AirlineModel) airline_spinner.getItemAtPosition(i);
@@ -123,29 +170,63 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
                     refuelData.setAirlineId(item.getId());
                     refuelData.setProductName(item.getProductName());
                     refuelData.setAirlineModel(item);
+
+
                     break;
                 }
+            }
+
+            if (refuelData.getOthers().size()>0)
+            {
+                for (int i=0; i<refuelData.getOthers().size(); i++)
+                    refuelData.getOthers().get(i).setAirlineModel(refuelData.getAirlineModel());
             }
         }
 
 
         if (refuelData.getRefuelItemType() == RefuelItemData.REFUEL_ITEM_TYPE.REFUEL) {
-            ArrayList<RefuelItemData> list = new ArrayList<RefuelItemData>();
-            list.add(refuelData);
-            list.addAll(refuelData.getOthers());
-            truckArrayAdapter = new TruckArrayAdapter(this, list);
-            ((ListView) findViewById(R.id.refuel_preview_truck_list)).setAdapter(truckArrayAdapter);
-            ((ListView) findViewById(R.id.refuel_preview_truck_list)).setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
+            allItems.add(refuelData);
+            allItems.addAll(refuelData.getOthers());
+            Collections.sort(allItems, new Comparator<RefuelItemData>() {
+                @Override
+                public int compare(RefuelItemData o1, RefuelItemData o2) {
+                    return o1.getEndTime().compareTo(o2.getEndTime());
                 }
             });
-            TableRow header = findViewById(R.id.rowHeader);
+            int selectedPos = 0;
+            for (int i =0; i<allItems.size(); i++)
+                if (allItems.get(i).getId() == refuelData.getId())
+                    selectedPos = i;
+            truckArrayAdapter = new TruckArrayAdapter(this, allItems);
+            truckArrayAdapter.setSelected(selectedPos);
+            ListView lv = findViewById(R.id.refuel_preview_truck_list);
+            lv.setAdapter(truckArrayAdapter);
+
+            lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    refuelData =  (RefuelItemData)parent.getItemAtPosition(position);
+                    binding.setMItem(refuelData);
+                    isEditable = refuelData.getTruckNo().equals( currentApp.getTruckNo());
+
+
+                    view.setSelected(true);
+                    for (int j = 0; j < parent.getChildCount(); j++)
+                        parent.getChildAt(j).setBackgroundColor(Color.TRANSPARENT);
+
+                    // change the background color of the selected element
+                    view.setBackgroundColor(Color.LTGRAY);
+
+                }
+
+            });
+
+
         }
 
     }
-
+    boolean isEditable = true;
     ActivityRefuelPreviewBinding binding;
     PreviewExtractBinding extractBinding;
     TruckArrayAdapter truckArrayAdapter;
@@ -162,56 +243,149 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
 //        setResult(RESULT_OK);
 //        finish();
     }
+    InvoiceModel invoiceModel;
+    Dialog printDialog;
 
-    private void preview(boolean single) {
-        InvoiceModel model = InvoiceModel.fromRefuel(refuelData, single);
-        Dialog dialog = new Dialog(this);
-        InvoicePreviewBinding binding = DataBindingUtil.inflate(dialog.getLayoutInflater(), R.layout.invoice_preview, null, false);
-        binding.setInvoiceItem(model);
-        dialog.setContentView(binding.getRoot());
+    //validate data before print preview
+    private  boolean validate()
+    {
+        if (printMode == PRINT_MODE.ONE_ITEM)
+        {
+            return refuelData.getManualTemperature()>0 && refuelData.getDensity()>0;
+        }
+        else
+        {
 
-        InvoiceItemAdapter itemAdapter = new InvoiceItemAdapter(this, model.getItems());
-        ((ListView) dialog.findViewById(R.id.invoice_preview_item_list)).setAdapter(itemAdapter);
-        dialog.findViewById(R.id.btnPrintConfirm).setOnClickListener(new View.OnClickListener() {
+            for (int i=0;i< allItems.size(); i++)
+            {
+                RefuelItemData item = allItems.get(i);
+                if (!(item.getManualTemperature()>0 && item.getDensity()>0)){
+                    truckArrayAdapter.setSelected(i);
+                    ListView lv = findViewById(R.id.refuel_preview_truck_list);
+                    lv.setSelection(i);
+                    refuelData =  item;
+                    binding.setMItem(refuelData);
+                    isEditable = refuelData.getTruckNo().equals( currentApp.getTruckNo());
+                    for (int j = 0; j < lv.getChildCount(); j++)
+                        lv.getChildAt(j).setBackgroundColor(Color.TRANSPARENT);
+                    // change the background color of the selected element
+                    lv.getChildAt(i).setBackgroundColor(Color.LTGRAY);
+                    return false;
+                }
+
+            }
+        }
+        return true;
+    }
+    private void preview() {
+
+        if (!validate()) {
+
+            new AlertDialog.Builder(this)
+                    .setTitle(getString(R.string.validate))
+                    .setMessage(getString(R.string.invalid_density_temperature))
+                    .setIcon(R.drawable.ic_error)
+                    .show();
+
+            return;
+        }
+        invoiceModel = InvoiceModel.fromRefuel(refuelData, printMode == PRINT_MODE.ONE_ITEM? null: allItems);
+        printDialog = new Dialog(this);
+        InvoicePreviewBinding binding = DataBindingUtil.inflate(printDialog.getLayoutInflater(), R.layout.invoice_preview, null, false);
+        binding.setInvoiceItem(invoiceModel);
+        printDialog.setContentView(binding.getRoot());
+        if (refuelData.getReturnAmount()>0)
+            printDialog.findViewById(R.id.btnPrintInvoice).setVisibility(View.INVISIBLE);
+        if (invoiceModel.getItems().size()>3) {
+            printDialog.findViewById(R.id.btnPrintInvoice).setVisibility(View.INVISIBLE);
+            printDialog.findViewById(R.id.btnPrintBill).setVisibility(View.INVISIBLE);
+            printDialog.findViewById(R.id.btnPrintBill2).setVisibility(View.VISIBLE);
+        }
+        InvoiceItemAdapter itemAdapter = new InvoiceItemAdapter(this, invoiceModel.getItems());
+        ((ListView) printDialog.findViewById(R.id.invoice_preview_item_list)).setAdapter(itemAdapter);
+        printDialog.findViewById(R.id.btnPrintInvoice).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                printInvoice(!single);
-                dialog.dismiss();
-            }
-        });
-        dialog.findViewById(R.id.btnPrintCancel).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
+                printInvoice();
             }
         });
 
-        dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        dialog.show();
+        printDialog.findViewById(R.id.btnPrintBill).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                printBill();
+            }
+        });
+
+        printDialog.findViewById(R.id.btnPrintBill2).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                printBill();
+                printDialog.dismiss();
+            }
+        });
+        printDialog.findViewById(R.id.btnPrintCancel).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                printDialog.dismiss();
+            }
+        });
+
+        printDialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        printDialog.show();
     }
 
-    private void printInvoice(boolean printInvoice) {
-        if (!new PrintWorker(this).printItem(refuelData, printInvoice)) {
+    private void printInvoice() {
+        //boolean isOK = new PrintWorker(this).printItem(refuelData, printMode, PRINT_TEMPLATE.INVOICE);
+
+        boolean isOK = printWorker.printInvoice(invoiceModel);
+        if (BuildConfig.DEBUG)
+            isOK = true;
+        if (!isOK) {
             refuelData.setPrintStatus(RefuelItemData.ITEM_PRINT_STATUS.ERROR);
         }
-
+        else
+        {
+            //showEditDialog(R.id.refuel_preview_invoice_number, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
+        }
 
 //        setResult(RESULT_OK);
 //        finish();
 
     }
 
+    private void printBill() {
+        /*if (!new PrintWorker(this).printItem(refuelData, printMode, PRINT_TEMPLATE.BILL)) {
+            refuelData.setPrintStatus(RefuelItemData.ITEM_PRINT_STATUS.ERROR);
+        }
+        */
+        if (!printWorker.printBill(invoiceModel)) {
+            refuelData.setPrintStatus(RefuelItemData.ITEM_PRINT_STATUS.ERROR);
+        }
+
+//        setResult(RESULT_OK);
+//        finish();
+
+    }
     @Override
     public void onClick(View v) {
 
         int id = v.getId();
         switch (id) {
-
-            case R.id.refuel_preview_print_order:
-                preview(true);
+            case R.id.refuel_preview_print_refuel:
+                if (refuelData.getStatus() != REFUEL_ITEM_STATUS.DONE)
+                {
+                    doRefuel();
+                }
                 break;
-            case R.id.refuel_preview_print_invoice:
-                preview(false);
+
+            case R.id.refuel_preview_print_current:
+                printMode = PRINT_MODE.ONE_ITEM;
+                preview();
+                break;
+            case R.id.refuel_preview_print_all:
+                printMode = PRINT_MODE.ALL_ITEM;
+                preview();
                 break;
             case R.id.refuel_preview_new_item:
                 createNewItem();
@@ -221,15 +395,15 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
                 break;
             case R.id.refuel_preview_aircraftCode:
                 m_Title = getString(R.string.update_aircraftCode);
-                showEditDialog(id, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
+                showEditDialog(id, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS,".+");
                 break;
             case R.id.refuel_preview_realAmount:
                 m_Title = getString(R.string.update_real_amount);
-                showEditDialog(id, InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                showEditDialog(id, InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL, "^\\d*(\\.\\d+)?$");
                 break;
             case R.id.refuel_preview_Density:
                 m_Title = getString(R.string.update_density);
-                showEditDialog(id, InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                showEditDialog(id, InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL,"^\\d*(\\.\\d+)?$");
                 break;
             case R.id.refuel_preview_Temperature:
                 m_Title = getString(R.string.update_temparature);
@@ -237,17 +411,31 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
                 break;
             case R.id.refuel_preview_qc_no:
                 m_Title = getString(R.string.update_qc_no);
-                showEditDialog(id, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
+                showEditDialog(id, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS,".+");
                 break;
             case R.id.refuel_preview_parking:
                 m_Title = getString(R.string.update_parking_lot);
-                showEditDialog(id, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
+                showEditDialog(id, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS,".+");
                 break;
             case R.id.refuel_preview_vat:
                 openVatSpinner();
                 break;
             case R.id.refuel_preview_airline:
                 openAirlineSpinner();
+                break;
+            case R.id.refuel_preview_return:
+                m_Title = getString(R.string.update_return_amount);
+                showEditDialog(id, InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL,"^\\d+(\\.\\d+)?$");
+
+                break;
+            case R.id.refuel_preview_weight_note:
+                m_Title = getString(R.string.update_weight_note);
+                showEditDialog(id, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
+
+                break;
+            case R.id.refuel_preview_driver:
+            case R.id.refuel_preview_operator:
+                showSelectUser();
                 break;
             case R.id.btnBack:
                 finish();
@@ -256,6 +444,105 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
 
     }
 
+    private void doRefuel() {
+        if (refuelData != null) {
+            Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
+
+            String data = gson.toJson(refuelData);
+
+            Intent intent = new Intent(this, RefuelDetailActivity.class);
+            intent.putExtra("REFUEL", data);
+            startActivity(intent);
+            finish();
+        }
+    }
+
+    private List<UserModel> userList = null;
+    private void showSelectUser() {
+
+        if (!isEditable)
+        {
+            Toast.makeText(this,R.string.edit_not_allow, Toast.LENGTH_LONG ).show();
+            return;
+        }
+
+        if (userList == null)
+            userList = (new HttpClient()).getUsers();
+        if (userList!=null) {
+            Dialog dialog = new Dialog(this);
+            SelectUserBinding binding = DataBindingUtil.inflate(dialog.getLayoutInflater(), R.layout.select_user, null, false);
+            binding.setRefuelItem(refuelData);
+            dialog.setContentView(binding.getRoot());
+            Spinner spn = (Spinner) dialog.findViewById(R.id.select_user_driver);
+
+            ArrayAdapter<UserModel> spinnerAdapter = new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, userList);
+            spinnerAdapter.setDropDownViewResource(android.R.layout.simple_list_item_single_choice);
+
+            spn.setAdapter(spinnerAdapter);
+            spn.setSelection(findUser(refuelData.getDriverId(), userList));
+
+            spn = (Spinner) dialog.findViewById(R.id.select_user_operator);
+
+            spn.setAdapter(spinnerAdapter);
+            spn.setSelection(findUser(refuelData.getOperatorId(), userList));
+
+            dialog.show();
+
+            dialog.findViewById(R.id.btn_select).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    Spinner spnDriver = (Spinner) dialog.findViewById(R.id.select_user_driver);
+                    UserModel driver = (UserModel)spnDriver.getSelectedItem();
+
+
+                    Spinner spnOperator = (Spinner) dialog.findViewById(R.id.select_user_operator);
+                    UserModel operator = (UserModel)spnOperator.getSelectedItem();
+
+                    if (driver.getId() == operator.getId())
+                    {
+                        new AlertDialog.Builder(dialog.getContext())
+                                .setTitle(R.string.select_user)
+                                .setMessage(R.string.error_same_user)
+                                .setIcon(R.drawable.ic_error)
+                                .show();
+                        return;
+                    }
+
+                    if (driver!=null) {
+                        refuelData.setDriverId(driver.getId());
+                        refuelData.setDriverName(driver.getName());
+                    }
+
+                    if (operator!=null) {
+                        refuelData.setOperatorId(operator.getId());
+                        refuelData.setOperatorName(operator.getName());
+                    }
+
+                    updateBinding();
+                    dialog.dismiss();
+                }
+            });
+
+            dialog.findViewById(R.id.btn_back).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    dialog.dismiss();
+                }
+            });
+        }
+    }
+    private int findUser(int userId, List<UserModel> userList)
+    {
+        int pos = 0;
+        for(UserModel item: userList)
+        {
+            if (item.getId() == userId)
+                return pos;
+            pos++;
+        }
+        return -1;
+    }
     private void updateBinding() {
         new Thread(new Runnable() {
             @Override
@@ -275,13 +562,16 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
     private boolean vatFirstClick = true;
     private boolean airlineFirstClick = true;
 
+    private PRINT_MODE printMode = PRINT_MODE.ALL_ITEM;
+
     private void openVatSpinner() {
 
         Spinner vatSpinner = findViewById(R.id.refuel_preview_vat_spinner);
 
+        ((ArrayAdapter)vatSpinner.getAdapter()).setDropDownViewResource(android.R.layout.select_dialog_singlechoice);
+
         vatSpinner.setVisibility(View.VISIBLE);
         findViewById(R.id.refuel_preview_vat).setVisibility(View.GONE);
-
 
         vatSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -337,6 +627,7 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
                 AirlineModel selected = (AirlineModel) parent.getItemAtPosition(position);
                 refuelData.setAirlineId(selected.getId());
                 refuelData.setPrice(selected.getPrice());
+                refuelData.setCurrency(selected.getCurrency());
                 refuelData.setProductName(selected.getProductName());
                 refuelData.setAirlineModel(selected);
                 airline_spinner.setVisibility(View.GONE);
@@ -355,8 +646,17 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
 
     private String m_Text = "";
     private String m_Title = "";
+    private void showEditDialog(final int id, int inputType)
+    {
+        showEditDialog(id, inputType, ".*");
+    }
+    private void showEditDialog(final int id, int inputType, String pattern) {
 
-    private void showEditDialog(final int id, int inputType) {
+        if (!isEditable)
+        {
+            Toast.makeText(this,R.string.edit_not_allow, Toast.LENGTH_LONG ).show();
+            return;
+        }
 
 
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -383,7 +683,7 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
             @Override
             public void onClick(DialogInterface dialog, int which) {
 
-                doUpdateResult();
+                //doUpdateResult();
 
             }
 
@@ -419,6 +719,18 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
                         //((TextView)findViewById(R.id.refuel_preview_realAmount)).setText(String.format("%.2f",refuelData.getRealAmount()));
 
                         break;
+
+                    case R.id.refuel_preview_return:
+                        refuelData.setReturnAmount(Double.parseDouble(m_Text.replace(",", "")));
+                        break;
+
+                    case R.id.refuel_preview_weight_note:
+                        refuelData.setWeightNote(m_Text);
+                        break;
+                    case R.id.refuel_preview_invoice_number:
+                        refuelData.setInvoiceNumber(m_Text);
+
+                        break;
                 }
                 updateBinding();
             }
@@ -430,12 +742,94 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
             }
         });
 
-        builder.show();
+        final AlertDialog dialog = builder.create();// builder.show();
 
+        dialog.show();
+
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (doUpdateResult())
+                    dialog.dismiss();
+            }
+            private boolean doUpdateResult() {
+
+                m_Text = input.getText().toString();
+                Pattern regex = Pattern.compile(pattern);
+                Matcher matcher = regex.matcher(m_Text);
+                if (!matcher.find())
+                {
+                    Toast.makeText(getBaseContext(), getString(R.string.invalid_data),Toast.LENGTH_LONG).show();
+                    return false;
+                }
+                switch (id) {
+                    case R.id.refuel_preview_aircraftCode:
+                        refuelData.setAircraftCode(m_Text);
+                        //((TextView)findViewById(R.id.lblAircraftNo)).setText(refuelData.getAircraftCode());
+                        break;
+                    case R.id.refuel_preview_Density:
+                        refuelData.setDensity(Double.parseDouble(m_Text.replace(",", "")));
+                        //((TextView)findViewById(R.id.refuel_preview_Density)).setText(String.format("%.2f",refuelData.getDensity()));
+                        break;
+                    case R.id.refuel_preview_Temperature:
+
+                        refuelData.setManualTemperature(Double.parseDouble(m_Text.replace(",", "")));
+                        //((TextView)findViewById(R.id.refuel_preview_Temperature)).setText(String.format("%.2f",refuelData.getManualTemperature()));
+
+                        break;
+                    case R.id.refuel_preview_realAmount:
+                        refuelData.setRealAmount(Double.parseDouble(m_Text.replace(",", "")));
+                        //((TextView)findViewById(R.id.refuel_preview_realAmount)).setText(String.format("%.2f",refuelData.getRealAmount()));
+
+                        break;
+                    case R.id.refuel_preview_qc_no:
+                        refuelData.setQualityNo(m_Text);
+                        //((TextView)findViewById(R.id.refuel_preview_realAmount)).setText(String.format("%.2f",refuelData.getRealAmount()));
+
+                        break;
+                    case R.id.refuel_preview_parking:
+                        refuelData.setParkingLot(m_Text);
+                        //((TextView)findViewById(R.id.refuel_preview_realAmount)).setText(String.format("%.2f",refuelData.getRealAmount()));
+
+                        break;
+
+                    case R.id.refuel_preview_return:
+                        refuelData.setReturnAmount(Double.parseDouble(m_Text.replace(",", "")));
+                        break;
+
+                    case R.id.refuel_preview_weight_note:
+                        refuelData.setWeightNote(m_Text);
+                        break;
+                    case R.id.refuel_preview_invoice_number:
+                        refuelData.setInvoiceNumber(m_Text);
+                        updateAllInvoice();
+                        break;
+                }
+                updateBinding();
+
+                return true;
+            }
+        });
     }
 
+    private  void updateAllInvoice()
+    {
+        if (printMode == PRINT_MODE.ALL_ITEM)
+        {
+            for(RefuelItemData item: allItems) {
+                item.setInvoiceNumber(refuelData.getInvoiceNumber());
+                if (!item.equals((refuelData)))
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            new HttpClient().postRefuel(item);
+                        }
+                    }).start();
+            }
+        }
+    }
     private void toggleEdit() {
-        if (!isEditing) {
+        /*if (!isEditing) {
             findViewById(R.id.edtAircraft).setVisibility(View.VISIBLE);
             findViewById(R.id.edtTemperature).setVisibility(View.VISIBLE);
             findViewById(R.id.edtDensity).setVisibility(View.VISIBLE);
@@ -471,7 +865,7 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
             isEditing = false;
             InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(getWindow().getDecorView().getWindowToken(), 0);
-        }
+        }*/
     }
 
     private void save() {
@@ -497,7 +891,7 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
         } catch (Exception e) {
         }
         updateBinding();
-        toggleEdit();
+        //toggleEdit();
 //        ActivityRefuelPreviewBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_refuel_preview);
 //        binding.setMItem(refuelData);
 

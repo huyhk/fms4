@@ -15,6 +15,7 @@ import com.megatech.fms.model.PermissionModel;
 import com.megatech.fms.model.RefuelItemData;
 import com.megatech.fms.model.ShiftModel;
 import com.megatech.fms.model.TruckModel;
+import com.megatech.fms.model.UserModel;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -129,6 +130,20 @@ public class HttpClient {
         return  null;
     }
 
+    public List<UserModel> getUsers() {
+        String url = API_BASE_URL + "api/users";
+
+        List<UserModel> lst = new ArrayList<UserModel>();
+        try {
+            String data = sendGET(url);
+            JSONArray arr = new JSONArray(data);
+            Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
+            lst = Arrays.asList(gson.fromJson(data, UserModel[].class));
+        } catch (Exception ex) {
+
+        }
+        return lst;
+    }
     public List<TruckModel> getTrucks() {
         String url = API_BASE_URL + "api/trucks";
 
@@ -143,7 +158,6 @@ public class HttpClient {
         }
         return lst;
     }
-
     public String getContent(String url) {
         try {
             return sendGET(url);

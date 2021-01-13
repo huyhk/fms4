@@ -97,8 +97,9 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
 
         if (currentApp.isFirstUse()) {
             setting();
-        } else
-            reader = LCRReader.create(this, currentApp.getDeviceIP(), 10001, true);
+        }
+
+        reader = LCRReader.create(this, currentApp.getDeviceIP(), 10001, true);
 
         setTabData();
 

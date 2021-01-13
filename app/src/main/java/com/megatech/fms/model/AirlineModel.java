@@ -1,6 +1,7 @@
 package com.megatech.fms.model;
 
 import androidx.annotation.NonNull;
+import com.megatech.fms.model.RefuelItemData.CURRENCY;
 
 public class AirlineModel {
     private int id;
@@ -8,6 +9,7 @@ public class AirlineModel {
     private String taxCode;
     private String address;
     private double price;
+    private CURRENCY currency;
     private String productName;
     private String code;
 
@@ -64,6 +66,14 @@ public class AirlineModel {
 
     public void setPrice(double price) {
         this.price = price;
+    }
+
+    public CURRENCY getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(CURRENCY currency) {
+        this.currency = currency;
     }
 
     public String getProductName() {

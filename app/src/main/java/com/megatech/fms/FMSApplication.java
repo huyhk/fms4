@@ -87,7 +87,7 @@ public class FMSApplication extends Application implements LifecycleObserver {
         long loginTime = preferences.getLong("LOGIN_TIME", 0);
         long currentTime = new Date().getTime();
 
-        return token != null && (currentTime - loginTime) / 1000 / 60 < 30;
+        return token != null && (currentTime - loginTime) / 1000 / 60 < 60*12;
 
     }
     private String printerAddress;

@@ -14,58 +14,55 @@
         android:layout_height="match_parent"
         android:padding="5dp">
 
+
         <TextView
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight=".15"
             android:gravity="center"
-            android:hint="@string/refuel_start"
+
             android:text="@{truckItem.truckNo}" />
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight=".15"
+            android:layout_weight=".3"
             android:gravity="center"
-            android:hint="@string/refuel_start"
-            android:text='@{String.format("%,20d",Math.round(truckItem.startNumber))}' />
+            android:hint="@string/meter"
+            android:text='@{String.format("%,d - %,d",Math.round(truckItem.startNumber), Math.round(truckItem.startNumber + truckItem.realAmount))}' />
+
+
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight=".15"
             android:gravity="center"
-            android:hint="@string/refuel_start"
-            android:text='@{String.format("%,20d",Math.round(truckItem.startNumber + truckItem.realAmount))}' />
+            android:hint="@string/real_amount"
+            android:text='@{String.format("%,.0f",truckItem.realAmount)}' />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight=".3"
+            android:gravity="center"
+            android:hint="@string/refuelTime"
+            android:text='@{String.format("%s - %s",truckItem.status == REFUEL_ITEM_STATUS.DONE ? DateUtils.formatDate(truckItem.startTime,"HH:mm:ss"):"",truckItem.status == REFUEL_ITEM_STATUS.DONE ? DateUtils.formatDate(truckItem.endTime,"HH:mm:ss"):"")}' />
+
+
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight=".15"
             android:gravity="center"
-            android:hint="@string/refuel_start"
-            android:text='@{String.format("%,20.0f",truckItem.realAmount)}' />
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight=".15"
-            android:gravity="center"
-            android:hint="@string/refuel_start"
-            android:text='@{truckItem.status == REFUEL_ITEM_STATUS.DONE ? DateUtils.formatDate(truckItem.startTime,"HH:mm:ss"):""}' />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight=".15"
-            android:gravity="center"
-            android:hint="@string/refuel_end"
-            android:text='@{truckItem.status == REFUEL_ITEM_STATUS.DONE ?DateUtils.formatDate(truckItem.endTime,"HH:mm:ss"):""}' />
+            android:text='@{truckItem.invoiceNumber}' />
 
         <CheckedTextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight=".1"
+            android:layout_weight=".05"
             android:checkMark="@{truckItem.status == REFUEL_ITEM_STATUS.DONE ? @drawable/ic_check: null}"
             android:checked="@{truckItem.status== REFUEL_ITEM_STATUS.DONE}"
             android:gravity="center" />

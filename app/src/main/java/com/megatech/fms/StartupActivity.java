@@ -14,7 +14,7 @@ public class StartupActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_startup);
+        //setContentView(R.layout.activity_startup);
 
         if (currentApp.isLoggedin()) {
             Intent intent = new Intent(this, MainActivity.class);

@@ -1119,7 +1119,7 @@ public class TestActivity extends UserBaseActivity {
 
         lcrReader.setFieldDataListener(new LCRReader.LCRDataListener() {
             @Override
-            public void onDataChanged(LCRDataModel dataModel) {
+            public void onDataChanged(LCRDataModel dataModel, LCRReader.FIELD_CHANGE field_change) {
 
                 GsonBuilder builder = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).setDateFormat("dd-MM-yyyy HH:mm:ss");
                 Gson gson = builder.create();
@@ -1169,6 +1169,16 @@ public class TestActivity extends UserBaseActivity {
             @Override
             public void onDisconnected() {
                 lcrReader.stopRequestData();
+
+            }
+
+            @Override
+            public void onCommandError(LCR_COMMAND command) {
+
+            }
+
+            @Override
+            public void onConnectionStateChange(LCR_DEVICE_CONNECTION_STATE state) {
 
             }
         });

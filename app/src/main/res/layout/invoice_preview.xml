@@ -6,6 +6,7 @@
         <import type="com.megatech.fms.helpers.DateUtils" />
 
         <import type="com.megatech.fms.model.REFUEL_ITEM_STATUS" />
+        <import type="com.megatech.fms.model.RefuelItemData.CURRENCY" />
 
         <variable
             name="invoiceItem"
@@ -300,7 +301,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
-                android:text='@{String.format("%,.0f",invoiceItem.price)}' />
+                android:text='@{String.format(invoiceItem.currency == CURRENCY.VND? "%,.0f": "%,.2f",invoiceItem.price)}' />
 
         </TableRow>
 
@@ -320,7 +321,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text='@{String.format("%,.0f",invoiceItem.amount)}' />
+                android:text='@{String.format(invoiceItem.currency == CURRENCY.VND? "%,.0f": "%,.2f",invoiceItem.amount)}' />
 
         </TableRow>
 
@@ -351,7 +352,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
-                android:text='@{String.format("%,.0f",invoiceItem.vatAmount)}' />
+                android:text='@{String.format(invoiceItem.currency == CURRENCY.VND? "%,.0f": "%,.2f",invoiceItem.vatAmount)}' />
 
         </TableRow>
 
@@ -365,13 +366,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
-                android:text="Tổng tiền thanh toán" />
+                android:text="@string/total_amount" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text='@{String.format("%,.0f",invoiceItem.totalAmount)}' />
+                android:text='@{String.format(invoiceItem.currency == CURRENCY.VND? "%,.0f": "%,.2f",invoiceItem.totalAmount)}' />
 
         </TableRow>
 
@@ -385,7 +386,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
-                android:text="Số tiền bằng chữ" />
+                android:text="@string/in_words" />
 
             <TextView
                 android:id="@+id/textView21"
@@ -404,10 +405,26 @@
 
 
             <Button
-                android:id="@+id/btnPrintConfirm"
-                android:layout_width="wrap_content"
+                android:id="@+id/btnPrintInvoice"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="@string/print" />
+                android:layout_weight=".3"
+                android:text="@string/print_invoice" />
+
+            <Button
+                android:id="@+id/btnPrintBill"
+                android:layout_width="0dp"
+                android:layout_weight=".3"
+                android:layout_height="wrap_content"
+                android:text="@string/print_bill" />
+
+            <Button
+                android:id="@+id/btnPrintBill2"
+                android:layout_width="0dp"
+                android:layout_weight=".3"
+                android:layout_height="wrap_content"
+                android:visibility="invisible"
+                android:text="@string/print_bill2" />
 
             <Button
                 android:id="@+id/btnPrintCancel"
