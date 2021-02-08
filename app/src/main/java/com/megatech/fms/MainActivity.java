@@ -60,9 +60,15 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
     protected  void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
+        updateCurrentAmount();
         setToolbar();
+
         toolbarRefuelButton = findViewById(R.id.btnRefuel);
         toolbarExtractButton = findViewById(R.id.btnExtract);
+
+
         //toolbarRefuelButton.setVisibility(View.GONE);
 
         btnUpdate = findViewById(R.id.btnUpdate2);
@@ -95,10 +101,8 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
             }
         });
 
-        if (currentApp.isFirstUse()) {
-            setting();
-        }
 
+        if (!currentApp.isFirstUse())
         reader = LCRReader.create(this, currentApp.getDeviceIP(), 10001, true);
 
         setTabData();
@@ -127,6 +131,11 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
                 return false;
             }
         });
+    }
+
+    private void updateCurrentAmount() {
+        //currentApp.initCurrentAmount( new HttpClient().getTruckAmount(currentApp.getTruckNo()));
+
     }
 
 

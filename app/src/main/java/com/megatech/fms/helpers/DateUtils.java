@@ -4,17 +4,40 @@ import androidx.databinding.InverseMethod;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 public class DateUtils {
 
+    private static Date truncateTime(Date d)
+    {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime( d);
+        cal.set(Calendar.HOUR_OF_DAY,0);
+        cal.set(Calendar.MINUTE,0);
+        cal.set(Calendar.SECOND,0);
+        cal.set(Calendar.MILLISECOND,0);
+        return cal.getTime();
+    }
+
     public static String formatDate(Date date, String pattern)
     {
         if (date == null) return "";
-        SimpleDateFormat format = new SimpleDateFormat(pattern);
-        return format.format(date);
-    }
 
+        SimpleDateFormat format = new SimpleDateFormat(pattern);
+        return format.format(date) ;
+    }
+    public static String formatDatePlus(Date date, String pattern)
+    {
+        if (date == null) return "";
+
+        Date today = truncateTime(new Date());
+
+        Date day = truncateTime(date);
+
+        SimpleDateFormat format = new SimpleDateFormat(pattern);
+        return format.format(date) + (day.after(today)?"+":"" );
+    }
     public static String getTime(Date date) {
         if (date == null) return "";
         SimpleDateFormat format = new SimpleDateFormat("HH:mm");

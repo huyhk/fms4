@@ -7,7 +7,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 
-public class TruckModel {
+public class TruckModel extends BaseModel {
 
     public TruckModel() {
     }
@@ -16,6 +16,16 @@ public class TruckModel {
         this.truckNo = code;
         this.currentAmount = currentAmount;
 
+    }
+    public TruckModel(String code, int id) {
+        this.truckNo = code;
+        this.id = id;
+
+    }
+    private  String code;
+
+    public String getCode() {
+        return code;
     }
 
     private String truckNo;
@@ -113,7 +123,8 @@ public class TruckModel {
     }
 
     public void setTruckNo(String truckNo) {
-        this.truckNo = truckNo;
+        this.code = this.truckNo = truckNo;
+
     }
 
     private int truckId;
@@ -123,11 +134,12 @@ public class TruckModel {
     }
 
     public void setTruckId(int truckId) {
-        this.truckId = truckId;
+        this.id = this.truckId = truckId;
+
     }
 
     public void setCode(String code) {
-        this.truckNo = code;
+        this.code = this.truckNo = code;
     }
 
     public float getCurrentAmount() {
@@ -157,6 +169,15 @@ public class TruckModel {
         }
     }
 
+    private int id;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.truckId = this.id = id;
+    }
 
     @NonNull
     @Override

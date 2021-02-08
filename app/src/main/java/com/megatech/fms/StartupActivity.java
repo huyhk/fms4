@@ -17,20 +17,49 @@ public class StartupActivity extends BaseActivity {
         //setContentView(R.layout.activity_startup);
 
         if (currentApp.isLoggedin()) {
-            Intent intent = new Intent(this, MainActivity.class);
-            startActivity(intent);
+            if (currentApp.isFirstUse()) {
+                setting();
+            } else {
+                showMain();
+            }
         } else {
 
-            Intent intent = new Intent(this, LoginActivity.class);
-            startActivity(intent);
+            showLogin();
         }
+
+    }
+
+    private void showLogin() {
+        Intent intent = new Intent(this, LoginActivity.class);
+        startActivityForResult(intent,LOGIN_CODE );
+    }
+
+    private void showMain() {
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
         finish();
     }
 
+    private int LOGIN_CODE = 44563;
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if (requestCode == LOGIN_CODE)
+        {
+            if (resultCode == 0 && ! currentApp.isFirstUse()){
+                showMain();
+            }
+            else
+                setting();
+        }
+        else
+        super.onActivityResult(requestCode, resultCode, data);
+    }
 
     private void setting() {
         Intent intent = new Intent(this, SettingActivity.class);
         startActivityForResult(intent, SETTING_CODE);
+        finish();
     }
 
 }

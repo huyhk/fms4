@@ -43,6 +43,7 @@ import com.liquidcontrols.lcr.iq.sdk.lc.api.device.InternalEvent;
 import com.liquidcontrols.lcr.iq.sdk.lc.api.network.NETWORK_TYPE;
 import com.liquidcontrols.lcr.iq.sdk.utils.AsyncCallback;
 import com.liquidcontrols.lcr.iq.sdk.utils.TimeSet;
+import com.megatech.fms.FMSApplication;
 import com.megatech.fms.model.LCRDataModel;
 import com.megatech.fms.R;
 
@@ -58,6 +59,8 @@ import java.text.NumberFormat;
 public class LCRReader {
 
     private boolean deviceError = true;
+    private String serialFieldName = "METERID";
+
     public boolean isDeviceError()
     {
         return  lcrSdk.getDeviceConnectionState(getDeviceId()) == LCR_DEVICE_CONNECTION_STATE.ERROR;
@@ -126,13 +129,20 @@ public class LCRReader {
             doConnectDevice();
     }
     private void onConnected() {
-        lcrSdk.addListener(deviceStatusListener);
+
+        //lcrSdk.addListener(deviceStatusListener);
         if (connectionListener!=null)
             connectionListener.onConnected();
+        isError = false;
     }
+    private void onReconnected()
+    {}
+    private boolean isError = false;
     private void onError() {
-        if (connectionListener!=null)
+
+        if (connectionListener!=null && !isError)
             connectionListener.onError();
+        isError = true;
     }
     private void onConnectionStateChanged(LCR_DEVICE_CONNECTION_STATE state) {
         if (connectionListener !=null)
@@ -172,17 +182,50 @@ public class LCRReader {
         if (lcrSdk != null)
             lcrSdk.quit();
     }
+
+    public void requestSerial() {
+
+        FieldItem serial = findUserFieldByName(serialFieldName);
+        requestFieldData(serial);
+    }
+
     public interface LCRDataListener {
         void onDataChanged(LCRDataModel dataModel, FIELD_CHANGE field_change);
         void onErrorMessage(String errorMsg);
     }
     public  enum FIELD_CHANGE
     {
-        TOTALIZER,
-        GROSSQTY,
-        TEMPERATURE,
-        STARTTIME,
-        ENDTIME
+
+        TOTALIZER ("GROSSMETERQTY"),
+        GROSSQTY("GROSSQTY"),
+        TEMPERATURE("AVGTEMP"),
+        STARTTIME("DELIVERYSTART"),
+        ENDTIME("DELIVERYFINISH"),
+        DATE_FORMAT("DATEFORMAT"),
+        TIME_FORMAT("TIMEFORMAT"),
+        SERIAL("METERID");
+
+        private final String text;
+
+        /**
+         * @param text
+         */
+        FIELD_CHANGE(final String text) {
+            this.text = text;
+        }
+
+        /* (non-Javadoc)
+         * @see java.lang.Enum#toString()
+         */
+        @Override
+        public String toString() {
+            return text;
+        }
+
+        public boolean equals(String text)
+        {
+            return this.text == text;
+        }
     }
     public interface  LCRConnectionListener    {
         void onConnected();
@@ -225,17 +268,32 @@ public class LCRReader {
         startTime = findUserFieldByName("DELIVERYSTART");
         temp = findUserFieldByName("AVGTEMP");
 
+        deviceDateFormat = findUserFieldByName("DATEFORMAT");
+        deviceTimeFormat = findUserFieldByName("TIMEFORMAT");
+
+        requestFieldData(deviceDateFormat);
+        requestFieldData(deviceTimeFormat);
         requestFieldData(startTime);
-        /*
+
         requestFieldData(grossMeter);
         requestFieldData(grossQty);
         requestFieldData(endTime);
-
         requestFieldData(temp);
+
+/*
+        requestFieldData(FIELD_CHANGE.TOTALIZER);
+        requestFieldData(FIELD_CHANGE.GROSSQTY);
+        requestFieldData(FIELD_CHANGE.STARTTIME);
+        requestFieldData(FIELD_CHANGE.ENDTIME);
+        requestFieldData(FIELD_CHANGE.TEMPERATURE);
+        requestFieldData(FIELD_CHANGE.DATE_FORMAT);
+        requestFieldData(FIELD_CHANGE.TIME_FORMAT);
         */
+
     }
     public void stopRequestData()
     {
+        /*
         grossQty = findUserFieldByName("GROSSQTY");
         grossMeter = findUserFieldByName("GROSSMETERQTY");
         endTime = findUserFieldByName("DELIVERYFINISH");
@@ -247,8 +305,35 @@ public class LCRReader {
         removeFieldData(endTime);
         removeFieldData(startTime);
         removeFieldData(temp);
+        */
 
     }
+    private void requestFieldData(FIELD_CHANGE fieldName) {
+        if (fieldName !=null) {
+
+            FieldItem field = lcrSdk.fieldToolsFindField(getDeviceId(), fieldName.toString());
+            if (field!=null)
+            lcrSdk.requestFieldData(
+                    getDeviceId(),
+                    new RequestField(
+                            field,
+                            new TimeSet(1, TimeUnit.MILLISECONDS)),
+                    new AsyncCallback() {
+                        @Override
+                        public void onAsyncReturn(@Nullable Throwable throwable) {
+                            if (throwable != null) {
+                                raiseError("SDK : Request command for field " + field.getFieldName() + " failed : " + throwable.getLocalizedMessage());
+                            } else {
+                                raiseError("SDK : Request command for field " + field.getFieldName() + " success");
+                            }
+                        }
+                    });
+            else
+                raiseError("NULL field: "+ fieldName);
+        }
+
+    }
+
     private void requestFieldData(final FieldItem field) {
         if (field !=null)
         lcrSdk.requestFieldData(
@@ -268,6 +353,7 @@ public class LCRReader {
                 });
     }
     private void removeFieldData(final FieldItem field) {
+        if (field!=null)
         lcrSdk.removeFieldDataRequest(getDeviceId(), field);
 
     }
@@ -283,6 +369,7 @@ public class LCRReader {
     }
     private void onStarted()
     {
+
         isStarted = true;
         requestData();
         if (stateListener !=null ){
@@ -291,12 +378,13 @@ public class LCRReader {
     }
     private void onStopped()
     {
+
         isStopped = false;
         stopRequestData();
         if (stateListener !=null ){
             stateListener.onStop();
         }
-
+        isStarted = false;
     }
 
     private void onEnded() {
@@ -312,23 +400,27 @@ public class LCRReader {
 
     }
     private boolean isStopped = false;
-    public void end()
-    {
+    private boolean isRestart = false;
+    public void end( ){
+        end(false);
+    }
+    public void end(boolean restart ) {
         isStopped = false;
+        this.isRestart = restart;
         sendCommand(LCR_COMMAND.END_DELIVERY);
     }
 
     private void sendCommand(LCR_COMMAND command)
     {
         if (lcrSdk!=null) {
-            LCR_DEVICE_CONNECTION_STATE state = lcrSdk.getDeviceConnectionState(getDeviceId());
-            if (state == LCR_DEVICE_CONNECTION_STATE.CONNECTED)
+            //LCR_DEVICE_CONNECTION_STATE state = lcrSdk.getDeviceConnectionState(getDeviceId());
+            //if (state == LCR_DEVICE_CONNECTION_STATE.CONNECTED)
                 lcrSdk.addDeviceCommand(getDeviceId(), command);
 
-            else
-            {
-                raiseError(context.getString(R.string.lcr_connection_error));
-            }
+            //else
+            //{
+            //    raiseError(context.getString(R.string.lcr_connection_error));
+            //}
         }
 
     }
@@ -377,9 +469,12 @@ public class LCRReader {
     private FieldItem startTime = null;
     private FieldItem endTime = null;
     private FieldItem grossMeter = null;
+    private FieldItem deviceDateFormat = null;
+    private FieldItem deviceTimeFormat = null;
 
     public void  init( )
     {
+
 
         Log.e("D", "call init()");
         lcrSdk.init(new AsyncCallback() {
@@ -728,6 +823,7 @@ public class LCRReader {
 
 
 
+    SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
 
     /** Listener to handle all Field operation events */
     public FieldListener fieldListener = new FieldListener() {
@@ -746,7 +842,6 @@ public class LCRReader {
                 @NonNull String deviceId,
                 @NonNull DeviceInfo deviceInfo,
                 @Nullable List<FieldItem> fields) {
-
             // Clear local list
             availableLCRFields.clear();
             if(fields != null) {
@@ -773,8 +868,9 @@ public class LCRReader {
                 @NonNull RequestField requestField) {
 
             // Temporary variables for unit information
-            String strMeasureUnit = "unknown";
-            String strRateBaseUnit = "unknown";
+            FieldItem responseFieldItem = responseField.getFieldItem();
+
+            String responseFieldName = responseFieldItem.getFieldName();
 
             Locale locale = Locale.getDefault();
             NumberFormat numberFormat = NumberFormat.getInstance(locale);
@@ -782,11 +878,33 @@ public class LCRReader {
 
             // For not log items what is displayed in separated fields
             Boolean showInLog = true;
-            SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yy HH:mm:ss");
 
-            // Get data to show in text views
+            if (responseFieldName.equals(FIELD_CHANGE.SERIAL.toString()))
+            {
+                model.setSerialId(responseField.getNewValue());
+                onDataChanged(model, FIELD_CHANGE.SERIAL);
+            }
+            if(responseFieldName.equals(FIELD_CHANGE.DATE_FORMAT.toString())) {
+                try {
+                    int dateF = numberFormat.parse(responseField.getNewValue()).intValue();
+                    String pattern = dateFormat.toPattern();
+                    if (dateF == 1)
+                    {
+                        dateFormat.applyPattern("dd/MM/yy HH:mm:ss");
+                    }
+                    else
+                        dateFormat.applyPattern("MM/dd/yy HH:mm:ss");
+                }
+                catch (Exception ex)
+                {
 
-            if(requestField.getItemToRequest().equals(grossQty)) {
+                }
+                onDataChanged(model, FIELD_CHANGE.DATE_FORMAT);
+            }
+
+
+
+            if(responseFieldName.equals(FIELD_CHANGE.GROSSQTY.toString())) {
                 // Set logger off for this field
                 showInLog = false;
                 // Format setText string
@@ -798,8 +916,8 @@ public class LCRReader {
                     }
                 }
             }
-            if(requestField.getItemToRequest().equals(startTime)) {
-                // Set logger off for this field
+            if(responseFieldName.equals(FIELD_CHANGE.STARTTIME.toString())) {
+                // Set logger off for this fiel
                 showInLog = false;
                 // Format setText string
                 if (dataListener!=null) {
@@ -810,7 +928,7 @@ public class LCRReader {
                     }
                 }
             }
-            if(requestField.getItemToRequest().equals(endTime)) {
+            if(responseFieldName.equals(FIELD_CHANGE.ENDTIME.toString())) {
                 // Set logger off for this field
                 showInLog = false;
                 if (dataListener!=null) {
@@ -824,7 +942,7 @@ public class LCRReader {
                 }
             }
 
-            if(requestField.getItemToRequest().equals(grossMeter)) {
+            if(responseFieldName.equals(FIELD_CHANGE.TOTALIZER.toString())) {
                 // Set logger off for this field
                 showInLog = false;
                 // Format setText string
@@ -834,18 +952,14 @@ public class LCRReader {
 
                         model.setEndMeterNumber(value);
 
-                        /*
-                        if (model.getStartMeterNumber() <= 0) {
-                            model.setStartMeterNumber(value - model.getGrossQty());
-                        }
-                        */
+
                         onDataChanged(model, FIELD_CHANGE.TOTALIZER);
                     } catch (ParseException e)
                     {}
 
                 }
             }
-            if(requestField.getItemToRequest().equals(temp)) {
+            if(responseFieldName.equals(FIELD_CHANGE.TEMPERATURE.toString())) {
                 // Set logger off for this field
                 showInLog = false;
                 // Format setText string
@@ -1062,17 +1176,25 @@ public class LCRReader {
 
     private void onDataChanged(LCRDataModel model, FIELD_CHANGE field_change) {
 
-        if (dataListener != null)
-            dataListener.onDataChanged(model, field_change);
 
+        if (field_change == FIELD_CHANGE.DATE_FORMAT)
+        {
+            removeFieldData(findUserFieldByName("DATEFORMAT"));
+            //removeFieldData(deviceTimeFormat);
+
+        }
+        if (field_change == FIELD_CHANGE.SERIAL)
+        {
+            //removeFieldData(deviceDateFormat);
+            removeFieldData(findUserFieldByName(serialFieldName));
+
+        }
         if (field_change == FIELD_CHANGE.STARTTIME) {
             removeFieldData(startTime);
 
-            requestFieldData(grossMeter);
-            requestFieldData(grossQty);
-            requestFieldData(endTime);
-            requestFieldData(temp);
         }
+        if (dataListener != null)
+            dataListener.onDataChanged(model, field_change);
     }
 
     /** Device command listener */
@@ -1164,10 +1286,18 @@ public class LCRReader {
             // Set switch state text
 
             raiseError("Switch state : " + oldValue + " -> " + newValue);
+
+            //if(newValue == LCR_SWITCH_STATE.SWITCH_RUN) {
+            //    onConnected();
+            //}
         }
 
     };
     private boolean isStarted = false;
+    public boolean isStarted()
+    {
+        return  isStarted;
+    }
     /** Listener for most of Device status and state information */
     public DeviceStatusListener deviceStatusListener = new DeviceStatusListener() {
 
@@ -1208,8 +1338,11 @@ public class LCRReader {
 
             if (newValue == LCR_DEVICE_STATE.STATE_RUN)
                 onStarted();
-            if (newValue == LCR_DEVICE_STATE.STATE_END_DELIVERY)
+            if (newValue == LCR_DEVICE_STATE.STATE_END_DELIVERY) {
                 isStopped = true && isStarted;
+            if (isRestart)
+                    onStopped();
+            }
 
         }
 
@@ -1411,7 +1544,7 @@ public class LCRReader {
                 @NonNull String deviceId,
                 @NonNull DeviceInfo deviceInfo,
                 @NonNull LCRCommunicationException cause) {
-
+            /*
             Log.e("ERROR_EVENT", "---------------------------------");
             Log.e("ERROR_EVENT", "Error event from : " + deviceId);
             Log.e("ERROR_EVENT", "-------- event data start--------");
@@ -1422,6 +1555,7 @@ public class LCRReader {
                 Log.e("ERROR_EVENT", lineNumber++ + " - " + event.getData());
             }
             Log.e("ERROR_EVENT", "--------- event data end ---------");
+            */
         }
 
         /**
@@ -1439,6 +1573,15 @@ public class LCRReader {
                 @NonNull DeviceInfo deviceInfo,
                 @Nullable LCR_COMMUNICATION_STATUS newValue,
                 @Nullable LCR_COMMUNICATION_STATUS oldValue) {
+
+            raiseError("Communication status changed: " + oldValue + " -> "+ newValue);
+            if (newValue == LCR_COMMUNICATION_STATUS.ERROR || newValue == LCR_COMMUNICATION_STATUS.RETRY)
+                onError();
+            if ((newValue == LCR_COMMUNICATION_STATUS.QUEUED
+                    || newValue == LCR_COMMUNICATION_STATUS.OK)
+                    && (oldValue == LCR_COMMUNICATION_STATUS.RETRY
+            || oldValue == LCR_COMMUNICATION_STATUS.ERROR))
+                onConnected();
         }
     };
 
@@ -1462,6 +1605,8 @@ public class LCRReader {
                 @Nullable LCR_THREAD_CONNECTION_STATE oldValue) {
 
             // Device level network status change is reported also in DeviceConnectionListener#deviceNetworkStateChanged
+
+            raiseError("Network connection state change : " + oldValue + " -> " + newValue);
         }
 
         /**
@@ -1477,7 +1622,7 @@ public class LCRReader {
                 @NonNull List<DeviceInfo> attachedDevices) {
 
             // Logging network connect
-            raiseError("Network disconnected : " + networkType.name());
+            raiseError("Network connected : " + networkType.name());
         }
 
         /**
@@ -1522,6 +1667,8 @@ public class LCRReader {
             }
             // Logging network error
             raiseError("Network error : " + networkType.name() + " : " + strCause);
+
+            onError();
         }
     };
 }

@@ -198,16 +198,51 @@ public class UserBaseActivity extends BaseActivity {
 
             case R.id.action_info:
                 showUpdate();
-                return true;
+                break;
+
+            case R.id.action_restart:
+                showRestart();
+                break;
+
             default:
                 return super.onOptionsItemSelected(item);
         }
 
+        return  true;
     }
 
     private void showUpdate() {
         Intent intent = new Intent(this, VersionUpdateActivity.class);
         startActivity(intent);
+    }
+
+    protected void showRestart() {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.app_name)
+                .setMessage(R.string.restart_confirm)
+                .setIcon(R.drawable.ic_question)
+                .setPositiveButton(R.string.restart_app, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+
+                        restartApp();
+                    }
+                })
+                .setNegativeButton(R.string.back, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                })
+                .create()
+                .show();
+    }
+    private  final  int RESTART_CODE = 3;
+    private void restartApp() {
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivityForResult(intent, RESTART_CODE);
     }
 
     private void checkVersion() {
@@ -383,6 +418,7 @@ public class UserBaseActivity extends BaseActivity {
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+
                         doLogout();
                     }
                 });

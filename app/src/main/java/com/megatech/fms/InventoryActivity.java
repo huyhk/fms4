@@ -1,26 +1,30 @@
 package com.megatech.fms;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class InventoryActivity extends UserBaseActivity implements View.OnClickListener {
 
     Button btn;
+    TextView lblInventory;
     EditText edt;
     EditText edtQCNo;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_inventory);
-        edt = findViewById(R.id.txtInventory);
+        lblInventory = findViewById(R.id.lblInventory);
         edtQCNo = findViewById(R.id.txtQualityControlNo);
+        edt = findViewById(R.id.txtInventory);
         try {
-            edt.setText(String.format("%.0f", currentApp.getCurrentAmount()));
+            lblInventory.setText(String.format("%.0f", currentApp.getCurrentAmount()));
             edtQCNo.setText(currentApp.getQCNo());
         }
         catch (Exception e)
@@ -36,10 +40,26 @@ public class InventoryActivity extends UserBaseActivity implements View.OnClickL
                     amount = Float.parseFloat(edt.getText().toString());
                 } catch (NumberFormatException ex) {
                 }
-                currentApp.setInventory(amount, edtQCNo.getText().toString() );
-                finish();
+                if (amount>0) {
+
+                    currentApp.setInventory(amount, edtQCNo.getText().toString());
+                    finish();
+                }
+                else
+                {
+                    showError();
+                }
             }
         });
+    }
+
+    private void showError() {
+
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.app_name)
+                .setMessage(R.string.invalid_amount)
+                .setIcon(R.drawable.ic_error)
+                .create().show();
     }
 
     private void save() {

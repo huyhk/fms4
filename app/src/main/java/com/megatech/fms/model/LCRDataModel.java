@@ -119,4 +119,14 @@ public class LCRDataModel {
 
         //totalFlag = true;
     }
+
+    private String serialId;
+
+    public String getSerialId() {
+        return serialId;
+    }
+
+    public void setSerialId(String serialId) {
+        this.serialId = serialId;
+    }
 }

@@ -18,7 +18,7 @@ public interface RefuelItemDao {
     List<RefuelItem> getAll();
 
     @Query("Select * from RefuelItem where id = :id")
-    RefuelItem getItem(int id);
+    RefuelItem get(int id);
 
     @Query("Select * from RefuelItem where id != :id AND flightId = (SELECT flightId from RefuelItem where id= :id)")
     List<RefuelItem> getOthers(int id);
@@ -29,15 +29,27 @@ public interface RefuelItemDao {
     @Query("Select * from RefuelItem where truckNo = :truckNo")
     List<RefuelItem> getByTruckNo(String truckNo);
 
+    @Query("Select * from RefuelItem where truckNo != :truckNo")
+    List<RefuelItem> getOthers(String truckNo);
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAll(List<RefuelItem> items);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insert(RefuelItem item);
+    long insert(RefuelItem item);
 
     @Delete
     void delete(RefuelItem item);
 
-    @Update
+    @Update( onConflict = OnConflictStrategy.REPLACE)
     void update(RefuelItem item);
+
+    @Query("Select * from RefuelItem where localId = :id")
+    RefuelItem getLocal(Integer id);
+
+    @Query("Select id from refuelitem where isSynced")
+    int[] getNotChanges();
+
+    @Query("Delete from RefuelItem where id in (:ids)")
+    void removeDeleted(int[] ids);
 }

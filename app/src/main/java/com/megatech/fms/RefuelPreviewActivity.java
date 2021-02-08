@@ -3,28 +3,24 @@ package com.megatech.fms;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.InputType;
-import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Spinner;
-import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,10 +32,9 @@ import com.google.gson.GsonBuilder;
 import com.megatech.fms.databinding.ActivityRefuelPreviewBinding;
 import com.megatech.fms.databinding.InvoicePreviewBinding;
 import com.megatech.fms.databinding.PreviewExtractBinding;
-import com.megatech.fms.databinding.RefuelPreviewItemBinding;
 import com.megatech.fms.databinding.SelectUserBinding;
+import com.megatech.fms.helpers.DataHelper;
 import com.megatech.fms.model.AirlineModel;
-import com.megatech.fms.model.InvoiceItemModel;
 import com.megatech.fms.model.InvoiceModel;
 import com.megatech.fms.model.REFUEL_ITEM_STATUS;
 import com.megatech.fms.model.RefuelItemData;
@@ -57,7 +52,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.IntStream;
 
 import static com.megatech.fms.helpers.PrintWorker.*;
 
@@ -69,12 +63,9 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
         super.onCreate(savedInstanceState);
 
         loadData();
-        if (refuelData.getRefuelItemType() == RefuelItemData.REFUEL_ITEM_TYPE.REFUEL)
-            setContentView(R.layout.activity_refuel_preview);
-        else
-            setContentView(R.layout.preview_extract);
 
-        bindData();
+
+
 
         Drawable drawable = getResources().getDrawable(R.drawable.ic_edit);
         drawable.setAlpha(90);
@@ -119,25 +110,33 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
     }
 
     private void loadData() {
-
         Bundle b = getIntent().getExtras();
         Integer id = b.getInt("REFUEL_ID", 0);
         String mData = b.getString("REFUEL", "");
-        if (mData != null && mData != "") {
-            Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
+        new AsyncTask<Void, Void, RefuelItemData>() {
+            @Override
+            protected RefuelItemData doInBackground(Void... voids) {
 
-            refuelData = gson.fromJson(mData, RefuelItemData.class);
-        }
-        if (refuelData == null)
-            refuelData = new HttpClient().getRefuelItem(id);
-        if (refuelData == null) {
-            Toast.makeText(this, getString(R.string.error_not_found), Toast.LENGTH_LONG);
-            return;
-        }
+                if (mData != null && mData != "") {
+                    Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
 
-
+                    refuelData = gson.fromJson(mData, RefuelItemData.class);
+                }
+                if (refuelData == null)
+                    refuelData = DataHelper.getRefuelItem(id);
 
 
+                return refuelData;
+            }
+
+            @Override
+            protected void onPostExecute(RefuelItemData itemData) {
+                refuelData = itemData;
+                bindData();
+                super.onPostExecute(itemData);
+
+            }
+        }.execute();
 
     }
 
@@ -146,6 +145,11 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
     ArrayList<RefuelItemData> printItems = new ArrayList<RefuelItemData>();
 
     private void bindData() {
+        if (refuelData.getRefuelItemType() == RefuelItemData.REFUEL_ITEM_TYPE.REFUEL)
+            setContentView(R.layout.activity_refuel_preview);
+        else
+            setContentView(R.layout.preview_extract);
+
         if (refuelData.getRefuelItemType() == RefuelItemData.REFUEL_ITEM_TYPE.REFUEL) {
             binding = DataBindingUtil.setContentView(this, R.layout.activity_refuel_preview);
             binding.setMItem(refuelData);
@@ -547,7 +551,7 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
         new Thread(new Runnable() {
             @Override
             public void run() {
-                new HttpClient().postRefuel(refuelData);
+                DataHelper.postRefuel(refuelData);
             }
         }).start();
         if (refuelData.getRefuelItemType() == RefuelItemData.REFUEL_ITEM_TYPE.REFUEL) {

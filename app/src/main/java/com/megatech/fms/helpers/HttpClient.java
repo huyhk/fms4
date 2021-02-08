@@ -194,7 +194,7 @@ public class HttpClient {
                 response.append(inputLine);
             }
             in.close();
-
+            con.disconnect();
             // print result
             return response.toString();
         }
@@ -239,6 +239,7 @@ public class HttpClient {
             }
             in.close();
 
+            con.disconnect();
             // print result
             return response.toString();
         } else {
@@ -336,10 +337,17 @@ public class HttpClient {
     public List<RefuelItemData> getRefuelList(boolean others) {
         return getRefuelList(others, 0);
     }
+    public List<RefuelItemData> getRefuelList(boolean others, Integer t)
+    {
+        return getRefuelList(others, t, false);
+    }
+    public List<RefuelItemData> getRefuelList(boolean others, Integer t, boolean d) {
 
-    public List<RefuelItemData> getRefuelList(boolean others, Integer t) {
-
-        String url = API_BASE_URL + "api/refuels?truckNo=" + FMSApplication.getApplication().getTruckNo() + "&o=" + (others ? "1" : "0") + "&type=" + t.toString();
+        String url = API_BASE_URL + "api/refuels?truckNo="
+                + FMSApplication.getApplication().getTruckNo()
+                + "&truckId="
+                + FMSApplication.getApplication().getTruckId()
+                + "&o=" + (others ? "1" : "0") + "&type=" + t.toString() +  "&d=" + Boolean.toString(d);
 
         List<RefuelItemData> lst = new ArrayList<RefuelItemData>();
         try {
@@ -379,7 +387,10 @@ public class HttpClient {
             String parm = gson.toJson(refuelData);
             String data = sendPOST(url, parm);
             JSONObject o = new JSONObject(data);
-            return  gson.fromJson(data, RefuelItemData.class);
+            RefuelItemData newItem = gson.fromJson(data, RefuelItemData.class);
+            if (newItem != null && refuelData.getId() == 0)
+                refuelData.setId(newItem.getId());
+            return newItem;
         }
         catch (Exception e)
         {
@@ -405,6 +416,20 @@ public class HttpClient {
         }
     }
 
+    public void postTruckFuel(int truckId, float addedAmount, String qcNo) {
+
+        String url = API_BASE_URL+"api/trucks/fuel";
+        try {
+            Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
+            String parm = String.format("{\"truckId\":\"%d\",\"amount\":\"%f\",\"qcNo\":\"%s\"}",truckId, addedAmount, qcNo);
+            String data = sendPOST(url, parm);
+
+        }
+        catch (Exception e)
+        {
+            Log.e("postTruckFuel", e.getMessage());
+        }
+    }
     public TruckModel postTruck(TruckModel model) {
         String url = API_BASE_URL + "api/trucks";
         try {
@@ -433,7 +458,7 @@ public class HttpClient {
         }
     }
 
-    public int getTruckAmount(String truckNo) {
+    public float getTruckAmount(String truckNo) {
 
         String url = API_BASE_URL+"api/trucks?truckNo="+truckNo;
         try {
@@ -442,13 +467,7 @@ public class HttpClient {
             String data = sendGET(url);
 
             TruckModel model = gson.fromJson(data, TruckModel.class);
-            if (model!=null)
-            {
-                FMSApplication fmsApplication = FMSApplication.getApplication();
-                fmsApplication.setCurrentAmount(model.getCurrentAmount());
-
-                return model.getTruckId();
-            }
+            return model.getCurrentAmount();
 
         }
         catch (Exception e)
@@ -538,6 +557,24 @@ public class HttpClient {
             Log.e("updateTruckAmount", e.getMessage());
         }
         return null;
+    }
+
+    public boolean checkTruck(int truckId, String truckNo) {
+
+        String url = API_BASE_URL+"api/trucks/check";
+        try {
+            Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
+            String parm = gson.toJson(new TruckModel(truckNo, truckId));
+            String data = sendPOST(url, parm);
+            boolean val = gson.fromJson(data, boolean.class);
+            return  val;
+        }
+        catch (Exception e)
+        {
+            Log.e("Truck Check API ", e.getMessage());
+            return true;
+        }
+
     }
 }
 

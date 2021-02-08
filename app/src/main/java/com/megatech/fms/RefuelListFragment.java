@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.megatech.fms.helpers.DataHelper;
 import com.megatech.fms.model.RefuelItemData;
 import com.megatech.fms.helpers.HttpClient;
 import com.megatech.fms.view.RefuelRecyclerView;
@@ -103,7 +104,7 @@ public class RefuelListFragment extends Fragment {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                lstData = (new HttpClient()).getRefuelList(_self);
+                lstData = DataHelper.getRefuelList(_self,0);
                 if (activity != null)
                     activity.runOnUiThread(new Runnable() {
                         @Override

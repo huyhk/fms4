@@ -32,6 +32,7 @@ import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.megatech.fms.databinding.ActivityNewRefuelBinding;
+import com.megatech.fms.helpers.DataHelper;
 import com.megatech.fms.helpers.DateUtils;
 import com.megatech.fms.helpers.HttpClient;
 import com.megatech.fms.model.AirlineModel;
@@ -251,11 +252,14 @@ public class NewRefuelActivity extends UserBaseActivity implements View.OnClickL
     }
 
     private void save() {
-        HttpClient client = new HttpClient();
-        RefuelItemData response = client.postRefuel(refuelData);
+
+
+        RefuelItemData response = DataHelper.postRefuel(refuelData);
+
         if (response != null) {
 
             refuelData.setId(response.getId());
+            refuelData.setAlert(currentApp.getCurrentAmount() < refuelData.getEstimateAmount());
             if (refuelData != null) {
                 Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
 

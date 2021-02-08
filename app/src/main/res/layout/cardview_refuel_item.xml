@@ -42,7 +42,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@{mItem.status == REFUEL_ITEM_STATUS.DONE ? Color.rgb(  200,200,200): Color.rgb(  240,240,240)}"
+                android:background="@{mItem.status == REFUEL_ITEM_STATUS.DONE ? Color.rgb(  200,200,200): mItem.status == REFUEL_ITEM_STATUS.PROCESSING? Color.rgb(240,255,240): Color.rgb(  240,240,240)}"
                 android:orientation="horizontal"
                 android:paddingTop="5dp"
                 android:paddingBottom="5dp">
@@ -52,7 +52,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight=".05"
-                    android:checkMark="@{mItem.status == REFUEL_ITEM_STATUS.DONE ? @drawable/ic_check: null}"
+                    android:checkMark="@{mItem.status == REFUEL_ITEM_STATUS.DONE ? @drawable/ic_check: (mItem.status == REFUEL_ITEM_STATUS.PROCESSING? @drawable/ic_fuel_truck: null)}"
                     android:checked="@{mItem.status== REFUEL_ITEM_STATUS.DONE}"
                     android:gravity="center"
                     android:padding="5dp" />
@@ -224,7 +224,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="0.3"
 
-                    android:text='@{String.format("%-12s%-12s","Hạ cánh", DateUtils.formatDate(mItem.arrivalTime,"HH:mm"))}'
+                    android:text='@{String.format("%-12s%-12s","Hạ cánh", DateUtils.formatDatePlus(mItem.arrivalTime,"HH:mm"))}'
                     android:textSize="@dimen/medium_text"></TextView>
 
                 <TextView
@@ -233,14 +233,14 @@
                     android:layout_weight="0.3"
                     android:textColor="@color/colorPrimaryDark"
                     android:textStyle="bold"
-                    android:text='@{String.format("%-12s%-12s", mItem.refuelItemType == REFUEL_ITEM_TYPE.EXTRACT?"Hút": "Tra nạp", DateUtils.formatDate(mItem.refuelTime,"HH:mm"))}'
+                    android:text='@{String.format("%-12s%-12s", mItem.refuelItemType == REFUEL_ITEM_TYPE.EXTRACT?"Hút": "Tra nạp", DateUtils.formatDatePlus(mItem.refuelTime,"HH:mm"))}'
                     android:textSize="@dimen/medium_text"></TextView>
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="0.3"
-                    android:text='@{String.format("%-12s%-12s","Cất cánh", DateUtils.formatDate(mItem.departureTime,"HH:mm"))}'
+                    android:text='@{String.format("%-12s%-12s","Cất cánh", DateUtils.formatDatePlus(mItem.departureTime,"HH:mm"))}'
                     android:textSize="@dimen/medium_text"></TextView>
 
             </LinearLayout>

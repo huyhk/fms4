@@ -115,12 +115,41 @@ public class FMSApplication extends Application implements LifecycleObserver {
 
     public boolean isFirstUse() {
 
-
         return getTruckNo() == null || getTruckNo().equals("");
     }
 
+    public void clearSetting()
+    {
+        final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
+
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.remove("FIRST_USER");
+        editor.remove("IP");
+        editor.remove("TRUCK_NO");
+        editor.remove("PRINTER_ADDRESS");
+        editor.remove("SETTING");
+        editor.commit();
+    }
+    public void clearTruckInfo()
+    {
+
+        TruckModel  settingModel = getSetting();
+        settingModel.setTruckId(0);
+        settingModel.setTruckNo("");
+        saveSetting(settingModel);
+    }
     public void saveSetting(TruckModel settingModel)
     {
+        saveSetting(settingModel, true);
+    }
+    public void saveSetting(TruckModel settingModel, boolean post)
+    {
+        if (post) {
+            HttpClient client = new HttpClient();
+            TruckModel newModel = client.postTruck(settingModel);
+            if (newModel != null)
+                settingModel.setId(newModel.getId());
+        }
         final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
 
         SharedPreferences.Editor editor = preferences.edit();
@@ -141,38 +170,52 @@ public class FMSApplication extends Application implements LifecycleObserver {
     public String getTruckNo() {
         return getSetting().getTruckNo();
     }
-
+    public int getTruckId() {
+        return getSetting().getTruckId();
+    }
     public float getCurrentAmount() {
-        final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
-        return preferences.getFloat("CURRENT_AMOUNT",0);
+//        final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
+//        return preferences.getFloat("CURRENT_AMOUNT",0);
+        return getSetting().getCurrentAmount();
     }
 
+    //Set Current Amount and post to database
     public void setCurrentAmount(float currentAmount) {
-        final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putFloat("CURRENT_AMOUNT", currentAmount);
-        editor.apply();
-        HttpClient client = new HttpClient();
-        client.updateTruckAmount(getTruckNo(), currentAmount);
+//        final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
+//        SharedPreferences.Editor editor = preferences.edit();
+//        editor.putFloat("CURRENT_AMOUNT", currentAmount);
+//        editor.apply();
+        TruckModel setting = getSetting();
+        setting.setCurrentAmount(currentAmount);
+        saveSetting(setting, false);
 
     }
+    public void initCurrentAmount(float currentAmount) {
+//        final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
+//        SharedPreferences.Editor editor = preferences.edit();
+//        editor.putFloat("CURRENT_AMOUNT", currentAmount);
+//        editor.commit();
 
+
+    }
     public String getQCNo() {
         final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
         return preferences.getString("QC_NO","");
     }
 
-    public void setInventory(final float currentAmount, String qcNo) {
+    public void setInventory(final float addedAmount, String qcNo) {
         final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
+        float   currentAmount = getSetting().getCurrentAmount();
         SharedPreferences.Editor editor = preferences.edit();
-        editor.putFloat("CURRENT_AMOUNT", currentAmount);
+        //editor.putFloat("CURRENT_AMOUNT", currentAmount + addedAmount);
         editor.putString("QC_NO",qcNo);
         editor.apply();
+        setCurrentAmount( currentAmount + addedAmount);
         new Thread(new Runnable() {
             @Override
             public void run() {
                 HttpClient client = new HttpClient();
-                client.updateTruckAmount(getTruckNo(), currentAmount);
+                client.postTruckFuel(getTruckId(), addedAmount, qcNo);
             }
         }).start();
 

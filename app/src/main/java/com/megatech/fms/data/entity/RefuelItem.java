@@ -3,9 +3,14 @@ package com.megatech.fms.data.entity;
 import androidx.room.Entity;
 import androidx.room.TypeConverter;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
+import com.megatech.fms.model.RefuelItemData;
 
 import java.util.Date;
+
+import static com.megatech.fms.model.RefuelItemData.GALLON_TO_LITTER;
 
 @Entity
 public class RefuelItem extends BaseEntity {
@@ -13,9 +18,31 @@ public class RefuelItem extends BaseEntity {
     public RefuelItem() {
 
         status = REFUEL_ITEM_STATUS.NONE;
+        flightStatus = FLIGHT_STATUS.NONE;
+        refuelItemType = REFUEL_ITEM_TYPE.REFUEL;
     }
 
+    private static Gson gson = new GsonBuilder().create();
+    public RefuelItemData toRefuelItemData()
+    {
+        RefuelItemData itemData =  gson.fromJson(getJsonData(),RefuelItemData.class);
 
+        itemData.setLocalId(this.getLocalId());
+        return  itemData;
+    }
+
+    public static RefuelItem fromRefuelItemData(RefuelItemData itemData)
+    {
+        RefuelItem item = new RefuelItem();
+        item.setId(itemData.getId());
+        item.setTruckNo(itemData.getTruckNo());
+        item.setTruckId(itemData.getTruckId());
+        item.setRefuelTime(itemData.getRefuelTime());
+        item.setStatus(REFUEL_ITEM_STATUS.getStatus(itemData.getStatus().getValue()));
+        item.setJsonData(gson.toJson(itemData));
+        item.setLocalId(itemData.getLocalId());
+        return  item;
+    }
     private int flightId;
     private String flightCode;
 
@@ -54,7 +81,7 @@ public class RefuelItem extends BaseEntity {
     private double taxRate;
 
     public double getVolume() {
-        return realAmount * 3.7856;
+        return realAmount * GALLON_TO_LITTER;
     }
 
     public double getWeight() {
@@ -318,6 +345,43 @@ public class RefuelItem extends BaseEntity {
 
     public void setTruckNo(String truckNo) {
         this.truckNo = truckNo;
+    }
+
+    private REFUEL_ITEM_TYPE refuelItemType;
+    public void setRefuelItemType(REFUEL_ITEM_TYPE refuelItemType) {
+        this.refuelItemType = refuelItemType;
+    }
+
+    public REFUEL_ITEM_TYPE getRefuelItemType() {
+        return refuelItemType;
+    }
+
+    public enum REFUEL_ITEM_TYPE {
+        @SerializedName("0") REFUEL(0),
+        @SerializedName("1") EXTRACT(1),
+        @SerializedName("2") TEST(2);
+
+
+        private int value;
+
+        REFUEL_ITEM_TYPE(int i) {
+            value = i;
+        }
+
+        @TypeConverter
+        public static REFUEL_ITEM_TYPE getStatus(int numeral) {
+            for (REFUEL_ITEM_TYPE ds : values()) {
+                if (ds.value == numeral) {
+                    return ds;
+                }
+            }
+            return null;
+        }
+
+        @TypeConverter
+        public static Integer getInt(REFUEL_ITEM_TYPE status) {
+            return status.value;
+        }
     }
 
     public enum ITEM_PRINT_STATUS {

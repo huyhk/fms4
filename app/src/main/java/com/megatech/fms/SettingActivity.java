@@ -11,11 +11,13 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -28,12 +30,17 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.megatech.fms.data.entity.Setting;
+import com.liquidcontrols.lcr.iq.sdk.lc.api.constants.LCR.LCR_COMMAND;
+import com.liquidcontrols.lcr.iq.sdk.lc.api.constants.LCR.LCR_DEVICE_CONNECTION_STATE;
+import com.megatech.fms.data.entity.Truck;
+import com.megatech.fms.helpers.DataHelper;
 import com.megatech.fms.helpers.HttpClient;
 import com.megatech.fms.helpers.LCRReader;
 import com.megatech.fms.model.AirlineModel;
+import com.megatech.fms.model.LCRDataModel;
 import com.megatech.fms.model.TruckModel;
 
+import java.lang.ref.WeakReference;
 import java.util.List;
 
 //import static com.megatech.fms.BuildConfig.IMEI_LIST;
@@ -41,6 +48,8 @@ import java.util.List;
 public class SettingActivity extends UserBaseActivity {
 
     private Context ctx = this;
+
+    private  LCRReader reader;
 
     private TruckModel settingModel;
     @Override
@@ -54,20 +63,15 @@ public class SettingActivity extends UserBaseActivity {
 
 
         final Button btnTest = findViewById(R.id.btnTest);
+        final Button btnSave = findViewById(R.id.btnUpdate);
         final EditText txtIp = findViewById(R.id.txtIP);
-        final EditText txtTruckNo = findViewById(R.id.txtTruckNo);
         final EditText txtPrinter = findViewById(R.id.txtPrinter);
         final EditText txtIMEI = findViewById(R.id.txtIMEI);
 
-        List<TruckModel> trucks = (new HttpClient()).getTrucks();
-        ArrayAdapter<TruckModel> spinnerAdapter = new ArrayAdapter<TruckModel>(this, R.layout.support_simple_spinner_dropdown_item, trucks);
-        spinnerAdapter.setDropDownViewResource(R.layout.support_simple_spinner_dropdown_item);
 
-        final Spinner truckSpinner = findViewById(R.id.spinner_truck);
-        truckSpinner.setAdapter(spinnerAdapter);
+        new LoadTrucksAsync(this).execute();
 
         txtIp.setText(settingModel.getDeviceIP());
-        txtTruckNo.setText(settingModel.getTruckNo());
         txtPrinter.setText(settingModel.getPrinterIP());
 
         getDeviceIMEI();
@@ -75,33 +79,85 @@ public class SettingActivity extends UserBaseActivity {
         btnTest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                v.setEnabled(false);
+                btnSave.setEnabled(false);
+                btnTest.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
                 String ip = txtIp.getText().toString();
+                reader =  new LCRReader(ctx, ip);
+                reader.doConnectDevice();
+                reader.setConnectionListener(new LCRReader.LCRConnectionListener() {
+                    @Override
+                    public void onConnected() {
 
+                        reader.requestSerial();
 
+                    }
+
+                    @Override
+                    public void onError() {
+                        v.setEnabled(true);
+                        btnSave.setEnabled(true);
+                        btnTest.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.ic_error), null, null, null);
+                        reader.destroy();
+                    }
+
+                    @Override
+                    public void onDeviceAdded(boolean failed) {
+
+                    }
+
+                    @Override
+                    public void onDisconnected() {
+
+                    }
+
+                    @Override
+                    public void onCommandError(LCR_COMMAND command) {
+
+                    }
+
+                    @Override
+                    public void onConnectionStateChange(LCR_DEVICE_CONNECTION_STATE state) {
+
+                    }
+                });
+
+                reader.setFieldDataListener(new LCRReader.LCRDataListener() {
+                    @Override
+                    public void onDataChanged(LCRDataModel dataModel, LCRReader.FIELD_CHANGE field_change) {
+                        v.setEnabled(true);
+                        btnSave.setEnabled(true);
+                        if (field_change == LCRReader.FIELD_CHANGE.SERIAL) {
+                            settingModel.setDeviceSerial(dataModel.getSerialId());
+                            reader.destroy();
+                            btnTest.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.ic_check), null, null, null);
+                        }
+                    }
+
+                    @Override
+                    public void onErrorMessage(String errorMsg) {
+
+                    }
+                });
             }
         });
         ProgressBar loading_bar = findViewById(R.id.loading_bar);
-        Button btnSave = findViewById(R.id.btnUpdate);
+
         btnSave.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
 
                 loading_bar.setVisibility(View.VISIBLE);
                 String ip = txtIp.getText().toString();
-                String truckNo = truckSpinner.getSelectedItem().toString();// txtTruckNo.getText().toString();
+
                 String printerAddress = txtPrinter.getText().toString();
 
-                settingModel.setCode(truckNo);
                 settingModel.setDeviceIP(ip);
                 settingModel.setPrinterIP(printerAddress);
-
-                HttpClient client = new HttpClient();
-                settingModel = client.postTruck(settingModel);
-
-                //settingModel.setTruckId(truckId);
-                if (settingModel != null)
-                    currentApp.saveSetting(settingModel);
+                EditText editText = (EditText)findViewById(R.id.txtCurrentAmount);
+                float currentAmount = Float.parseFloat(editText.getText().toString());
+                settingModel.setCurrentAmount(currentAmount);
+                currentApp.saveSetting(settingModel);
 
                 loading_bar.setVisibility(View.GONE);
 
@@ -170,8 +226,8 @@ public class SettingActivity extends UserBaseActivity {
         {
 
         }
-        List<String> imeilist = (new HttpClient()).getIMEIList();// Arrays.asList(getString(R.string.imei_list).split(","));
-        String currentIMEI = settingModel.getTabletSerial();
+        //List<String> imeilist = (new HttpClient()).getIMEIList();// Arrays.asList(getString(R.string.imei_list).split(","));
+        //String currentIMEI = settingModel.getTabletSerial();
         /*if (imeilist !=null &&  !imeilist.contains(currentIMEI))
         {
             new AlertDialog.Builder(this).setPositiveButton("QUIT", new DialogInterface.OnClickListener() {
@@ -219,5 +275,56 @@ public class SettingActivity extends UserBaseActivity {
     protected void onDestroy() {
         super.onDestroy();
 
+    }
+
+    public static class LoadTrucksAsync extends AsyncTask<Void, Void, List<TruckModel>>
+    {
+        private WeakReference<SettingActivity> activityWeakReference;
+
+        public  LoadTrucksAsync(SettingActivity ctx)
+        {
+                activityWeakReference = new WeakReference<>(ctx);
+        }
+        @Override
+        protected List<TruckModel> doInBackground(Void... voids) {
+
+            return DataHelper.getTrucks();
+        }
+
+        @Override
+        protected void onPostExecute(List<TruckModel> trucks) {
+            activityWeakReference.get().populateTrucks(trucks);
+        }
+    }
+
+    private void populateTrucks(List<TruckModel> trucks) {
+
+        ArrayAdapter<TruckModel> spinnerAdapter = new ArrayAdapter<TruckModel>(this, R.layout.support_simple_spinner_dropdown_item, trucks);
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_list_item_single_choice);
+
+        final Spinner truckSpinner = findViewById(R.id.spinner_truck);
+        truckSpinner.setAdapter(spinnerAdapter);
+        truckSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                TruckModel model = (TruckModel) parent.getItemAtPosition(position);
+                if (model != null) {
+                    ((EditText) findViewById(R.id.txtCurrentAmount)).setText(String.format("%.0f", model.getCurrentAmount()));
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+        if (trucks.size() > 0) {
+            TruckModel truck = (TruckModel) truckSpinner.getItemAtPosition(0);
+            if (truck != null) {
+                String truckNo = truck.toString();// txtTruckNo.getText().toString();
+                settingModel.setCode(truckNo);
+                settingModel.setId(truck.getId());
+            }
+        }
     }
 }

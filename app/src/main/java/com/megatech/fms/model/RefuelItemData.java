@@ -1,5 +1,8 @@
 package com.megatech.fms.model;
 
+import com.google.gson.FieldNamingPolicy;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
@@ -7,7 +10,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-public class RefuelItemData implements Cloneable {
+public class RefuelItemData extends BaseModel implements Cloneable {
 
     @Override
     public Object clone() throws CloneNotSupportedException {
@@ -28,7 +31,7 @@ public class RefuelItemData implements Cloneable {
         status = REFUEL_ITEM_STATUS.NONE;
     }
 
-    private  Integer id;
+    private  int id;
 
     public Integer getId() {
         return id;
@@ -81,7 +84,7 @@ public class RefuelItemData implements Cloneable {
 
     public static double GALLON_TO_LITTER = 3.7854;
     public double getVolume (){
-        return Math.round(realAmount * RefuelItemData.GALLON_TO_LITTER);
+        return Math.round(Math.round(realAmount) * RefuelItemData.GALLON_TO_LITTER);
     }
     public  double getWeight(){
         return Math.round(density * getVolume());
@@ -270,7 +273,7 @@ public class RefuelItemData implements Cloneable {
     }
 
     public void setRealAmount(double realAmount) {
-        this.realAmount = realAmount;
+        this.realAmount = Math.round(realAmount);
     }
 
     public double getTemperature() {
@@ -554,5 +557,22 @@ public class RefuelItemData implements Cloneable {
 
     public void setOperatorName(String operatorName) {
         this.operatorName = operatorName;
+    }
+
+    private boolean isAlert = false;
+
+    public boolean isAlert() {
+        return isAlert;
+    }
+
+    public void setAlert(boolean alert) {
+        isAlert = alert;
+    }
+
+
+    public String toJson()
+    {
+        Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
+         return  gson.toJson(this);
     }
 }

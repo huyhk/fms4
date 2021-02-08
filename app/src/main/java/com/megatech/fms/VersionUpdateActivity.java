@@ -161,6 +161,9 @@ public class VersionUpdateActivity extends BaseActivity implements View.OnClickL
             } catch (Exception ex) {
                 Toast.makeText(getApplicationContext(), ex.getMessage(), Toast.LENGTH_LONG).show();
             }
+            finally {
+                currentApp.clearSetting();
+            }
         }
     }
 

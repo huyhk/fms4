@@ -12,4 +12,9 @@ public enum REFUEL_ITEM_STATUS {
     REFUEL_ITEM_STATUS(int i) {
         value = i;
     }
+
+    public  int getValue()
+    {
+        return value;
+    }
 }
