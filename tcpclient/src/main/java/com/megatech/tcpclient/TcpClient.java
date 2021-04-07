@@ -66,11 +66,22 @@ public class TcpClient extends Observable {
     public void disconnect() {
         new DisconnectThread().run();
     }
+
+    public void destroy() {
+        try {
+            if (socket != null)
+                socket.close();
+            socket = null;
+        } catch (IOException ex) {
+            Log.e(TAG, "Could not close socket");
+        }
+    }
+
     private class SendMessageThread extends Thread {
         private String messageLine;
 
         public SendMessageThread(String message) {
-            this.messageLine = message + "\n";
+            this.messageLine = message + (message.charAt(message.length() - 1) == '\n' ? "\n" : "");
         }
 
         @Override
@@ -140,7 +151,7 @@ public class TcpClient extends Observable {
                         bufferOut.close();
 
                         bufferIn.close();
-
+                        if (socket != null)
                         socket.close();
                     } catch (IOException er) {
                         Log.e(TAG, "Error clearing connection: " + er);

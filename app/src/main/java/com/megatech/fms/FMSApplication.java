@@ -10,9 +10,10 @@ import androidx.lifecycle.OnLifecycleEvent;
 
 import com.megatech.fms.data.AppDatabase;
 import com.megatech.fms.data.DataRepository;
+import com.megatech.fms.helpers.HttpClient;
+import com.megatech.fms.model.ShiftModel;
 import com.megatech.fms.model.TruckModel;
 import com.megatech.fms.model.UserInfo;
-import com.megatech.fms.helpers.HttpClient;
 
 import java.util.Date;
 
@@ -222,5 +223,20 @@ public class FMSApplication extends Application implements LifecycleObserver {
 
     }
 
+    public void saveShift(ShiftModel model) {
+        final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
+        float currentAmount = getSetting().getCurrentAmount();
+        SharedPreferences.Editor editor = preferences.edit();
+        //editor.putFloat("CURRENT_AMOUNT", currentAmount + addedAmount);
+        editor.putString("SHIFT", model.toJson());
+        editor.apply();
+    }
+
+    public ShiftModel getShift() {
+        final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
+        String shiftJson = preferences.getString("SHIFT", "");
+        ShiftModel model = ShiftModel.fromJson(shiftJson);
+        return model;
+    }
 }
 

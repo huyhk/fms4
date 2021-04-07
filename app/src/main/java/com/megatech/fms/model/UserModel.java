@@ -2,7 +2,7 @@ package com.megatech.fms.model;
 
 import androidx.annotation.NonNull;
 
-public class UserModel {
+public class UserModel extends BaseModel {
 
     private int id;
     private  String fullName;
@@ -45,4 +45,5 @@ public class UserModel {
     public String toString() {
         return name;
     }
+
 }

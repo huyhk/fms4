@@ -1,7 +1,10 @@
 package com.megatech.fms;
 
 import android.Manifest;
+import android.app.AlarmManager;
 import android.app.Dialog;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -9,16 +12,9 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.widget.Toolbar;
-
 import android.os.Environment;
 import android.os.StrictMode;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -26,7 +22,13 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.Toolbar;
+
 import com.megatech.fms.helpers.HttpClient;
+import com.megatech.fms.helpers.Logger;
 import com.megatech.fms.model.ShiftModel;
 
 import java.io.File;
@@ -35,8 +37,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.text.SimpleDateFormat;
-import java.util.Locale;
 
 import static com.megatech.fms.BuildConfig.API_BASE_URL;
 import static com.megatech.fms.BuildConfig.DEBUG;
@@ -79,7 +79,7 @@ public class UserBaseActivity extends BaseActivity {
         if (lblShift != null) {
             ShiftModel model = new HttpClient().getShift();
             if (model != null) {
-
+                currentApp.saveShift(model);
                 lblShift.setText(String.format("%s: %s ", getString(R.string.shift), model.toString()));
             }
         }
@@ -224,6 +224,8 @@ public class UserBaseActivity extends BaseActivity {
                 .setPositiveButton(R.string.restart_app, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+
+                        Logger.appendLog("Confirm restart app");
                         dialog.dismiss();
 
                         restartApp();
@@ -232,6 +234,8 @@ public class UserBaseActivity extends BaseActivity {
                 .setNegativeButton(R.string.back, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+
+                        Logger.appendLog("Cancel restart app");
                         dialog.dismiss();
                     }
                 })
@@ -240,9 +244,23 @@ public class UserBaseActivity extends BaseActivity {
     }
     private  final  int RESTART_CODE = 3;
     private void restartApp() {
-        Intent intent = new Intent(this, MainActivity.class);
+        //Intent intent = new Intent(this, StartupActivity.class);
+        Intent intent = getBaseContext().getPackageManager().
+                getLaunchIntentForPackage(getBaseContext().getPackageName());
+
+        int mPendingIntentId = 123456;
+        PendingIntent mPendingIntent = PendingIntent.getActivity(UserBaseActivity.this, mPendingIntentId, intent,
+                PendingIntent.FLAG_CANCEL_CURRENT);
+
+        AlarmManager mgr = (AlarmManager) UserBaseActivity.this.getSystemService(Context.ALARM_SERVICE);
+        mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 500, mPendingIntent);
+        System.exit(0);
+/*
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivityForResult(intent, RESTART_CODE);
+        finish();
+
+*/
     }
 
     private void checkVersion() {
@@ -295,7 +313,7 @@ public class UserBaseActivity extends BaseActivity {
             HttpClient client = new HttpClient();
             String data = client.getContent(url);
             if (data != null) {
-                String[] info = data.split("\\-");
+                String[] info = data.split("-");
                 String version = info[0];
                 return data;
             }

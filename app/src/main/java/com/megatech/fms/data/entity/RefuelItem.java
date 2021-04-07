@@ -3,8 +3,6 @@ package com.megatech.fms.data.entity;
 import androidx.room.Entity;
 import androidx.room.TypeConverter;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
 import com.megatech.fms.model.RefuelItemData;
 
@@ -22,7 +20,7 @@ public class RefuelItem extends BaseEntity {
         refuelItemType = REFUEL_ITEM_TYPE.REFUEL;
     }
 
-    private static Gson gson = new GsonBuilder().create();
+
     public RefuelItemData toRefuelItemData()
     {
         RefuelItemData itemData =  gson.fromJson(getJsonData(),RefuelItemData.class);
@@ -41,6 +39,8 @@ public class RefuelItem extends BaseEntity {
         item.setStatus(REFUEL_ITEM_STATUS.getStatus(itemData.getStatus().getValue()));
         item.setJsonData(gson.toJson(itemData));
         item.setLocalId(itemData.getLocalId());
+        item.setDateUpdated(itemData.getDateUpdated());
+        item.setFlightId(itemData.getFlightId());
         return  item;
     }
     private int flightId;

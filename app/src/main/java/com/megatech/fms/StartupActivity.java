@@ -1,11 +1,9 @@
 package com.megatech.fms;
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.app.PendingIntent;
 import android.content.Intent;
 import android.os.Bundle;
+
+import androidx.annotation.Nullable;
 
 public class StartupActivity extends BaseActivity {
     protected int SETTING_CODE = 2;
@@ -27,6 +25,16 @@ public class StartupActivity extends BaseActivity {
             showLogin();
         }
 
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
     }
 
     private void showLogin() {

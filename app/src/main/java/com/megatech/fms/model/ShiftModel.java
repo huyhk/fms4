@@ -6,7 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
-public class ShiftModel {
+public class ShiftModel extends BaseModel {
     private String name;
     private Date startTime;
     private Date endTime;
@@ -20,6 +20,10 @@ public class ShiftModel {
         c.set(0, 0, 0, 23, 59);
         endTime = c.getTime();
 
+    }
+
+    public static ShiftModel fromJson(String shiftJson) {
+        return gson.fromJson(shiftJson, ShiftModel.class);
     }
 
     public String getName() {
@@ -60,5 +64,9 @@ public class ShiftModel {
         SimpleDateFormat formatter = new SimpleDateFormat("HH:mm");
 
         return String.format("%s - %s - %s", this.name, formatter.format(this.startTime), formatter.format(this.endTime));
+    }
+
+    public String toJson() {
+        return gson.toJson(this);
     }
 }

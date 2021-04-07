@@ -1,8 +1,5 @@
 package com.megatech.fms.model;
 
-import com.google.gson.FieldNamingPolicy;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
@@ -31,7 +28,7 @@ public class RefuelItemData extends BaseModel implements Cloneable {
         status = REFUEL_ITEM_STATUS.NONE;
     }
 
-    private  int id;
+    private int id = 0;
 
     public Integer getId() {
         return id;
@@ -41,7 +38,7 @@ public class RefuelItemData extends BaseModel implements Cloneable {
         this.id = id;
     }
 
-    private Integer flightId;
+    private Integer flightId = 0;
     private String flightCode;
 
     private String aircraftType;
@@ -61,17 +58,37 @@ public class RefuelItemData extends BaseModel implements Cloneable {
     private  double endNumber;
     private double manualTemperature;
 
-    private Integer userId;
-    private Integer truckId;
+    private Integer userId = 0;
+    private Integer truckId = 0;
 
     private double density;
 
-    private int airlineId;
+    private int airlineId = 0;
 
     //private double weight;
     //private double volume;
 
     private double price;
+
+    private int unit;
+
+    private boolean isInternational;
+
+    public static RefuelItemData fromJson(String jsonData) {
+        return gson.fromJson(jsonData, RefuelItemData.class);
+    }
+
+    public boolean isInternational() {
+        return isInternational;
+    }
+
+    public void setInternational(boolean international) {
+        isInternational = international;
+    }
+
+    public int getUnit() {
+        return unit;
+    }
 
     private String routeName;
 
@@ -97,9 +114,8 @@ public class RefuelItemData extends BaseModel implements Cloneable {
         return price;
     }
 
-    public double getAmount(){
-        int precise = this.currency == CURRENCY.VND? 1: 100;
-        return (double)Math.round(getWeight() * getPrice()* precise)/precise;
+    public void setUnit(int unit) {
+        this.unit = unit;
     }
 
     public double getTaxRate(){
@@ -376,8 +392,11 @@ public class RefuelItemData extends BaseModel implements Cloneable {
 
     private double gallon;
 
-    public double getGallon() {
-        return gallon;
+    public double getAmount() {
+        int precise = this.currency == CURRENCY.VND ? 1 : 100;
+        if (unit == 0)
+            return (double) Math.round(getGallon() * getPrice() * precise) / precise;
+        return (double) Math.round(getWeight() * getPrice() * precise) / precise;
     }
 
     public void setGallon(double gallon) {
@@ -569,10 +588,12 @@ public class RefuelItemData extends BaseModel implements Cloneable {
         isAlert = alert;
     }
 
+    public double getGallon() {
+        return Math.round(realAmount);
+    }
 
     public String toJson()
     {
-        Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
-         return  gson.toJson(this);
+        return gson.toJson(this);
     }
 }

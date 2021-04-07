@@ -9,6 +9,7 @@ import androidx.room.Update;
 
 import com.megatech.fms.data.entity.RefuelItem;
 
+import java.util.Date;
 import java.util.List;
 
 @Dao
@@ -20,14 +21,23 @@ public interface RefuelItemDao {
     @Query("Select * from RefuelItem where id = :id")
     RefuelItem get(int id);
 
-    @Query("Select * from RefuelItem where id != :id AND flightId = (SELECT flightId from RefuelItem where id= :id)")
+    @Query("Select * from RefuelItem where localId != :id AND flightId = (SELECT flightId from RefuelItem where localId= :id)")
     List<RefuelItem> getOthers(int id);
 
     @Query("Select * from RefuelItem where flightId = :id")
     List<RefuelItem> getByFlightId(int id);
 
+    @Query("Select * from RefuelItem where truckNo = :truckNo and refuelTime between :start and :end")
+    List<RefuelItem> getByTruckNo(String truckNo, long start, long end);
+
+
     @Query("Select * from RefuelItem where truckNo = :truckNo")
     List<RefuelItem> getByTruckNo(String truckNo);
+
+
+    @Query("Select * from RefuelItem where truckNo != :truckNo and refuelTime between :start and :end")
+    List<RefuelItem> getOthers(String truckNo, long start, long end);
+
 
     @Query("Select * from RefuelItem where truckNo != :truckNo")
     List<RefuelItem> getOthers(String truckNo);
@@ -50,6 +60,12 @@ public interface RefuelItemDao {
     @Query("Select id from refuelitem where isSynced")
     int[] getNotChanges();
 
-    @Query("Delete from RefuelItem where id in (:ids)")
+    @Query("Delete from RefuelItem where id > 0 and id in (:ids) and NOT isLocalModified")
     void removeDeleted(int[] ids);
+
+    @Query("Select * from RefuelItem where isLocalModified OR id = 0")
+    List<RefuelItem> getModified();
+
+    @Query("Select Max(dateUpdated) from RefuelItem ")
+    Date getLastModifiedDate();
 }

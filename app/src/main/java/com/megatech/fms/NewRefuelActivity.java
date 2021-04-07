@@ -1,18 +1,14 @@
 package com.megatech.fms;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.databinding.DataBindingUtil;
-
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
-import android.app.Dialog;
 import android.app.TimePickerDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Typeface;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.InputFilter;
-import android.text.InputType;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -27,6 +23,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
+
+import androidx.databinding.DataBindingUtil;
 
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -52,6 +50,7 @@ public class NewRefuelActivity extends UserBaseActivity implements View.OnClickL
 
     AirlineModel oldSelected;
     ArrayAdapter<AirlineModel> spinnerAdapter;
+    List<AirlineModel> airlines = null;
     Spinner airline_spinner;
     int prev, current;
 
@@ -83,7 +82,28 @@ public class NewRefuelActivity extends UserBaseActivity implements View.OnClickL
         binding = DataBindingUtil.setContentView(this, R.layout.activity_new_refuel);
         binding.setMItem(refuelData);
 
-        List<AirlineModel> airlines = (new HttpClient()).getAirlines();
+        loaddata();
+
+
+    }
+
+    private void loaddata() {
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... voids) {
+                airlines = DataHelper.getAirlines();
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                //super.onPostExecute(aVoid);
+                binddata();
+            }
+        }.execute();
+    }
+
+    private void binddata() {
         spinnerAdapter = new ArrayAdapter<AirlineModel>(this, android.R.layout.simple_spinner_dropdown_item, airlines);
         if ((currentUser.getPermission() & UserInfo.USER_PERMISSION.CREATE_CUSTOMER.getValue()) > 0) {
             AirlineModel newModel = new AirlineModel();
@@ -253,9 +273,24 @@ public class NewRefuelActivity extends UserBaseActivity implements View.OnClickL
 
     private void save() {
 
+        new AsyncTask<Void, Void, RefuelItemData>() {
+            @Override
+            protected RefuelItemData doInBackground(Void... voids) {
+                RefuelItemData response = DataHelper.postRefuel(refuelData);
+                return response;
+            }
 
-        RefuelItemData response = DataHelper.postRefuel(refuelData);
+            @Override
+            protected void onPostExecute(RefuelItemData response) {
+                postRefuelCompleted(response);
+                super.onPostExecute(response);
+            }
+        }.execute();
 
+
+    }
+
+    private void postRefuelCompleted(RefuelItemData response) {
         if (response != null) {
 
             refuelData.setId(response.getId());
@@ -272,8 +307,8 @@ public class NewRefuelActivity extends UserBaseActivity implements View.OnClickL
             }
         } else
             Toast.makeText(this, getString(R.string.error_saving_data), Toast.LENGTH_SHORT).show();
-    }
 
+    }
 
     private void showDateDialog(View v) {
         String time = ((EditText) v).getText().toString();

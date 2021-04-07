@@ -1,9 +1,10 @@
 package com.megatech.fms.model;
 
 import androidx.annotation.NonNull;
+
 import com.megatech.fms.model.RefuelItemData.CURRENCY;
 
-public class AirlineModel {
+public class AirlineModel extends BaseModel {
     private int id;
     private String name;
     private String taxCode;
@@ -17,6 +18,24 @@ public class AirlineModel {
     private String invoiceTaxCode;
     private String invoiceAddress;
 
+    private int unit;
+    private boolean isInternational;
+
+    public int getUnit() {
+        return unit;
+    }
+
+    public void setUnit(int unit) {
+        this.unit = unit;
+    }
+
+    public boolean isInternational() {
+        return isInternational;
+    }
+
+    public void setInternational(boolean international) {
+        isInternational = international;
+    }
 
     public String getCode() {
         return code;

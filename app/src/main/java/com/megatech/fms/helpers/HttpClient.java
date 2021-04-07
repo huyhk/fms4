@@ -1,4 +1,5 @@
 package com.megatech.fms.helpers;
+
 import android.util.Log;
 
 import com.google.gson.FieldNamingPolicy;
@@ -8,9 +9,8 @@ import com.megatech.fms.BuildConfig;
 import com.megatech.fms.FMSApplication;
 import com.megatech.fms.data.entity.ParkingLot;
 import com.megatech.fms.model.AirlineModel;
-import com.megatech.fms.model.LCRDataModel;
 import com.megatech.fms.model.FlightData;
-import com.megatech.fms.model.ParkingModel;
+import com.megatech.fms.model.LCRDataModel;
 import com.megatech.fms.model.PermissionModel;
 import com.megatech.fms.model.RefuelItemData;
 import com.megatech.fms.model.ShiftModel;
@@ -32,13 +32,13 @@ import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import retrofit2.http.HTTP;
 
 public class HttpClient {
     private String API_BASE_URL = BuildConfig.API_BASE_URL;
@@ -176,74 +176,85 @@ public class HttpClient {
     private final String USER_AGENT = "Mozilla/5.0";
 
     private String sendGET(String url) throws IOException {
-        URL obj = new URL(url);
-        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-        con.setRequestMethod("GET");
-        con.setRequestProperty("User-Agent", USER_AGENT);
-        if (this.token!=null)
-        con.setRequestProperty("Authorization", "bearer "+ this.token);
-        int responseCode = con.getResponseCode();
-        System.out.println("GET Response Code :: " + responseCode);
-        if (responseCode == HttpURLConnection.HTTP_OK) { // success
-            BufferedReader in = new BufferedReader(new InputStreamReader(
-                    con.getInputStream()));
-            String inputLine;
-            StringBuffer response = new StringBuffer();
+        try {
+            URL obj = new URL(url);
+            HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+            con.setConnectTimeout(1000);
+            con.setRequestMethod("GET");
+            con.setRequestProperty("User-Agent", USER_AGENT);
+            if (this.token != null)
+                con.setRequestProperty("Authorization", "bearer " + this.token);
+            int responseCode = con.getResponseCode();
+            System.out.println("GET Response Code :: " + responseCode);
+            if (responseCode == HttpURLConnection.HTTP_OK) { // success
+                BufferedReader in = new BufferedReader(new InputStreamReader(
+                        con.getInputStream()));
+                String inputLine;
+                StringBuffer response = new StringBuffer();
 
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                in.close();
+                con.disconnect();
+                // print result
+                return response.toString();
             }
-            in.close();
-            con.disconnect();
-            // print result
-            return response.toString();
-        }
-        if (responseCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
-            return "Not Authorized";
-        } else {
+            if (responseCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
+                return "Not Authorized";
+            } else {
 
-            return "GET request not worked";
+                return "GET request not worked";
+            }
+        } catch (SocketTimeoutException ex) {
+            return "Time out";
+        } catch (IOException ex) {
+            return "IO error";
         }
-
     }
 
     private String sendPOST(String url,String params ) throws IOException {
-        URL obj = new URL(url);
-        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-        con.setRequestMethod("POST");
-        con.setRequestProperty("Content-Type", "application/json; utf-8");
-        con.setRequestProperty("Accept", "application/json");
-        con.setRequestProperty("User-Agent", USER_AGENT);
-        if (this.token!=null)
-            con.setRequestProperty("Authorization", "bearer "+ this.token);
-        // For POST only - START
-        con.setDoOutput(true);
-        OutputStream os = con.getOutputStream();
-        os.write(params.getBytes());
-        os.flush();
-        os.close();
+        try {
+            URL obj = new URL(url);
+            HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+            con.setConnectTimeout(1000);
+            con.setRequestMethod("POST");
+            con.setRequestProperty("Content-Type", "application/json; utf-8");
+            con.setRequestProperty("Accept", "application/json");
+            con.setRequestProperty("User-Agent", USER_AGENT);
+            if (this.token != null)
+                con.setRequestProperty("Authorization", "bearer " + this.token);
+            // For POST only - START
+            con.setDoOutput(true);
+            OutputStream os = con.getOutputStream();
+            os.write(params.getBytes());
+            os.flush();
+            os.close();
 
-        // For POST only - END
+            // For POST only - END
 
-        int responseCode = con.getResponseCode();
-        System.out.println("POST Response Code :: " + responseCode);
+            int responseCode = con.getResponseCode();
+            System.out.println("POST Response Code :: " + responseCode);
 
-        if (responseCode == HttpURLConnection.HTTP_OK) { //success
-            BufferedReader in = new BufferedReader(new InputStreamReader(
-                    con.getInputStream()));
-            String inputLine;
-            StringBuffer response = new StringBuffer();
+            if (responseCode == HttpURLConnection.HTTP_OK) { //success
+                BufferedReader in = new BufferedReader(new InputStreamReader(
+                        con.getInputStream()));
+                String inputLine;
+                StringBuffer response = new StringBuffer();
 
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                in.close();
+
+                con.disconnect();
+                // print result
+                return response.toString();
+            } else {
+                return "POST request not worked";
             }
-            in.close();
-
-            con.disconnect();
-            // print result
-            return response.toString();
-        } else {
-            return "POST request not worked";
+        } catch (SocketTimeoutException ex) {
+            return "Timeout";
         }
     }
 
@@ -326,7 +337,7 @@ public class HttpClient {
         } catch (Exception e) {
             Log.e("getShift", e.getMessage());
         }
-        return new ShiftModel();
+        return null;
     }
 
     public List<RefuelItemData> getRefuelList()
@@ -347,7 +358,36 @@ public class HttpClient {
                 + FMSApplication.getApplication().getTruckNo()
                 + "&truckId="
                 + FMSApplication.getApplication().getTruckId()
-                + "&o=" + (others ? "1" : "0") + "&type=" + t.toString() +  "&d=" + Boolean.toString(d);
+                + "&o=" + (others ? "1" : "0") + "&type=" + t.toString() + "&d=" + d;
+
+        List<RefuelItemData> lst = new ArrayList<RefuelItemData>();
+        try {
+            String data = sendGET(url);
+            JSONArray arr = new JSONArray(data);
+            Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
+            if (arr.length() > 0) {
+                for (int i = 0; i < arr.length(); i++) {
+                    JSONObject o = arr.getJSONObject(i);
+                    RefuelItemData item;
+
+                    item = gson.fromJson(o.toString(), RefuelItemData.class);
+                    lst.add(item);
+                }
+            }
+        } catch (Exception e) {
+            Log.e("getRefuelList", e.getMessage());
+            return null;
+        }
+        return lst;
+
+    }
+
+    public List<RefuelItemData> getModifiedRefuels(Integer t, Date lastModified) {
+
+        String url = API_BASE_URL + "api/refuels/modified?type=" + t.toString();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyy-MM-dd'T'HH:mm:ss.SSS");
+        if (lastModified != null)
+            url += "&lastModified=" + dateFormat.format(lastModified);
 
         List<RefuelItemData> lst = new ArrayList<RefuelItemData>();
         try {
@@ -568,13 +608,16 @@ public class HttpClient {
             String data = sendPOST(url, parm);
             boolean val = gson.fromJson(data, boolean.class);
             return  val;
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             Log.e("Truck Check API ", e.getMessage());
             return true;
         }
 
+    }
+
+
+    public void sendLog() {
+        String url = API_BASE_URL + "api/parking";
     }
 }
 

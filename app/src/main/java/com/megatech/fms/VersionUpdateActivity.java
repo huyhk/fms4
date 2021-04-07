@@ -1,8 +1,5 @@
 package com.megatech.fms;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -18,6 +15,8 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+
 import com.megatech.fms.helpers.HttpClient;
 
 import java.io.File;
@@ -28,7 +27,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 import static com.megatech.fms.BuildConfig.API_BASE_URL;
-import static com.megatech.fms.BuildConfig.DEBUG;
 
 public class VersionUpdateActivity extends BaseActivity implements View.OnClickListener {
 
@@ -76,7 +74,7 @@ public class VersionUpdateActivity extends BaseActivity implements View.OnClickL
         @Override
         protected void onPostExecute(String versionInfo) {
             try {
-                String[] info = versionInfo.split("\\-");
+                String[] info = versionInfo.split("-");
                 String version = info[0];
                 long newVersion = Long.parseLong(version);
                 long currentVersion = BuildConfig.VERSION_CODE;

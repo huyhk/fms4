@@ -261,6 +261,12 @@
     <string name="restart_confirm">Bạn muốn khởi động lại ứng dụng?</string>
     <string name="restart">Bắt đầu lại</string>
     <string name="test">Test</string>
+    <string name="flight_code">Mã chuyến bay</string>
+    <string name="search">Tìm</string>
+    <string name="airline_search_hint">Tìm theo mã và tên</string>
+    <string name="wrong_truck_connect">Kết nối không đúng xe đã đăng ký.</string>
+    <string name="update_aircraftType">Sửa loại tàu bay</string>
+    <string name="invalid_airline_model">Thông tin hãng bay không đúng, vui lòng kiểm tra lại</string>
 
 
     <string-array name="vat_array">

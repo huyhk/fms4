@@ -1,8 +1,14 @@
 package com.megatech.fms.model;
 
+import com.google.gson.FieldNamingPolicy;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import java.util.Date;
+
 public class BaseModel {
 
-    private int localId;
+    protected static Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
 
     public int getLocalId() {
         return localId;
@@ -20,5 +26,20 @@ public class BaseModel {
 
     public void setDeleted(boolean deleted) {
         isDeleted = deleted;
+    }
+
+    private int localId = 0;
+    private Date dateUpdated;
+
+    public Date getDateUpdated() {
+        return dateUpdated;
+    }
+
+    public void setDateUpdated(Date dateUpdated) {
+        this.dateUpdated = dateUpdated;
+    }
+
+    public String toJson() {
+        return gson.toJson(this);
     }
 }

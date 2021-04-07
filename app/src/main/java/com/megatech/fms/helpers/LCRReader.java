@@ -1,16 +1,17 @@
 package com.megatech.fms.helpers;
+
 import android.content.Context;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import android.util.Log;
 
 import com.liquidcontrols.lcr.iq.sdk.BlueToothConnectionOptions;
 import com.liquidcontrols.lcr.iq.sdk.ConnectionOptions;
 import com.liquidcontrols.lcr.iq.sdk.DeviceInfo;
+import com.liquidcontrols.lcr.iq.sdk.FieldItem;
 import com.liquidcontrols.lcr.iq.sdk.LCRCommunicationException;
 import com.liquidcontrols.lcr.iq.sdk.LcrSdk;
-import com.liquidcontrols.lcr.iq.sdk.FieldItem;
-
 import com.liquidcontrols.lcr.iq.sdk.RequestField;
 import com.liquidcontrols.lcr.iq.sdk.ResponseField;
 import com.liquidcontrols.lcr.iq.sdk.SDKDeviceException;
@@ -39,21 +40,18 @@ import com.liquidcontrols.lcr.iq.sdk.lc.api.constants.LCR.LCR_SECURITY_LEVEL;
 import com.liquidcontrols.lcr.iq.sdk.lc.api.constants.LCR.LCR_SWITCH_STATE;
 import com.liquidcontrols.lcr.iq.sdk.lc.api.constants.LCR.LCR_THREAD_CONNECTION_STATE;
 import com.liquidcontrols.lcr.iq.sdk.lc.api.constants.LCR.PRINTING_STATE;
-import com.liquidcontrols.lcr.iq.sdk.lc.api.device.InternalEvent;
 import com.liquidcontrols.lcr.iq.sdk.lc.api.network.NETWORK_TYPE;
 import com.liquidcontrols.lcr.iq.sdk.utils.AsyncCallback;
 import com.liquidcontrols.lcr.iq.sdk.utils.TimeSet;
-import com.megatech.fms.FMSApplication;
 import com.megatech.fms.model.LCRDataModel;
-import com.megatech.fms.R;
 
+import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
-import java.text.NumberFormat;
 
 
 public class LCRReader {
@@ -117,10 +115,356 @@ public class LCRReader {
         _reader.reset();
         return _reader;
     }
-    private void reset()
-    {
-        model = new LCRDataModel();
-    }
+
+    /**
+     * Listener to handle all Field operation events
+     */
+    public FieldListener fieldListener = new FieldListener() {
+
+        /**
+         * onFieldInfoChanged event is activated when device field list is available or
+         * field list status is changed.
+         * Field Data read request can be done only for items what is in field list.
+         *
+         * @param deviceId        Device Id for using multiple devices same time
+         * @param deviceInfo    Device info
+         * @param fields        List of available fields
+         */
+        @Override
+        public void onFieldInfoChanged(
+                @NonNull String deviceId,
+                @NonNull DeviceInfo deviceInfo,
+                @Nullable List<FieldItem> fields) {
+            // Clear local list
+            availableLCRFields.clear();
+            if (fields != null) {
+                String logText = "Field info arrived : " + fields.size() + " fields";
+                raiseError(logText);
+                // Add all list items to local list
+                availableLCRFields.addAll(fields);
+            }
+            //requestData();
+            // Check GROSS_PRESET access and set UI Components
+        }
+
+        /**
+         * onFieldReadDataChanged event is activated when new data arrived in requested field
+         * @param deviceId        Device Id for using multiple devices same time
+         * @param deviceInfo    Device info
+         * @param responseField    Reply/response field with data
+         * @param requestField    Requested field info
+         */
+        @Override
+        public void onFieldReadDataChanged(
+                @NonNull String deviceId,
+                @NonNull DeviceInfo deviceInfo,
+                @NonNull ResponseField responseField,
+                @NonNull RequestField requestField) {
+
+            // Temporary variables for unit information
+            FieldItem responseFieldItem = responseField.getFieldItem();
+
+            String responseFieldName = responseFieldItem.getFieldName();
+
+            Locale locale = Locale.getDefault();
+            NumberFormat numberFormat = NumberFormat.getInstance(locale);
+
+
+            // For not log items what is displayed in separated fields
+            Boolean showInLog = true;
+
+            if (responseFieldName.equals(FIELD_CHANGE.SERIAL.toString())) {
+                model.setSerialId(responseField.getNewValue());
+                onDataChanged(model, FIELD_CHANGE.SERIAL);
+            }
+            if (responseFieldName.equals(FIELD_CHANGE.DATE_FORMAT.toString())) {
+                try {
+                    int dateF = numberFormat.parse(responseField.getNewValue()).intValue();
+                    String pattern = dateFormat.toPattern();
+                    if (dateF == 1) {
+                        dateFormat.applyPattern("dd/MM/yy HH:mm:ss");
+                    } else
+                        dateFormat.applyPattern("MM/dd/yy HH:mm:ss");
+                } catch (Exception ex) {
+
+                }
+                onDataChanged(model, FIELD_CHANGE.DATE_FORMAT);
+            }
+
+
+            if (responseFieldName.equals(FIELD_CHANGE.GROSSQTY.toString())) {
+                // Set logger off for this field
+                showInLog = false;
+                // Format setText string
+                if (dataListener != null) {
+                    try {
+                        model.setGrossQty(numberFormat.parse(responseField.getNewValue()).floatValue());
+                        onDataChanged(model, FIELD_CHANGE.GROSSQTY);
+                    } catch (ParseException e) {
+                    }
+                }
+            }
+            if (responseFieldName.equals(FIELD_CHANGE.STARTTIME.toString())) {
+                // Set logger off for this fiel
+                showInLog = false;
+                // Format setText string
+                if (dataListener != null) {
+                    try {
+                        model.setStartTime(dateFormat.parse(responseField.getNewValue()));
+                        onDataChanged(model, FIELD_CHANGE.STARTTIME);
+                    } catch (ParseException e) {
+                    }
+                }
+            }
+            if (responseFieldName.equals(FIELD_CHANGE.ENDTIME.toString())) {
+                // Set logger off for this field
+                showInLog = false;
+                if (dataListener != null) {
+                    try {
+                        model.setEndTime(dateFormat.parse(responseField.getNewValue()));
+                        onDataChanged(model, FIELD_CHANGE.ENDTIME);
+                        // if state changed to END_DELIVERY before, call onStopped
+                        if (isStopped) {
+                            onStopped();
+                        }
+                    } catch (ParseException e) {
+                    }
+                }
+            }
+
+            if (responseFieldName.equals(FIELD_CHANGE.TOTALIZER.toString())) {
+                // Set logger off for this field
+                showInLog = false;
+                // Format setText string
+                if (dataListener != null) {
+                    try {
+                        float value = numberFormat.parse(responseField.getNewValue()).floatValue();
+
+                        model.setEndMeterNumber(value);
+
+
+                        onDataChanged(model, FIELD_CHANGE.TOTALIZER);
+                    } catch (ParseException e) {
+                    }
+
+                }
+            }
+            if (responseFieldName.equals(FIELD_CHANGE.TEMPERATURE.toString())) {
+                // Set logger off for this field
+                showInLog = false;
+                // Format setText string
+                if (dataListener != null) {
+                    try {
+                        model.setTemperature(numberFormat.parse(responseField.getNewValue()).floatValue());
+                        onDataChanged(model, FIELD_CHANGE.TEMPERATURE);
+                    } catch (ParseException e) {
+                    }
+                }
+            }
+            if (showInLog) {
+                String logText = "Field data arrive : "
+                        + responseField.getFieldItem().getFieldName()
+                        + " - " + responseField.getOldValue()
+                        + " -> "
+                        + responseField.getNewValue();
+
+                // Logging field data change event
+                raiseError(logText);
+            }
+        }
+
+
+        /**
+         * Called when field data request run is success (data has received from LCR device)
+         * (activated every time when data request has success, even received data values are same)
+         * @param deviceId            Device Id
+         * @param deviceInfo        Device info
+         * @param responseField        Reply field with data
+         * @param requestField        Requested field info
+         */
+        @Override
+        public void onFieldDataRequestSuccess(
+                @NonNull String deviceId,
+                @NonNull DeviceInfo deviceInfo,
+                @NonNull ResponseField responseField,
+                @NonNull RequestField requestField) {
+
+            // Not logging this event
+
+            /*
+             * NOTE!
+             * This event return field data request values (ResponseField), even data has not change
+             */
+            //raiseError("Field data request success " + requestField.getItemToRequest().getFieldName());
+        }
+
+        /**
+         * Called when field item data request is failed (Request data from LCR device is failed)
+         * @param deviceId        Device Id
+         * @param deviceInfo    Device info
+         * @param requestField    Requested field info
+         * @param cause            Error cause / message
+         */
+        @Override
+        public void onFieldDataRequestFailed(
+                @NonNull String deviceId,
+                @NonNull DeviceInfo deviceInfo,
+                @NonNull RequestField requestField,
+                @NonNull Throwable cause) {
+
+            String logString;
+
+            logString = String.format(Locale.getDefault(),
+                    "Field data request failed %s\nCause : %s"
+                    , requestField.getItemToRequest().getFieldName()
+                    , cause.getLocalizedMessage());
+
+            // Write log text
+            raiseError(logString);
+            //request field again
+            requestFieldData(requestField.getItemToRequest());
+        }
+
+        /**
+         * Called when field item data request {@link FIELD_REQUEST_STATES state} has changed
+         * @param deviceId        Device Id
+         * @param deviceInfo        Device info
+         * @param requestField    Requested field info
+         * @param newValue        New value of {@link FIELD_REQUEST_STATES}
+         * @param oldValue        Old value of {@link FIELD_REQUEST_STATES}
+         */
+        @Override
+        public void onFieldDataRequestStateChanged(
+                @NonNull String deviceId,
+                @NonNull DeviceInfo deviceInfo,
+                @NonNull RequestField requestField,
+                @NonNull FIELD_REQUEST_STATES newValue,
+                @NonNull FIELD_REQUEST_STATES oldValue) {
+
+        }
+
+        /**
+         * onFieldDataRequestAddSuccess event activated when new field data request add success
+         * (activated only one time for each new field data request)
+         * @param deviceId            Device Id
+         * @param deviceInfo            Device info
+         * @param requestField        Original requested field information
+         * @param overWriteRequest    <code>true</code> if previous request from same field was replaced
+         */
+        @Override
+        public void onFieldDataRequestAddSuccess(
+                @NonNull String deviceId,
+                @NonNull DeviceInfo deviceInfo,
+                @NonNull RequestField requestField,
+                @NonNull Boolean overWriteRequest) {
+
+            // Logging data request add success event
+            raiseError("Field data request add success : " + requestField.getItemToRequest().getFieldName());
+        }
+
+        /**
+         * Called when new field data request task add failed
+         * (activated only one time for each new field data request)
+         * @param deviceId        Device Id
+         * @param deviceInfo        Device info
+         * @param requestField    Original requested field information
+         * @param cause            Cause of error as throwable
+         */
+        @Override
+        public void onFieldDataRequestAddFailed(
+                @NonNull String deviceId,
+                @NonNull DeviceInfo deviceInfo,
+                @NonNull RequestField requestField,
+                @NonNull Throwable cause) {
+
+            // Logging data request add failed
+            raiseError("Field data request add failed : "
+                    + requestField.getItemToRequest().getFieldName()
+                    + "\nCause :"
+                    + cause.getLocalizedMessage());
+        }
+
+        /**
+         * onFieldDataRequestRemoved event activated when field data request is removed
+         * (activate only one time)
+         * @param deviceId        Device Id for using multiple devices same time
+         * @param deviceInfo    Device info
+         * @param requestField    Original requested field information
+         * @param info            Information of remove (why removed)
+         */
+        @Override
+        public void onFieldDataRequestRemoved(
+                @NonNull String deviceId,
+                @NonNull DeviceInfo deviceInfo,
+                @NonNull RequestField requestField,
+                @NonNull String info) {
+
+            raiseError("Field read data request removed : " + requestField.getItemToRequest().getFieldName() + " - " + info);
+        }
+
+        /**
+         * onFieldWriteStatusChanged event is activated when write process status is changed
+         * @param deviceId        Device Id for using multiple devices same time
+         * @param deviceInfo    Device info
+         * @param fieldItem        Field information
+         * @param data            Data to write into field
+         * @param newValue        New Status
+         * @param oldValue        Old Status
+         */
+        @Override
+        public void onFieldWriteStatusChanged(
+                @NonNull String deviceId,
+                @NonNull DeviceInfo deviceInfo,
+                @NonNull FieldItem fieldItem,
+                @NonNull String data,
+                @Nullable FIELD_WRITE_STATE newValue,
+                @Nullable FIELD_WRITE_STATE oldValue) {
+
+            raiseError("Write field state : " + oldValue + " -> " + newValue);
+        }
+
+        /**
+         * onFieldWriteSuccess activated when write process is success to LCR device.
+         * (activate only one time for each write process)
+         * @param deviceId        Device Id for using multiple devices same time
+         * @param deviceInfo    Device Info
+         * @param fieldItem        Field information
+         * @param data            Data what is written to field
+         */
+        @Override
+        public void onFieldWriteSuccess(
+                @NonNull String deviceId,
+                @NonNull DeviceInfo deviceInfo,
+                @NonNull FieldItem fieldItem,
+                @NonNull String data) {
+
+            raiseError("Field data write success : " + fieldItem.getFieldName());
+        }
+
+        /**
+         * onFieldWriteFailed activated when field write process has failed
+         * (activate only one time for each write process)
+         * @param deviceId        Device Id for using multiple devices same time
+         * @param deviceInfo    Device Info
+         * @param fieldItem        Field info
+         * @param data            Data what tried to write to field
+         * @param cause            Cause of fail
+         */
+        @Override
+        public void onFieldWriteFailed(
+                @NonNull String deviceId,
+                @NonNull DeviceInfo deviceInfo,
+                @NonNull FieldItem fieldItem,
+                @NonNull String data,
+                @Nullable Throwable cause) {
+
+            String errorMsg = "(unknown)";
+            if (cause != null) {
+                errorMsg = cause.getLocalizedMessage();
+            }
+            raiseError("Field data write failed : " + fieldItem.getFieldName() + " Cause : " + errorMsg);
+        }
+    };
     private void onDeviceAdded(boolean failed)
     {
         if (connectionListener!=null)
@@ -128,22 +472,217 @@ public class LCRReader {
         if (!failed)
             doConnectDevice();
     }
-    private void onConnected() {
 
-        //lcrSdk.addListener(deviceStatusListener);
-        if (connectionListener!=null)
-            connectionListener.onConnected();
-        isError = false;
-    }
+    /**
+     * Listener for most of Device status and state information
+     */
+    public DeviceStatusListener deviceStatusListener = new DeviceStatusListener() {
+
+        /**
+         * Event is activated when delivery active state is changed
+         * @param deviceId                Device identification
+         * @param deviceInfo            Device information
+         * @param deliveryActiveState    Delivery active <code>true</code> delivery is active
+         */
+        @Override
+        public void onDeliveryActiveStateChanged(
+                @NonNull String deviceId,
+                @NonNull DeviceInfo deviceInfo,
+                @NonNull Boolean deliveryActiveState) {
+
+            // Logging delivery active state
+            raiseError("Delivery active state changed : " + deliveryActiveState);
+        }
+
+        /**
+         * Event is activated when LCR Device {@link LCR_DEVICE_STATE state} is changed
+         * @param deviceId        Device identification
+         * @param deviceInfo    Device info
+         * @param newValue        New device {@link LCR_DEVICE_STATE state}
+         * @param oldValue        Old device {@link LCR_DEVICE_STATE state}
+         */
+        @Override
+        public void onDeviceStateChanged(
+                @NonNull String deviceId,
+                @NonNull DeviceInfo deviceInfo,
+                @Nullable LCR_DEVICE_STATE newValue,
+                @Nullable LCR_DEVICE_STATE oldValue) {
+
+            // Set device state text
+
+            // Logging device state
+            raiseError("Device state changed : " + oldValue + " -> " + newValue);
+
+            if (newValue == LCR_DEVICE_STATE.STATE_RUN)
+                onStarted();
+            //State change to END_DELIVERY
+            if (newValue == LCR_DEVICE_STATE.STATE_END_DELIVERY
+                    || newValue == LCR_DEVICE_STATE.STATE_CALIBRATE) {
+                isStopped = true && isStarted;
+                // if restart request, do stop immediately,
+                // if normal, waiting for ENDTIME field to stop
+                if (isRestart)
+                    onStopped();
+            }
+
+        }
+
+
+        /**
+         * Event is activated when one of {@link LCR_DELIVERY_CODE LCR_DELIVERY_CODE} status is changed.
+         * Each delivery code has values of <code>null</code>, <code>true</code> or <code>false</code>
+         * @param deviceId    Device identification
+         * @param deviceInfo    Device info
+         * @param code        Delivery code {@link LCR_DELIVERY_CODE}
+         * @param newValue    New value
+         * @param oldValue    Old value
+         */
+        @Override
+        public void onDeliveryCodeChanged(
+                @NonNull String deviceId,
+                @NonNull DeviceInfo deviceInfo,
+                @NonNull LCR_DELIVERY_CODE code,
+                @Nullable Boolean newValue,
+                @Nullable Boolean oldValue) {
+
+            // Check out FLOW_ACTIVE event
+            if (code.equals(LCR_DELIVERY_CODE.FLOW_ACTIVE)) {
+                if (newValue == null) {
+                    //textViewFlowStateData.setText(R.string.text_state_unknown);
+                } else if (newValue) {
+                    //textViewFlowStateData.setText(R.string.text_flow_state_on);
+                } else {
+                    //textViewFlowStateData.setText(R.string.text_flow_state_off);
+                }
+            }
+            // Logging delivery code status
+            raiseError("Delivery code changed : " + code + " " + oldValue + " -> " + newValue);
+        }
+
+        /**
+         * Event is activated when one of {@link LCR_DELIVERY_STATUS LCR_DELIVERY_STATUS} code is changed.
+         * Each delivery status code has values of <code>null</code>, <code>true</code> or <code>false</code>
+         * @param deviceId        Device identification
+         * @param deviceInfo    Device info
+         * @param code            {@link LCR_DELIVERY_STATUS LCR_DELIVERY_STATUS} code
+         * @param newValue        New Value
+         * @param oldValue        Old Value
+         */
+        public void onDeliveryStatusChanged(
+                @NonNull String deviceId,
+                @NonNull DeviceInfo deviceInfo,
+                @NonNull LCR_DELIVERY_STATUS code,
+                @Nullable Boolean newValue,
+                @Nullable Boolean oldValue) {
+
+            // Logging delivery status codes
+            raiseError("Delivery Status changed : " + code + " " + objToStrWithNullCheck(oldValue) + " -> " + objToStrWithNullCheck(newValue));
+        }
+
+        /**
+         * Event is activated when one of security level {@link LCR_SECURITY_LEVEL code} value is changed.
+         * @param deviceId        Device identification
+         * @param deviceInfo    Device info
+         * @param newValue        New value of current security level code
+         * @param oldValue        Old value of current security level code
+         */
+        public void onSecurityLevelChanged(
+                @NonNull String deviceId,
+                @NonNull DeviceInfo deviceInfo,
+                @Nullable LCR_SECURITY_LEVEL newValue,
+                @Nullable LCR_SECURITY_LEVEL oldValue) {
+
+            // Logging security level (old security level -> new security level)
+            raiseError("Security level changed : " + " " + oldValue + " -> " + newValue);
+        }
+    };
     private void onReconnected()
     {}
     private boolean isError = false;
-    private void onError() {
+    /**
+     * DeviceCommunicationListener report SDK communication information to LCR device
+     */
+    private DeviceCommunicationListener deviceCommunicationListener = new DeviceCommunicationListener() {
 
-        if (connectionListener!=null && !isError)
-            connectionListener.onError();
-        isError = true;
-    }
+        /**
+         * Notify when message state is changed between SDK and LCR device
+         * NOTE! This listener update very high frequency
+         *
+         * @param deviceId   Device identification string
+         * @param deviceInfo Device info
+         * @param newValue   New value
+         * @param oldValue   Old value
+         */
+        @Override
+        public void onMessageStateChanged(
+                @NonNull String deviceId,
+                @NonNull DeviceInfo deviceInfo,
+                @Nullable LCR_MESSAGE_STATE newValue,
+                @Nullable LCR_MESSAGE_STATE oldValue) {
+
+        }
+
+        /**
+         * Notify when SDK has detect communication error with LCR device.
+         * <p>
+         * Also notify some important internal SDK errors (example. generated output message size errors).
+         * <p>
+         * About event trace :
+         * - Event trace start when device object get run turn from SDK DeviceRunner Thread
+         * - Event list actions is add in key points of SDK and LCR device communicating
+         * - Event list is cleared when device object finnish run or onCommunicationStatus error listeners is notified
+         * <p>
+         * Event trace is not yet fully implemented inside SDK. More events will add recording later on.
+         *
+         * @param deviceId   Device identification string
+         * @param deviceInfo Device Info
+         * @param cause      Special type of exception
+         */
+        @Override
+        public void onCommunicationStatusError(
+                @NonNull String deviceId,
+                @NonNull DeviceInfo deviceInfo,
+                @NonNull LCRCommunicationException cause) {
+            /*
+            Log.e("ERROR_EVENT", "---------------------------------");
+            Log.e("ERROR_EVENT", "Error event from : " + deviceId);
+            Log.e("ERROR_EVENT", "-------- event data start--------");
+            // Print events trace to lead up in error (not complete trace yet)
+            Integer lineNumber = 1;
+            for(InternalEvent event : cause.getEvents()) {
+                // Print events (all type of events)
+                Log.e("ERROR_EVENT", lineNumber++ + " - " + event.getData());
+            }
+            Log.e("ERROR_EVENT", "--------- event data end ---------");
+            */
+        }
+
+        /**
+         * Notify when SDK communication status with LCR device is changed
+         * !! NOTE !!
+         * Not full implemented inside SDK
+         *
+         * @param deviceId   Device identification string
+         * @param deviceInfo Device info
+         * @param newValue   New Value
+         * @param oldValue   Old Value
+         */
+        @Override
+        public void onCommunicationStatusChanged(
+                @NonNull String deviceId,
+                @NonNull DeviceInfo deviceInfo,
+                @Nullable LCR_COMMUNICATION_STATUS newValue,
+                @Nullable LCR_COMMUNICATION_STATUS oldValue) {
+
+            raiseError("Communication status changed: " + oldValue + " -> " + newValue);
+            if (newValue == LCR_COMMUNICATION_STATUS.ERROR)
+                onError();
+            if ((newValue == LCR_COMMUNICATION_STATUS.QUEUED
+                    || newValue == LCR_COMMUNICATION_STATUS.OK)
+            )
+                onConnected();
+        }
+    };
     private void onConnectionStateChanged(LCR_DEVICE_CONNECTION_STATE state) {
         if (connectionListener !=null)
             connectionListener.onConnectionStateChange( state);
@@ -189,10 +728,12 @@ public class LCRReader {
         requestFieldData(serial);
     }
 
-    public interface LCRDataListener {
-        void onDataChanged(LCRDataModel dataModel, FIELD_CHANGE field_change);
-        void onErrorMessage(String errorMsg);
+    private void reset()
+    {
+        //initLCR();
+        model = new LCRDataModel();
     }
+
     public  enum FIELD_CHANGE
     {
 
@@ -255,44 +796,23 @@ public class LCRReader {
     }
 
     private LCRStateListener stateListener;
-    public void setStateListener(LCRStateListener stateListener)
-    {
+
+    public void setStateListener(LCRStateListener stateListener) {
         this.stateListener = stateListener;
     }
+
     private LCRDataModel model = new LCRDataModel();
-    public void requestData()
-    {
-        grossMeter = findUserFieldByName("GROSSMETERQTY");
-        grossQty = findUserFieldByName("GROSSQTY");
-        endTime = findUserFieldByName("DELIVERYFINISH");
-        startTime = findUserFieldByName("DELIVERYSTART");
-        temp = findUserFieldByName("AVGTEMP");
 
-        deviceDateFormat = findUserFieldByName("DATEFORMAT");
-        deviceTimeFormat = findUserFieldByName("TIMEFORMAT");
+    private void onConnected() {
 
-        requestFieldData(deviceDateFormat);
-        requestFieldData(deviceTimeFormat);
-        requestFieldData(startTime);
 
-        requestFieldData(grossMeter);
-        requestFieldData(grossQty);
-        requestFieldData(endTime);
-        requestFieldData(temp);
-
-/*
-        requestFieldData(FIELD_CHANGE.TOTALIZER);
-        requestFieldData(FIELD_CHANGE.GROSSQTY);
-        requestFieldData(FIELD_CHANGE.STARTTIME);
-        requestFieldData(FIELD_CHANGE.ENDTIME);
-        requestFieldData(FIELD_CHANGE.TEMPERATURE);
-        requestFieldData(FIELD_CHANGE.DATE_FORMAT);
-        requestFieldData(FIELD_CHANGE.TIME_FORMAT);
-        */
-
+        //lcrSdk.addListener(deviceStatusListener);
+        if (connectionListener != null)
+            connectionListener.onConnected();
+        isError = false;
     }
-    public void stopRequestData()
-    {
+
+    public void stopRequestData() {
         /*
         grossQty = findUserFieldByName("GROSSQTY");
         grossMeter = findUserFieldByName("GROSSMETERQTY");
@@ -308,11 +828,81 @@ public class LCRReader {
         */
 
     }
+
+    private void onError() {
+
+        if (connectionListener!=null && !isError) {
+            isError = true;
+            connectionListener.onError();
+        }
+
+    }
+
+    public void requestData()
+    {
+        grossMeter = findUserFieldByName("GROSSMETERQTY");
+        grossQty = findUserFieldByName("GROSSQTY");
+        endTime = findUserFieldByName("DELIVERYFINISH");
+        startTime = findUserFieldByName("DELIVERYSTART");
+        temp = findUserFieldByName("AVGTEMP");
+
+        deviceDateFormat = findUserFieldByName("DATEFORMAT");
+
+
+        requestFieldData(deviceDateFormat);
+        requestFieldData(startTime);
+        requestFieldData(grossMeter);
+        requestFieldData(grossQty);
+        requestFieldData(endTime);
+        requestFieldData(temp);
+
+/*
+        requestFieldData(FIELD_CHANGE.TOTALIZER);
+        requestFieldData(FIELD_CHANGE.GROSSQTY);
+        requestFieldData(FIELD_CHANGE.STARTTIME);
+        requestFieldData(FIELD_CHANGE.ENDTIME);
+        requestFieldData(FIELD_CHANGE.TEMPERATURE);
+        requestFieldData(FIELD_CHANGE.DATE_FORMAT);
+        requestFieldData(FIELD_CHANGE.TIME_FORMAT);
+*/
+
+    }
+    private void removeFieldData(final FieldItem field) {
+        if (field!=null)
+        lcrSdk.removeFieldDataRequest(getDeviceId(), field);
+
+    }
+
     private void requestFieldData(FIELD_CHANGE fieldName) {
         if (fieldName !=null) {
 
             FieldItem field = lcrSdk.fieldToolsFindField(getDeviceId(), fieldName.toString());
             if (field!=null)
+            lcrSdk.requestFieldData(
+                    getDeviceId(),
+                    new RequestField(
+                            field,
+                            new TimeSet(1, TimeUnit.MILLISECONDS)),
+                    new AsyncCallback() {
+                        @Override
+                        public void onAsyncReturn(@Nullable Throwable throwable) {
+                            if (throwable != null) {
+
+                                raiseError("SDK : Request command for field " + field.getFieldName() + " failed : " + throwable.getCause().getLocalizedMessage());
+                            } else {
+                                raiseError("SDK : Request command for field " + field.getFieldName() + " success");
+                            }
+                        }
+                    });
+            else
+                raiseError("NULL field: " + fieldName);
+        }
+
+    }
+
+    private void requestFieldData(final FieldItem field) {
+        if (field != null) {
+            raiseError("Send request field " + field.getFieldName());
             lcrSdk.requestFieldData(
                     getDeviceId(),
                     new RequestField(
@@ -328,63 +918,16 @@ public class LCRReader {
                             }
                         }
                     });
-            else
-                raiseError("NULL field: "+ fieldName);
         }
-
     }
-
-    private void requestFieldData(final FieldItem field) {
-        if (field !=null)
-        lcrSdk.requestFieldData(
-                getDeviceId(),
-                new RequestField(
-                        field,
-                        new TimeSet(1, TimeUnit.MILLISECONDS)),
-                new AsyncCallback() {
-                    @Override
-                    public void onAsyncReturn(@Nullable Throwable throwable) {
-                        if(throwable != null) {
-                            raiseError("SDK : Request command for field " + field.getFieldName() + " failed : " + throwable.getLocalizedMessage());
-                        } else {
-                            raiseError("SDK : Request command for field " + field.getFieldName() + " success");
-                        }
-                    }
-                });
-    }
-    private void removeFieldData(final FieldItem field) {
-        if (field!=null)
-        lcrSdk.removeFieldDataRequest(getDeviceId(), field);
-
-    }
-
 
     // command methods
     public void start() {
         isStarted = false;
         isStopped = false;
-
+        isRestart = false;
         sendCommand(LCR_COMMAND.RUN);
 
-    }
-    private void onStarted()
-    {
-
-        isStarted = true;
-        requestData();
-        if (stateListener !=null ){
-                stateListener.onStart();
-        }
-    }
-    private void onStopped()
-    {
-
-        isStopped = false;
-        stopRequestData();
-        if (stateListener !=null ){
-            stateListener.onStop();
-        }
-        isStarted = false;
     }
 
     private void onEnded() {
@@ -415,7 +958,7 @@ public class LCRReader {
         if (lcrSdk!=null) {
             //LCR_DEVICE_CONNECTION_STATE state = lcrSdk.getDeviceConnectionState(getDeviceId());
             //if (state == LCR_DEVICE_CONNECTION_STATE.CONNECTED)
-                lcrSdk.addDeviceCommand(getDeviceId(), command);
+            lcrSdk.addDeviceCommand(getDeviceId(), command);
 
             //else
             //{
@@ -424,12 +967,15 @@ public class LCRReader {
         }
 
     }
-    private void raiseError(String errorMsg)
-    {
-        Log.e("FMS",errorMsg);
-        if (dataListener!=null)
-            dataListener.onErrorMessage(errorMsg);
 
+    //RUN command success
+    private void onStarted()
+    {
+        isStarted = true;
+
+        if (stateListener !=null ){
+                stateListener.onStart();
+        }
     }
     private enum DEVICE_ACTION {
         CONNECT,
@@ -822,357 +1368,17 @@ public class LCRReader {
     };
 
 
-
     SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
 
-    /** Listener to handle all Field operation events */
-    public FieldListener fieldListener = new FieldListener() {
-
-        /**
-         * onFieldInfoChanged event is activated when device field list is available or
-         * field list status is changed.
-         * Field Data read request can be done only for items what is in field list.
-         *
-         * @param deviceId		Device Id for using multiple devices same time
-         * @param deviceInfo	Device info
-         * @param fields		List of available fields
-         */
-        @Override
-        public void onFieldInfoChanged(
-                @NonNull String deviceId,
-                @NonNull DeviceInfo deviceInfo,
-                @Nullable List<FieldItem> fields) {
-            // Clear local list
-            availableLCRFields.clear();
-            if(fields != null) {
-                String logText = "Field info arrived : " + fields.size() + " fields";
-                raiseError(logText);
-                // Add all list items to local list
-                availableLCRFields.addAll(fields);
-            }
-            // Check GROSS_PRESET access and set UI Components
+    //END DELIVERY success and ENDTIME received
+    private void onStopped() {
+        isStopped = false;
+        stopRequestData();
+        if (stateListener != null) {
+            stateListener.onStop();
         }
-
-        /**
-         * onFieldReadDataChanged event is activated when new data arrived in requested field
-         * @param deviceId		Device Id for using multiple devices same time
-         * @param deviceInfo	Device info
-         * @param responseField	Reply/response field with data
-         * @param requestField 	Requested field info
-         */
-        @Override
-        public void onFieldReadDataChanged(
-                @NonNull String deviceId,
-                @NonNull DeviceInfo deviceInfo,
-                @NonNull ResponseField responseField,
-                @NonNull RequestField requestField) {
-
-            // Temporary variables for unit information
-            FieldItem responseFieldItem = responseField.getFieldItem();
-
-            String responseFieldName = responseFieldItem.getFieldName();
-
-            Locale locale = Locale.getDefault();
-            NumberFormat numberFormat = NumberFormat.getInstance(locale);
-
-
-            // For not log items what is displayed in separated fields
-            Boolean showInLog = true;
-
-            if (responseFieldName.equals(FIELD_CHANGE.SERIAL.toString()))
-            {
-                model.setSerialId(responseField.getNewValue());
-                onDataChanged(model, FIELD_CHANGE.SERIAL);
-            }
-            if(responseFieldName.equals(FIELD_CHANGE.DATE_FORMAT.toString())) {
-                try {
-                    int dateF = numberFormat.parse(responseField.getNewValue()).intValue();
-                    String pattern = dateFormat.toPattern();
-                    if (dateF == 1)
-                    {
-                        dateFormat.applyPattern("dd/MM/yy HH:mm:ss");
-                    }
-                    else
-                        dateFormat.applyPattern("MM/dd/yy HH:mm:ss");
-                }
-                catch (Exception ex)
-                {
-
-                }
-                onDataChanged(model, FIELD_CHANGE.DATE_FORMAT);
-            }
-
-
-
-            if(responseFieldName.equals(FIELD_CHANGE.GROSSQTY.toString())) {
-                // Set logger off for this field
-                showInLog = false;
-                // Format setText string
-                if (dataListener!=null) {
-                    try {
-                        model.setGrossQty(numberFormat.parse(responseField.getNewValue()).floatValue());
-                        onDataChanged(model, FIELD_CHANGE.GROSSQTY);
-                    } catch (ParseException e) {
-                    }
-                }
-            }
-            if(responseFieldName.equals(FIELD_CHANGE.STARTTIME.toString())) {
-                // Set logger off for this fiel
-                showInLog = false;
-                // Format setText string
-                if (dataListener!=null) {
-                    try {
-                        model.setStartTime(dateFormat.parse(responseField.getNewValue()));
-                        onDataChanged(model, FIELD_CHANGE.STARTTIME);
-                    } catch (ParseException e) {
-                    }
-                }
-            }
-            if(responseFieldName.equals(FIELD_CHANGE.ENDTIME.toString())) {
-                // Set logger off for this field
-                showInLog = false;
-                if (dataListener!=null) {
-                    try {
-                        model.setEndTime(dateFormat.parse(responseField.getNewValue()));
-                        onDataChanged(model, FIELD_CHANGE.ENDTIME);
-                        if (isStopped)
-                            onStopped();
-                    } catch (ParseException e) {
-                    }
-                }
-            }
-
-            if(responseFieldName.equals(FIELD_CHANGE.TOTALIZER.toString())) {
-                // Set logger off for this field
-                showInLog = false;
-                // Format setText string
-                if (dataListener!=null) {
-                    try {
-                        float value = numberFormat.parse(responseField.getNewValue()).floatValue();
-
-                        model.setEndMeterNumber(value);
-
-
-                        onDataChanged(model, FIELD_CHANGE.TOTALIZER);
-                    } catch (ParseException e)
-                    {}
-
-                }
-            }
-            if(responseFieldName.equals(FIELD_CHANGE.TEMPERATURE.toString())) {
-                // Set logger off for this field
-                showInLog = false;
-                // Format setText string
-                if (dataListener!=null) {
-                    try {
-                        model.setTemperature(numberFormat.parse(responseField.getNewValue()).floatValue());
-                        onDataChanged(model, FIELD_CHANGE.TEMPERATURE);
-                    } catch (ParseException e)
-                    {}
-                }
-            }
-            if(showInLog) {
-                String logText = "Field data arrive : "
-                        + responseField.getFieldItem().getFieldName()
-                        + " - " + responseField.getOldValue()
-                        + " -> "
-                        + responseField.getNewValue();
-
-                // Logging field data change event
-                raiseError(logText);
-            }
-        }
-
-
-        /**
-         * Called when field data request run is success (data has received from LCR device)
-         * (activated every time when data request has success, even received data values are same)
-         * @param deviceId			Device Id
-         * @param deviceInfo		Device info
-         * @param responseField		Reply field with data
-         * @param requestField		Requested field info
-         */
-        @Override
-        public void onFieldDataRequestSuccess(
-                @NonNull String deviceId,
-                @NonNull DeviceInfo deviceInfo,
-                @NonNull ResponseField responseField,
-                @NonNull RequestField requestField) {
-
-            // Not logging this event
-
-            /*
-             * NOTE!
-             * This event return field data request values (ResponseField), even data has not change
-             */
-
-        }
-
-        /**
-         * Called when field item data request is failed (Request data from LCR device is failed)
-         * @param deviceId		Device Id
-         * @param deviceInfo	Device info
-         * @param requestField	Requested field info
-         * @param cause			Error cause / message
-         */
-        @Override
-        public void onFieldDataRequestFailed(
-                @NonNull String deviceId,
-                @NonNull DeviceInfo deviceInfo,
-                @NonNull RequestField requestField,
-                @NonNull Throwable cause) {
-
-            String logString;
-
-            logString = String.format(Locale.getDefault(),
-                    "Field data request failed %s\nCause : %s"
-                    ,requestField.getItemToRequest().getFieldName()
-                    ,cause.getLocalizedMessage());
-
-            // Write log text
-            raiseError(logString);
-        }
-
-        /**
-         * Called when field item data request {@link FIELD_REQUEST_STATES state} has changed
-         * @param deviceId		Device Id
-         * @param deviceInfo		Device info
-         * @param requestField	Requested field info
-         * @param newValue		New value of {@link FIELD_REQUEST_STATES}
-         * @param oldValue		Old value of {@link FIELD_REQUEST_STATES}
-         */
-        @Override
-        public void onFieldDataRequestStateChanged(
-                @NonNull String deviceId,
-                @NonNull DeviceInfo deviceInfo,
-                @NonNull RequestField requestField,
-                @NonNull FIELD_REQUEST_STATES newValue,
-                @NonNull FIELD_REQUEST_STATES oldValue) {
-
-        }
-
-        /**
-         * onFieldDataRequestAddSuccess event activated when new field data request add success
-         * (activated only one time for each new field data request)
-         * @param deviceId			Device Id
-         * @param deviceInfo			Device info
-         * @param requestField		Original requested field information
-         * @param overWriteRequest	<code>true</code> if previous request from same field was replaced
-         */
-        @Override
-        public void onFieldDataRequestAddSuccess(
-                @NonNull String deviceId,
-                @NonNull DeviceInfo deviceInfo,
-                @NonNull RequestField requestField,
-                @NonNull Boolean overWriteRequest) {
-
-            // Logging data request add success event
-            raiseError("Field data request add success : " + requestField.getItemToRequest().getFieldName());
-        }
-
-        /**
-         * Called when new field data request task add failed
-         * (activated only one time for each new field data request)
-         * @param deviceId		Device Id
-         * @param deviceInfo		Device info
-         * @param requestField	Original requested field information
-         * @param cause			Cause of error as throwable
-         */
-        @Override
-        public void onFieldDataRequestAddFailed(
-                @NonNull String deviceId,
-                @NonNull DeviceInfo deviceInfo,
-                @NonNull RequestField requestField,
-                @NonNull Throwable cause) {
-
-            // Logging data request add failed
-            raiseError("Field data request add failed : "
-                    + requestField.getItemToRequest().getFieldName()
-                    + "\nCause :"
-                    + cause.getLocalizedMessage());
-        }
-
-        /**
-         * onFieldDataRequestRemoved event activated when field data request is removed
-         * (activate only one time)
-         * @param deviceId		Device Id for using multiple devices same time
-         * @param deviceInfo	Device info
-         * @param requestField	Original requested field information
-         * @param info			Information of remove (why removed)
-         */
-        @Override
-        public void onFieldDataRequestRemoved(
-                @NonNull String deviceId,
-                @NonNull DeviceInfo deviceInfo,
-                @NonNull RequestField requestField,
-                @NonNull String info) {
-
-            raiseError("Field read data request removed : " + requestField.getItemToRequest().getFieldName() + " - " + info);
-        }
-
-        /**
-         * onFieldWriteStatusChanged event is activated when write process status is changed
-         * @param deviceId		Device Id for using multiple devices same time
-         * @param deviceInfo	Device info
-         * @param fieldItem		Field information
-         * @param data			Data to write into field
-         * @param newValue		New Status
-         * @param oldValue		Old Status
-         */
-        @Override
-        public void onFieldWriteStatusChanged(
-                @NonNull String deviceId,
-                @NonNull DeviceInfo deviceInfo,
-                @NonNull FieldItem fieldItem,
-                @NonNull String data,
-                @Nullable FIELD_WRITE_STATE newValue,
-                @Nullable FIELD_WRITE_STATE oldValue) {
-
-            raiseError("Write field state : " + oldValue + " -> " + newValue);
-        }
-
-        /**
-         * onFieldWriteSuccess activated when write process is success to LCR device.
-         * (activate only one time for each write process)
-         * @param deviceId		Device Id for using multiple devices same time
-         * @param deviceInfo	Device Info
-         * @param fieldItem		Field information
-         * @param data			Data what is written to field
-         */
-        @Override
-        public void onFieldWriteSuccess(
-                @NonNull String deviceId,
-                @NonNull DeviceInfo deviceInfo,
-                @NonNull FieldItem fieldItem,
-                @NonNull String data) {
-
-            raiseError("Field data write success : " + fieldItem.getFieldName());
-        }
-
-        /**
-         * onFieldWriteFailed activated when field write process has failed
-         * (activate only one time for each write process)
-         * @param deviceId		Device Id for using multiple devices same time
-         * @param deviceInfo	Device Info
-         * @param fieldItem		Field info
-         * @param data			Data what tried to write to field
-         * @param cause			Cause of fail
-         */
-        @Override
-        public void onFieldWriteFailed(
-                @NonNull String deviceId,
-                @NonNull DeviceInfo deviceInfo,
-                @NonNull FieldItem fieldItem,
-                @NonNull String data,
-                @Nullable Throwable cause) {
-
-            String errorMsg = "(unknown)";
-            if(cause != null) {
-                errorMsg = cause.getLocalizedMessage();
-            }
-            raiseError("Field data write failed : " + fieldItem.getFieldName() + " Cause : " + errorMsg);
-        }
-    };
+        isStarted = false;
+    }
 
     private void onDataChanged(LCRDataModel model, FIELD_CHANGE field_change) {
 
@@ -1185,7 +1391,6 @@ public class LCRReader {
         }
         if (field_change == FIELD_CHANGE.SERIAL)
         {
-            //removeFieldData(deviceDateFormat);
             removeFieldData(findUserFieldByName(serialFieldName));
 
         }
@@ -1294,127 +1499,18 @@ public class LCRReader {
 
     };
     private boolean isStarted = false;
-    public boolean isStarted()
-    {
-        return  isStarted;
+
+    public boolean isStarted() {
+        return isStarted;
     }
-    /** Listener for most of Device status and state information */
-    public DeviceStatusListener deviceStatusListener = new DeviceStatusListener() {
 
-        /**
-         * Event is activated when delivery active state is changed
-         * @param deviceId				Device identification
-         * @param deviceInfo			Device information
-         * @param deliveryActiveState	Delivery active <code>true</code> delivery is active
-         */
-        @Override
-        public void onDeliveryActiveStateChanged(
-                @NonNull String deviceId,
-                @NonNull DeviceInfo deviceInfo,
-                @NonNull Boolean deliveryActiveState) {
+    private void raiseError(String errorMsg) {
+        Log.e("FMS", errorMsg);
 
-            // Logging delivery active state
-            raiseError("Delivery active state changed : " + deliveryActiveState);
-        }
+        if (dataListener!=null)
+            dataListener.onErrorMessage(errorMsg);
 
-        /**
-         * Event is activated when LCR Device {@link LCR_DEVICE_STATE state} is changed
-         * @param deviceId		Device identification
-         * @param deviceInfo	Device info
-         * @param newValue		New device {@link LCR_DEVICE_STATE state}
-         * @param oldValue		Old device {@link LCR_DEVICE_STATE state}
-         */
-        @Override
-        public void onDeviceStateChanged(
-                @NonNull String deviceId,
-                @NonNull DeviceInfo deviceInfo,
-                @Nullable LCR_DEVICE_STATE newValue,
-                @Nullable LCR_DEVICE_STATE oldValue) {
-
-            // Set device state text
-
-            // Logging device state
-            raiseError("Device state changed : " + oldValue + " -> " + newValue);
-
-            if (newValue == LCR_DEVICE_STATE.STATE_RUN)
-                onStarted();
-            if (newValue == LCR_DEVICE_STATE.STATE_END_DELIVERY) {
-                isStopped = true && isStarted;
-            if (isRestart)
-                    onStopped();
-            }
-
-        }
-
-
-        /**
-         * Event is activated when one of {@link LCR_DELIVERY_CODE LCR_DELIVERY_CODE} status is changed.
-         * Each delivery code has values of <code>null</code>, <code>true</code> or <code>false</code>
-         * @param deviceId	Device identification
-         * @param deviceInfo	Device info
-         * @param code		Delivery code {@link LCR_DELIVERY_CODE}
-         * @param newValue	New value
-         * @param oldValue	Old value
-         */
-        @Override
-        public void onDeliveryCodeChanged(
-                @NonNull String deviceId,
-                @NonNull DeviceInfo deviceInfo,
-                @NonNull LCR_DELIVERY_CODE code,
-                @Nullable Boolean newValue,
-                @Nullable Boolean oldValue) {
-
-            // Check out FLOW_ACTIVE event
-            if(code.equals(LCR_DELIVERY_CODE.FLOW_ACTIVE)) {
-                if(newValue == null) {
-                    //textViewFlowStateData.setText(R.string.text_state_unknown);
-                } else if(newValue) {
-                    //textViewFlowStateData.setText(R.string.text_flow_state_on);
-                } else {
-                    //textViewFlowStateData.setText(R.string.text_flow_state_off);
-                }
-            }
-            // Logging delivery code status
-            raiseError("Delivery code changed : " + code + " " + oldValue + " -> " + newValue);
-        }
-
-        /**
-         * Event is activated when one of {@link LCR_DELIVERY_STATUS LCR_DELIVERY_STATUS} code is changed.
-         * Each delivery status code has values of <code>null</code>, <code>true</code> or <code>false</code>
-         * @param deviceId		Device identification
-         * @param deviceInfo	Device info
-         * @param code			{@link LCR_DELIVERY_STATUS LCR_DELIVERY_STATUS} code
-         * @param newValue		New Value
-         * @param oldValue		Old Value
-         */
-        public void onDeliveryStatusChanged(
-                @NonNull String deviceId,
-                @NonNull DeviceInfo deviceInfo,
-                @NonNull LCR_DELIVERY_STATUS code,
-                @Nullable Boolean newValue,
-                @Nullable Boolean oldValue) {
-
-            // Logging delivery status codes
-            raiseError("Delivery Status changed : " + code + " " + objToStrWithNullCheck(oldValue) + " -> " + objToStrWithNullCheck(newValue));
-        }
-
-        /**
-         * Event is activated when one of security level {@link LCR_SECURITY_LEVEL code} value is changed.
-         * @param deviceId		Device identification
-         * @param deviceInfo	Device info
-         * @param newValue		New value of current security level code
-         * @param oldValue		Old value of current security level code
-         */
-        public void onSecurityLevelChanged(
-                @NonNull String deviceId,
-                @NonNull DeviceInfo deviceInfo,
-                @Nullable LCR_SECURITY_LEVEL newValue,
-                @Nullable LCR_SECURITY_LEVEL oldValue) {
-
-            // Logging security level (old security level -> new security level)
-            raiseError("Security level changed : " + " " + oldValue + " -> " + newValue);
-        }
-    };
+    }
 
     /** Printer status monitoring */
     PrinterStatusListener printerStatusListener = new PrinterStatusListener() {
@@ -1501,89 +1597,12 @@ public class LCRReader {
         }
     };
 
-    /**
-     * DeviceCommunicationListener report SDK communication information to LCR device
-     */
-    private DeviceCommunicationListener deviceCommunicationListener = new DeviceCommunicationListener() {
+    public interface LCRDataListener {
+        void onDataChanged(LCRDataModel dataModel, FIELD_CHANGE field_change);
 
-        /**
-         * Notify when message state is changed between SDK and LCR device
-         * NOTE! This listener update very high frequency
-         * @param deviceId		Device identification string
-         * @param deviceInfo	Device info
-         * @param newValue		New value
-         * @param oldValue		Old value
-         */
-        @Override
-        public void onMessageStateChanged(
-                @NonNull String deviceId,
-                @NonNull DeviceInfo deviceInfo,
-                @Nullable LCR_MESSAGE_STATE newValue,
-                @Nullable LCR_MESSAGE_STATE oldValue) {
-
-        }
-
-        /**
-         * Notify when SDK has detect communication error with LCR device.
-         *
-         * Also notify some important internal SDK errors (example. generated output message size errors).
-         *
-         * About event trace :
-         * - Event trace start when device object get run turn from SDK DeviceRunner Thread
-         * - Event list actions is add in key points of SDK and LCR device communicating
-         * - Event list is cleared when device object finnish run or onCommunicationStatus error listeners is notified
-         *
-         * Event trace is not yet fully implemented inside SDK. More events will add recording later on.
-         *
-         * @param deviceId		Device identification string
-         * @param deviceInfo	Device Info
-         * @param cause			Special type of exception
-         */
-        @Override
-        public void onCommunicationStatusError(
-                @NonNull String deviceId,
-                @NonNull DeviceInfo deviceInfo,
-                @NonNull LCRCommunicationException cause) {
-            /*
-            Log.e("ERROR_EVENT", "---------------------------------");
-            Log.e("ERROR_EVENT", "Error event from : " + deviceId);
-            Log.e("ERROR_EVENT", "-------- event data start--------");
-            // Print events trace to lead up in error (not complete trace yet)
-            Integer lineNumber = 1;
-            for(InternalEvent event : cause.getEvents()) {
-                // Print events (all type of events)
-                Log.e("ERROR_EVENT", lineNumber++ + " - " + event.getData());
-            }
-            Log.e("ERROR_EVENT", "--------- event data end ---------");
-            */
-        }
-
-        /**
-         * Notify when SDK communication status with LCR device is changed
-         * !! NOTE !!
-         * Not full implemented inside SDK
-         * @param deviceId		Device identification string
-         * @param deviceInfo	Device info
-         * @param newValue		New Value
-         * @param oldValue		Old Value
-         */
-        @Override
-        public void onCommunicationStatusChanged(
-                @NonNull String deviceId,
-                @NonNull DeviceInfo deviceInfo,
-                @Nullable LCR_COMMUNICATION_STATUS newValue,
-                @Nullable LCR_COMMUNICATION_STATUS oldValue) {
-
-            raiseError("Communication status changed: " + oldValue + " -> "+ newValue);
-            if (newValue == LCR_COMMUNICATION_STATUS.ERROR || newValue == LCR_COMMUNICATION_STATUS.RETRY)
-                onError();
-            if ((newValue == LCR_COMMUNICATION_STATUS.QUEUED
-                    || newValue == LCR_COMMUNICATION_STATUS.OK)
-                    && (oldValue == LCR_COMMUNICATION_STATUS.RETRY
-            || oldValue == LCR_COMMUNICATION_STATUS.ERROR))
-                onConnected();
-        }
-    };
+        void onErrorMessage(String errorMsg);
+        //void onFieldAvailable();
+    }
 
     /** Monitor network connection states (for all devices) */
     public NetworkConnectionListener networkConnectionListener = new NetworkConnectionListener() {

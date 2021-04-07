@@ -1,7 +1,7 @@
 package com.megatech.fms;
 
 import android.app.Activity;
-import android.app.SearchableInfo;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -9,16 +9,15 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.SearchView;
-import android.widget.TableLayout;
 
 import androidx.annotation.Nullable;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewpager.widget.ViewPager;
 
 import com.google.android.material.tabs.TabLayout;
-import com.megatech.fms.helpers.HttpClient;
+import com.liquidcontrols.lcr.iq.sdk.lc.api.constants.LCR.LCR_COMMAND;
+import com.liquidcontrols.lcr.iq.sdk.lc.api.constants.LCR.LCR_DEVICE_CONNECTION_STATE;
 import com.megatech.fms.helpers.LCRReader;
-import com.megatech.fms.model.PermissionModel;
+import com.megatech.fms.model.LCRDataModel;
 import com.megatech.fms.model.UserInfo;
 import com.megatech.fms.view.PageAdapter;
 
@@ -104,7 +103,58 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
 
         if (!currentApp.isFirstUse())
         reader = LCRReader.create(this, currentApp.getDeviceIP(), 10001, true);
+        reader.setConnectionListener(new LCRReader.LCRConnectionListener() {
+            @Override
+            public void onConnected() {
 
+                //reader.requestSerial();
+                //reader.doDisconnectDevice();
+                //reader.destroy();
+                //reader.destroy();
+            }
+
+            @Override
+            public void onError() {
+
+            }
+
+            @Override
+            public void onDeviceAdded(boolean failed) {
+
+            }
+
+            @Override
+            public void onDisconnected() {
+
+            }
+
+            @Override
+            public void onCommandError(LCR_COMMAND command) {
+
+            }
+
+            @Override
+            public void onConnectionStateChange(LCR_DEVICE_CONNECTION_STATE state) {
+
+            }
+        });
+        reader.setFieldDataListener(new LCRReader.LCRDataListener() {
+            @Override
+            public void onDataChanged(LCRDataModel dataModel, LCRReader.FIELD_CHANGE field_change) {
+                /*if (field_change == LCRReader.FIELD_CHANGE.SERIAL)
+                {
+                    if (currentApp.getSetting().getDeviceSerial() != dataModel.getSerialId())
+                        runOnUiThread(()->{
+                            showInvalidTruckError();
+                        });
+                }*/
+            }
+
+            @Override
+            public void onErrorMessage(String errorMsg) {
+
+            }
+        });
         setTabData();
 
         ((SearchView) findViewById(R.id.search_bar)).setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -131,6 +181,16 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
                 return false;
             }
         });
+    }
+
+    private void showInvalidTruckError() {
+
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.app_name)
+                .setMessage(R.string.wrong_truck_connect)
+                .setIcon(R.drawable.ic_warning)
+                .create()
+                .show();
     }
 
     private void updateCurrentAmount() {

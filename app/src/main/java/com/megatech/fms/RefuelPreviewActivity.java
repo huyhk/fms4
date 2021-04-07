@@ -20,6 +20,9 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+import android.widget.SearchView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -34,13 +37,14 @@ import com.megatech.fms.databinding.InvoicePreviewBinding;
 import com.megatech.fms.databinding.PreviewExtractBinding;
 import com.megatech.fms.databinding.SelectUserBinding;
 import com.megatech.fms.helpers.DataHelper;
+import com.megatech.fms.helpers.HttpClient;
+import com.megatech.fms.helpers.PrintWorker;
 import com.megatech.fms.model.AirlineModel;
 import com.megatech.fms.model.InvoiceModel;
 import com.megatech.fms.model.REFUEL_ITEM_STATUS;
 import com.megatech.fms.model.RefuelItemData;
-import com.megatech.fms.helpers.HttpClient;
-import com.megatech.fms.helpers.PrintWorker;
 import com.megatech.fms.model.UserModel;
+import com.megatech.fms.view.AirlineArrayAdapter;
 import com.megatech.fms.view.InvoiceItemAdapter;
 import com.megatech.fms.view.TruckArrayAdapter;
 
@@ -53,24 +57,31 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.megatech.fms.helpers.PrintWorker.*;
+import static com.megatech.fms.helpers.PrintWorker.PRINT_MODE;
+import static com.megatech.fms.helpers.PrintWorker.PrintStateListener;
 
 public class RefuelPreviewActivity extends UserBaseActivity implements View.OnClickListener {
 
     private PrintWorker printWorker;
+    private final int REFUEL_WINDOW = 1;
+    List<AirlineModel> airlines = null;
+
+    /// bind data to view
+    ArrayList<RefuelItemData> allItems = new ArrayList<RefuelItemData>();
+    ArrayList<RefuelItemData> printItems = new ArrayList<RefuelItemData>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         loadData();
 
-
-
-
         Drawable drawable = getResources().getDrawable(R.drawable.ic_edit);
         drawable.setAlpha(90);
 
         printWorker = new PrintWorker(this);
+
+
         printWorker.setPrintStateListener(new PrintStateListener() {
             @Override
             public void onError() {
@@ -82,6 +93,7 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
             public void onSuccess() {
                 if (refuelData != null)
                     refuelData.setPrintStatus(RefuelItemData.ITEM_PRINT_STATUS.SUCCESS);
+
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -99,23 +111,22 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
             }
 
         });
-        /*Button btnEdit = findViewById(R.id.btnEdit);
-        btnEdit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                toggleEdit();
-            }
-        });
-        */
+
     }
 
     private void loadData() {
         Bundle b = getIntent().getExtras();
         Integer id = b.getInt("REFUEL_ID", 0);
+        Integer localId = b.getInt("REFUEL_LOCAL_ID", 0);
         String mData = b.getString("REFUEL", "");
         new AsyncTask<Void, Void, RefuelItemData>() {
             @Override
             protected RefuelItemData doInBackground(Void... voids) {
+
+                airlines = DataHelper.getAirlines();
+
+                if (userList == null)
+                    userList = DataHelper.getUsers();
 
                 if (mData != null && mData != "") {
                     Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
@@ -123,7 +134,7 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
                     refuelData = gson.fromJson(mData, RefuelItemData.class);
                 }
                 if (refuelData == null)
-                    refuelData = DataHelper.getRefuelItem(id);
+                    refuelData = DataHelper.getRefuelItem(id, localId);
 
 
                 return refuelData;
@@ -140,9 +151,43 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
 
     }
 
-    /// bind data to view
-    ArrayList<RefuelItemData> allItems = new ArrayList<RefuelItemData>();
-    ArrayList<RefuelItemData> printItems = new ArrayList<RefuelItemData>();
+    boolean isEditable = true;
+    ActivityRefuelPreviewBinding binding;
+    PreviewExtractBinding extractBinding;
+    TruckArrayAdapter truckArrayAdapter;
+    RefuelItemData refuelData;
+    int result = Activity.RESULT_OK;
+
+
+    InvoiceModel invoiceModel;
+    Dialog printDialog;
+
+    //validate data before print preview
+    private boolean validate() {
+        if (printMode == PRINT_MODE.ONE_ITEM) {
+            return refuelData.getManualTemperature() > 0 && refuelData.getDensity() > 0;
+        } else {
+
+            for (int i = 0; i < allItems.size(); i++) {
+                RefuelItemData item = allItems.get(i);
+                if (!(item.getManualTemperature() > 0 && item.getDensity() > 0)) {
+                    truckArrayAdapter.setSelected(i);
+                    ListView lv = findViewById(R.id.refuel_preview_truck_list);
+                    lv.setSelection(i);
+                    refuelData = item;
+                    binding.setMItem(refuelData);
+                    isEditable = refuelData.getTruckNo().equals(currentApp.getTruckNo());
+                    for (int j = 0; j < lv.getChildCount(); j++)
+                        lv.getChildAt(j).setBackgroundColor(Color.TRANSPARENT);
+                    // change the background color of the selected element
+                    lv.getChildAt(i).setBackgroundColor(Color.LTGRAY);
+                    return false;
+                }
+
+            }
+        }
+        return true;
+    }
 
     private void bindData() {
         if (refuelData.getRefuelItemType() == RefuelItemData.REFUEL_ITEM_TYPE.REFUEL)
@@ -158,9 +203,9 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
             extractBinding.setMItem(refuelData);
 
         }
-        List<AirlineModel> airlines = (new HttpClient()).getAirlines();
+
         ArrayAdapter<AirlineModel> spinnerAdapter = new ArrayAdapter<AirlineModel>(this, R.layout.support_simple_spinner_dropdown_item, airlines);
-        spinnerAdapter.setDropDownViewResource(android.R.layout.select_dialog_singlechoice);
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_list_item_single_choice);
 
         Spinner airline_spinner = findViewById(R.id.refuel_preview_airline_spinner);
         airline_spinner.setAdapter(spinnerAdapter);
@@ -174,11 +219,34 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
                     refuelData.setAirlineId(item.getId());
                     refuelData.setProductName(item.getProductName());
                     refuelData.setAirlineModel(item);
-
+                    refuelData.setAirlineId(item.getId());
+                    refuelData.setPrice(item.getPrice());
+                    refuelData.setCurrency(item.getCurrency());
+                    refuelData.setUnit(item.getUnit());
+                    refuelData.setTaxRate(!refuelData.isInternational() && item.isInternational() ? 0.1 : 0);
 
                     break;
                 }
             }
+
+            airline_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    AirlineModel selected = (AirlineModel) parent.getItemAtPosition(position);
+                    refuelData.setAirlineId(selected.getId());
+                    refuelData.setPrice(selected.getPrice());
+                    refuelData.setCurrency(selected.getCurrency());
+                    refuelData.setUnit(selected.getUnit());
+                    refuelData.setTaxRate(!refuelData.isInternational() && selected.isInternational() ? 0.1 : 0);
+                    refuelData.setProductName(selected.getProductName());
+                    refuelData.setAirlineModel(selected);
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
+
+                }
+            });
 
             if (refuelData.getOthers().size()>0)
             {
@@ -230,58 +298,19 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
         }
 
     }
-    boolean isEditable = true;
-    ActivityRefuelPreviewBinding binding;
-    PreviewExtractBinding extractBinding;
-    TruckArrayAdapter truckArrayAdapter;
-    RefuelItemData refuelData;
-    int result = Activity.RESULT_OK;
 
-    private void printSingle() {
-
-        if (!new PrintWorker(this).printItem(refuelData)) {
-            refuelData.setPrintStatus(RefuelItemData.ITEM_PRINT_STATUS.ERROR);
-        }
-
-
-//        setResult(RESULT_OK);
-//        finish();
-    }
-    InvoiceModel invoiceModel;
-    Dialog printDialog;
-
-    //validate data before print preview
-    private  boolean validate()
-    {
-        if (printMode == PRINT_MODE.ONE_ITEM)
-        {
-            return refuelData.getManualTemperature()>0 && refuelData.getDensity()>0;
-        }
-        else
-        {
-
-            for (int i=0;i< allItems.size(); i++)
-            {
-                RefuelItemData item = allItems.get(i);
-                if (!(item.getManualTemperature()>0 && item.getDensity()>0)){
-                    truckArrayAdapter.setSelected(i);
-                    ListView lv = findViewById(R.id.refuel_preview_truck_list);
-                    lv.setSelection(i);
-                    refuelData =  item;
-                    binding.setMItem(refuelData);
-                    isEditable = refuelData.getTruckNo().equals( currentApp.getTruckNo());
-                    for (int j = 0; j < lv.getChildCount(); j++)
-                        lv.getChildAt(j).setBackgroundColor(Color.TRANSPARENT);
-                    // change the background color of the selected element
-                    lv.getChildAt(i).setBackgroundColor(Color.LTGRAY);
-                    return false;
-                }
-
-            }
-        }
-        return true;
-    }
     private void preview() {
+
+
+        if (refuelData.getAirlineId() <= 0 || refuelData.getAirlineModel() == null) {
+            new AlertDialog.Builder(this)
+                    .setTitle(getString(R.string.validate))
+                    .setMessage(getString(R.string.invalid_airline_model))
+                    .setIcon(R.drawable.ic_error)
+                    .show();
+
+            return;
+        }
 
         if (!validate()) {
 
@@ -298,36 +327,44 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
         InvoicePreviewBinding binding = DataBindingUtil.inflate(printDialog.getLayoutInflater(), R.layout.invoice_preview, null, false);
         binding.setInvoiceItem(invoiceModel);
         printDialog.setContentView(binding.getRoot());
-        if (refuelData.getReturnAmount()>0)
-            printDialog.findViewById(R.id.btnPrintInvoice).setVisibility(View.INVISIBLE);
-        if (invoiceModel.getItems().size()>3) {
-            printDialog.findViewById(R.id.btnPrintInvoice).setVisibility(View.INVISIBLE);
-            printDialog.findViewById(R.id.btnPrintBill).setVisibility(View.INVISIBLE);
-            printDialog.findViewById(R.id.btnPrintBill2).setVisibility(View.VISIBLE);
+        RadioGroup radioGroup = printDialog.findViewById(R.id.radioTemplate);
+        radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            int id = checkedId;
+
+            invoiceModel.setPrintTemplate(id == R.id.radInvoice ? InvoiceModel.PRINT_TEMPLATE.INVOICE : InvoiceModel.PRINT_TEMPLATE.BILL);
+            binding.invalidateAll();
+
+        });
+        int selectedIndex = !refuelData.isInternational() && !refuelData.getAirlineModel().isInternational() ? 1 : 0;
+
+        if (refuelData.getReturnAmount() > 0 || invoiceModel.getItems().size() > 5) {
+            radioGroup.getChildAt(0).setEnabled(false);
+            selectedIndex = 1;
         }
+
+        ((RadioButton) radioGroup.getChildAt(selectedIndex)).setChecked(true);
+        //if (refuelData.getReturnAmount()>0)
+        //    printDialog.findViewById(R.id.btnPrintInvoice).setVisibility(View.INVISIBLE);
+
+        //if (invoiceModel.getItems().size()>3) {
+        //printDialog.findViewById(R.id.btnPrintInvoice).setVisibility(View.INVISIBLE);
+
+        //}
+
         InvoiceItemAdapter itemAdapter = new InvoiceItemAdapter(this, invoiceModel.getItems());
         ((ListView) printDialog.findViewById(R.id.invoice_preview_item_list)).setAdapter(itemAdapter);
         printDialog.findViewById(R.id.btnPrintInvoice).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                printInvoice();
+
+                boolean invoice = ((RadioButton) radioGroup.getChildAt(0)).isChecked();
+                if (invoice)
+                    printInvoice();
+                else printBill();
             }
         });
 
-        printDialog.findViewById(R.id.btnPrintBill).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                printBill();
-            }
-        });
 
-        printDialog.findViewById(R.id.btnPrintBill2).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                printBill();
-                printDialog.dismiss();
-            }
-        });
         printDialog.findViewById(R.id.btnPrintCancel).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -335,27 +372,9 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
             }
         });
 
+
         printDialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         printDialog.show();
-    }
-
-    private void printInvoice() {
-        //boolean isOK = new PrintWorker(this).printItem(refuelData, printMode, PRINT_TEMPLATE.INVOICE);
-
-        boolean isOK = printWorker.printInvoice(invoiceModel);
-        if (BuildConfig.DEBUG)
-            isOK = true;
-        if (!isOK) {
-            refuelData.setPrintStatus(RefuelItemData.ITEM_PRINT_STATUS.ERROR);
-        }
-        else
-        {
-            //showEditDialog(R.id.refuel_preview_invoice_number, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
-        }
-
-//        setResult(RESULT_OK);
-//        finish();
-
     }
 
     private void printBill() {
@@ -371,6 +390,25 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
 //        finish();
 
     }
+
+    private void printInvoice() {
+        //boolean isOK = new PrintWorker(this).printItem(refuelData, printMode, PRINT_TEMPLATE.INVOICE);
+
+        boolean isOK = printWorker.printInvoice(invoiceModel);
+
+        if (!isOK) {
+            refuelData.setPrintStatus(RefuelItemData.ITEM_PRINT_STATUS.ERROR);
+        }
+        else
+        {
+            //showEditDialog(R.id.refuel_preview_invoice_number, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
+        }
+
+//        setResult(RESULT_OK);
+//        finish();
+
+    }
+
     @Override
     public void onClick(View v) {
 
@@ -399,6 +437,10 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
                 break;
             case R.id.refuel_preview_aircraftCode:
                 m_Title = getString(R.string.update_aircraftCode);
+                showEditDialog(id, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS, ".+");
+                break;
+            case R.id.refuel_preview_aircraftType:
+                m_Title = getString(R.string.update_aircraftType);
                 showEditDialog(id, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS,".+");
                 break;
             case R.id.refuel_preview_realAmount:
@@ -425,7 +467,7 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
                 openVatSpinner();
                 break;
             case R.id.refuel_preview_airline:
-                openAirlineSpinner();
+                openAirlineDialog();
                 break;
             case R.id.refuel_preview_return:
                 m_Title = getString(R.string.update_return_amount);
@@ -456,12 +498,12 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
 
             Intent intent = new Intent(this, RefuelDetailActivity.class);
             intent.putExtra("REFUEL", data);
-            startActivity(intent);
+            startActivityForResult(intent, REFUEL_WINDOW);
             finish();
         }
     }
-
     private List<UserModel> userList = null;
+
     private void showSelectUser() {
 
         if (!isEditable)
@@ -470,8 +512,7 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
             return;
         }
 
-        if (userList == null)
-            userList = (new HttpClient()).getUsers();
+
         if (userList!=null) {
             Dialog dialog = new Dialog(this);
             SelectUserBinding binding = DataBindingUtil.inflate(dialog.getLayoutInflater(), R.layout.select_user, null, false);
@@ -609,6 +650,85 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
 
     }
 
+    private void openAirlineDialog() {
+        Dialog airlineDlg = new Dialog(this);
+        airlineDlg.setTitle(R.string.app_name);
+        airlineDlg.setContentView(R.layout.airline_select_dialog);
+        SearchView searchView = (SearchView) airlineDlg.findViewById(R.id.airline_dlg_search);
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                ListView lvAirline = airlineDlg.findViewById(R.id.list_airline);
+                AirlineArrayAdapter adapter = (AirlineArrayAdapter) lvAirline.getAdapter();
+                adapter.getFilter().filter(query);
+                adapter.notifyDataSetChanged();
+                //lvAirline.setAdapter(adapter);
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                ListView lvAirline = airlineDlg.findViewById(R.id.list_airline);
+                AirlineArrayAdapter adapter = (AirlineArrayAdapter) lvAirline.getAdapter();
+                adapter.getFilter().filter(newText);
+                adapter.notifyDataSetChanged();
+
+                return false;
+            }
+        });
+        ListView lvAirline = airlineDlg.findViewById(R.id.list_airline);
+        lvAirline.setAdapter(new AirlineArrayAdapter(this, airlines));
+        lvAirline.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                AirlineModel airline = (AirlineModel) parent.getItemAtPosition(position);
+                setAirline(airline);
+                AirlineArrayAdapter adapter = (AirlineArrayAdapter) lvAirline.getAdapter();
+                adapter.getFilter().filter("");
+                airlineDlg.dismiss();
+//                for (int j = 0; j < parent.getChildCount(); j++) {
+//                    if (j==position)
+//                    {
+//                        parent.getChildAt(j).setBackgroundColor( Color.LTGRAY);
+//                        ((CheckedTextView) parent.getChildAt(j).findViewById(R.id.airline_item_check)).setChecked(true);
+//                    }
+//                    else {
+//                        parent.getChildAt(j).setBackgroundColor(Color.TRANSPARENT);
+//                        ((CheckedTextView) parent.getChildAt(j).findViewById(R.id.airline_item_check)).setChecked(j == position);
+//                    }
+//                }
+
+                // change the background color of the selected element
+                //view.setBackgroundColor(Color.LTGRAY);
+                //((CheckedTextView) view.findViewById(R.id.airline_item_check)).setChecked(true);
+
+            }
+
+        });
+        airlineDlg.show();
+    }
+
+    private void setAirline(RefuelItemData item, AirlineModel selected) {
+        item.setAirlineId(selected.getId());
+        item.setPrice(selected.getPrice());
+        item.setCurrency(selected.getCurrency());
+        item.setUnit(selected.getUnit());
+        item.setProductName(selected.getProductName());
+        item.setTaxRate(!refuelData.isInternational() && selected.isInternational() ? 0.1 : 0);
+
+        item.setAirlineModel(selected);
+    }
+
+    private void setAirline(AirlineModel selected) {
+
+        setAirline(refuelData, selected);
+
+
+        updateBinding();
+    }
+
     private void openAirlineSpinner() {
 
         Spinner airline_spinner = findViewById(R.id.refuel_preview_airline_spinner);
@@ -632,8 +752,12 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
                 refuelData.setAirlineId(selected.getId());
                 refuelData.setPrice(selected.getPrice());
                 refuelData.setCurrency(selected.getCurrency());
+                refuelData.setUnit(selected.getUnit());
                 refuelData.setProductName(selected.getProductName());
+                refuelData.setTaxRate(!refuelData.isInternational() && selected.isInternational() ? 0.1 : 0);
+
                 refuelData.setAirlineModel(selected);
+
                 airline_spinner.setVisibility(View.GONE);
                 findViewById(R.id.refuel_preview_airline).setVisibility(View.VISIBLE);
                 updateBinding();
@@ -696,6 +820,10 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
                 switch (id) {
                     case R.id.refuel_preview_aircraftCode:
                         refuelData.setAircraftCode(m_Text);
+                        //((TextView)findViewById(R.id.lblAircraftNo)).setText(refuelData.getAircraftCode());
+                        break;
+                    case R.id.refuel_preview_aircraftType:
+                        refuelData.setAircraftType(m_Text);
                         //((TextView)findViewById(R.id.lblAircraftNo)).setText(refuelData.getAircraftCode());
                         break;
                     case R.id.refuel_preview_Density:
@@ -771,6 +899,11 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
                         refuelData.setAircraftCode(m_Text);
                         //((TextView)findViewById(R.id.lblAircraftNo)).setText(refuelData.getAircraftCode());
                         break;
+
+                    case R.id.refuel_preview_aircraftType:
+                        refuelData.setAircraftType(m_Text);
+                        break;
+
                     case R.id.refuel_preview_Density:
                         refuelData.setDensity(Double.parseDouble(m_Text.replace(",", "")));
                         //((TextView)findViewById(R.id.refuel_preview_Density)).setText(String.format("%.2f",refuelData.getDensity()));
@@ -926,7 +1059,7 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
 
             Intent intent = new Intent(this, RefuelDetailActivity.class);
             intent.putExtra("REFUEL", data);
-            startActivity(intent);
+            startActivityForResult(intent, REFUEL_WINDOW);
             finish();
         }
     }

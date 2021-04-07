@@ -151,7 +151,7 @@ public class TruckModel extends BaseModel {
     }
 
     public String toJson() {
-        Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
+
         return gson.toJson(this);
     }
 

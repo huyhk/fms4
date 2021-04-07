@@ -93,26 +93,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="#ffffff"
-                android:paddingTop="2dp"
-                android:paddingBottom="2dp">
+                android:paddingTop="1dp"
+                android:paddingBottom="1dp">
 
-                <TextView
-                    style="?android:attr/textAppearanceMedium"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0.25"
-                    android:padding="5dp"
-                    android:text="@string/flightCode" />
-
-                <TextView
-                    android:id="@+id/refuel_preview_flightCode"
-                    style="?android:attr/textAppearanceMedium"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0.25"
-                    android:padding="5dp"
-                    android:text="@{mItem.flightCode}"
-                    android:textIsSelectable="true" />
 
                 <TextView
                     android:id="@+id/textView14"
@@ -128,7 +111,7 @@
                     style="?android:attr/textAppearanceMedium"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="0.25"
+                    android:layout_weight="0.75"
                     android:drawableLeft="@drawable/ic_edit"
                     android:focusable="false"
                     android:hint="@string/touch_to_edit"
@@ -150,12 +133,54 @@
 
             </TableRow>
 
+            <TableRow>
+
+                <TextView
+                    style="?android:attr/textAppearanceMedium"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.25"
+                    android:padding="5dp"
+                    android:text="@string/flightCode" />
+
+                <TextView
+                    android:id="@+id/refuel_preview_flightCode"
+                    style="?android:attr/textAppearanceMedium"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.25"
+                    android:padding="5dp"
+                    android:text="@{mItem.flightCode}"
+                    android:textIsSelectable="true" />
+
+                <TextView
+                    style="?android:attr/textAppearanceMedium"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.25"
+                    android:padding="5dp"
+                    android:text="@string/aircraft_type" />
+
+                <TextView
+                    android:id="@+id/refuel_preview_aircraftType"
+                    style="?android:attr/textAppearanceMedium"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.25"
+                    android:drawableLeft="@drawable/ic_edit"
+                    android:focusable="false"
+                    android:hint="@string/touch_to_edit"
+                    android:onClick="onClick"
+                    android:padding="5dp"
+                    android:text="@{mItem.aircraftType}"
+                    android:textIsSelectable="true" />
+            </TableRow>
             <TableRow
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="#efefef"
-                android:paddingTop="2dp"
-                android:paddingBottom="2dp">
+                android:paddingTop="1dp"
+                android:paddingBottom="1dp">
 
                 <TextView
                     style="?android:attr/textAppearanceMedium"
@@ -220,8 +245,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="#ffffff"
-                android:paddingTop="2dp"
-                android:paddingBottom="2dp"
+                android:paddingTop="1dp"
+                android:paddingBottom="1dp"
                 tools:layout_editor_absoluteY="104dp">
 
                 <TextView
@@ -264,8 +289,8 @@
 
             <TableRow
                 android:background="#efefef"
-                android:paddingTop="2dp"
-                android:paddingBottom="2dp">
+                android:paddingTop="1dp"
+                android:paddingBottom="1dp">
 
                 <TextView
                     style="?android:attr/textAppearanceMedium"
@@ -301,9 +326,10 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight=".25"
-                    android:drawableStart="@drawable/ic_edit"
+
                     android:ems="10"
                     android:focusable="false"
+                    android:drawableStart="@drawable/ic_edit"
                     android:hint="@string/touch_to_edit"
                     android:onClick="onClick"
                     android:padding="5dp"
@@ -327,8 +353,8 @@
 
             <TableRow
                 android:background="#ffffff"
-                android:paddingTop="2dp"
-                android:paddingBottom="2dp">
+                android:paddingTop="1dp"
+                android:paddingBottom="1dp">
 
                 <TextView
                     android:id="@+id/textView12"
@@ -380,8 +406,8 @@
 
             <TableRow
                 android:background="#efefef"
-                android:paddingTop="2dp"
-                android:paddingBottom="2dp">
+                android:paddingTop="1dp"
+                android:paddingBottom="1dp">
 
                 <TextView
                     android:id="@+id/lblQCNo"
@@ -427,10 +453,9 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="0.25"
-                    android:drawableLeft="@drawable/ic_edit"
+
                     android:focusable="false"
-                    android:hint="@string/touch_to_edit"
-                    android:onClick="onClick"
+
                     android:padding="5dp"
                     android:text='@{String.format("%.0f%%",mItem.taxRate*100)}'
                     app:layout_constraintStart_toEndOf="@id/guideline_center_left"
@@ -451,8 +476,8 @@
 
             <TableRow
                 android:background="#ffffff"
-                android:paddingTop="2dp"
-                android:paddingBottom="2dp">
+                android:paddingTop="1dp"
+                android:paddingBottom="1dp">
 
                 <TextView
                     style="?android:attr/textAppearanceMedium"
@@ -516,8 +541,8 @@
 
             <TableRow
                 android:background="#efefef"
-                android:paddingTop="2dp"
-                android:paddingBottom="2dp">
+                android:paddingTop="1dp"
+                android:paddingBottom="1dp">
 
                 <TextView
 

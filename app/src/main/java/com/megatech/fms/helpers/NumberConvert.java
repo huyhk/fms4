@@ -1,9 +1,7 @@
 package com.megatech.fms.helpers;
 
 
-import com.google.android.gms.common.util.Strings;
-
-import java.math.*;
+//import com.google.android.gms.common.util.Strings;
 
 public class NumberConvert
 {
@@ -159,7 +157,7 @@ public class NumberConvert
         public String le = "";
 
 
-        public static NumberText VietNamese = new NumberText(new String[] {"không", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín", "mười", "muời một", "mười hai", "mười ba", "mười bốn", "mười lăm", "muời sáu", "mười bảy", "mười tám", "mười chín", "mốt", "lăm"}, new String[] {"hai mươi", "ba mươi", "bốn mươi", "năm mươi", "sáu mươi", "bảy mươi", "tám mươi", "chín mươi"}, new String[] {"", "ngàn", "triệu", "tỷ", "ngàn ", "triệu ", "tỷ "}, "trăm", "lẻ");
+        public static NumberText VietNamese = new NumberText(new String[]{"không", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín", "mười", "muời một", "mười hai", "mười ba", "mười bốn", "mười lăm", "muời sáu", "mười bảy", "mười tám", "mười chín", "mốt", "lăm"}, new String[]{"hai mươi", "ba mươi", "bốn mươi", "năm mươi", "sáu mươi", "bảy mươi", "tám mươi", "chín mươi"}, new String[]{"", "nghìn", "triệu", "tỷ", "nghìn ", "triệu ", "tỷ "}, "trăm", "lẻ");
         public static NumberText English = new NumberText(new String[] {" ", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eightteen", "nineteen", "one", "five"}, new String[] {"twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"}, new String[] {"", "thousand", "million", "billion", "thousand ", "million ", "billion "}, " hundred");
 
     }

@@ -2,7 +2,14 @@ package com.megatech.fms.data.entity;
 
 import androidx.room.PrimaryKey;
 
+import com.google.gson.FieldNamingPolicy;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import java.util.Date;
+
 public class BaseEntity {
+    protected static Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
 
     private int id;
 
@@ -53,5 +60,15 @@ public class BaseEntity {
 
     public void setLocalModified(boolean localModified) {
         isLocalModified = localModified;
+    }
+
+    private Date dateUpdated;
+
+    public Date getDateUpdated() {
+        return dateUpdated;
+    }
+
+    public void setDateUpdated(Date dateUpdated) {
+        this.dateUpdated = dateUpdated;
     }
 }

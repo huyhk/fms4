@@ -21,8 +21,8 @@ android {
         applicationId "com.megatech.fms"
         minSdkVersion 21
         targetSdkVersion 27
-        versionCode 5
-        versionName "1.2.1"
+        versionCode 6
+        versionName "1.2.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         javaCompileOptions {
             annotationProcessorOptions {
@@ -36,10 +36,13 @@ android {
     buildTypes {
         debug {
             buildConfigField 'String', 'API_BASE_URL', '"http://10.0.2.2:53579/"'
+            //buildConfigField 'String', 'API_BASE_URL', '"http://demofmsapi.megatech.com.vn/"'
+
             //buildConfigField 'String', 'API_BASE_URL', '"http://fms.webmienphi.info/"'
             //buildConfigField 'String', 'API_BASE_URL', '"http://fmsapi.megatech.com.vn/"'
 
             //buildConfigField 'String', 'IMEI_LIST', '"353700094068846,353700094064027,358240051111110"'
+            buildConfigField 'String', 'DB_FILE', '"fms_debug.db"'
             applicationVariants.all { variant ->
                 variant.outputs.all { output ->
                     def date = new Date()
@@ -53,7 +56,8 @@ android {
             }
         }
         release {
-            buildConfigField 'String', 'API_BASE_URL', '"http://fmsapi.megatech.com.vn/"'
+            buildConfigField 'String', 'API_BASE_URL', '"http://demofmsapi.megatech.com.vn/"'
+            buildConfigField 'String', 'DB_FILE', '"fms_release.db"'
             //buildConfigField 'String', 'IMEI_LIST', '"353700094068846,353700094064027,358240051111110"'
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -93,9 +97,9 @@ dependencies {
     androidTestImplementation 'androidx.test:runner:1.1.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0'
     implementation project(path: ':sdk-iq')
-    implementation 'com.google.firebase:firebase-analytics:17.2.1'
-    implementation 'com.google.firebase:firebase-messaging:20.1.0'
-    implementation 'com.android.volley:dc-volley:1.1.0'
+    //implementation 'com.google.firebase:firebase-analytics:17.2.1'
+    //implementation 'com.google.firebase:firebase-messaging:20.1.0'
+    //implementation 'com.android.volley:dc-volley:1.1.0'
     implementation 'com.google.code.gson:gson:2.8.6'
     implementation project(path: ':tcpclient')
     implementation 'android.arch.lifecycle:extensions:1.1.1'

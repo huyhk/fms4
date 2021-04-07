@@ -8,6 +8,9 @@
         <import type="com.megatech.fms.model.REFUEL_ITEM_STATUS" />
         <import type="com.megatech.fms.model.RefuelItemData.CURRENCY" />
 
+        <import type="com.megatech.fms.model.InvoiceModel.PRINT_TEMPLATE" />
+
+        <import type="android.view.View"></import>
         <variable
             name="invoiceItem"
             type="com.megatech.fms.model.InvoiceModel" />
@@ -76,7 +79,7 @@
                 android:text="Số đồng hồ trước/sau" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".33"
                 android:gravity="center_horizontal"
@@ -97,13 +100,13 @@
             android:padding="3dp">
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
                 android:text="Đơn vị mua hàng" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@{invoiceItem.customerName}" />
@@ -115,13 +118,13 @@
             android:padding="3dp">
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
                 android:text="Mã số thuế" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@{invoiceItem.taxCode}" />
@@ -134,17 +137,18 @@
             android:padding="3dp">
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
                 android:text="Địa chỉ" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@{invoiceItem.address}" />
         </TableRow>
+
 
         <TableRow
             android:layout_width="match_parent"
@@ -152,27 +156,27 @@
             android:padding="3dp">
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
                 android:text="Loại máy bay" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
                 android:text="@{invoiceItem.aircraftType}" />
 
             <TextView
                 android:id="@+id/textView19"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
                 android:text="Số hiệu máy bay" />
 
             <TextView
                 android:id="@+id/textView20"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
                 android:text="@{invoiceItem.aircraftCode}" />
@@ -186,25 +190,25 @@
             android:padding="3dp">
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
                 android:text="Số hiệu chuyến bay" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
                 android:text="@{invoiceItem.flightCode}" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
                 android:text="Tuyến bay" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
                 android:text="@{invoiceItem.routeName}" />
@@ -212,30 +216,30 @@
         </TableRow>
 
         <TableRow
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
             android:padding="3dp">
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
                 android:text="Nhiệt độ thực tế" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
                 android:text='@{String.format("%,.2f",invoiceItem.temperature)}' />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
                 android:text="Tỷ trọng thực tế" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
                 android:text='@{String.format("%,.4f",invoiceItem.density)}' />
@@ -249,25 +253,25 @@
             android:padding="3dp">
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
                 android:text="Lít thực tế" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
                 android:text='@{String.format("%,.0f",invoiceItem.volume)}' />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
                 android:text="Số lượng (Kg)" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
                 android:text='@{String.format("%,.0f",invoiceItem.weight)}' />
@@ -280,28 +284,30 @@
             android:padding="3dp">
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
                 android:text="Số lượng (Gallon)" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
                 android:text='@{String.format("%,.0f",invoiceItem.realAmount)}' />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
-                android:text="Đơn giá" />
+                android:text="Đơn giá"
+                android:visibility="@{invoiceItem.printTemplate == PRINT_TEMPLATE.INVOICE? View.VISIBLE:View.INVISIBLE}" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
-                android:text='@{String.format(invoiceItem.currency == CURRENCY.VND? "%,.0f": "%,.2f",invoiceItem.price)}' />
+                android:text='@{String.format(invoiceItem.currency == CURRENCY.VND? "%,.0f": "%,.2f",invoiceItem.price)}'
+                android:visibility="@{invoiceItem.printTemplate == PRINT_TEMPLATE.INVOICE? View.VISIBLE:View.INVISIBLE}" />
 
         </TableRow>
 
@@ -309,16 +315,17 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="#efefef"
-            android:padding="3dp">
+            android:padding="3dp"
+            android:visibility="@{invoiceItem.printTemplate == PRINT_TEMPLATE.INVOICE? View.VISIBLE:View.INVISIBLE}">
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
                 android:text="Cộng tiền hàng" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text='@{String.format(invoiceItem.currency == CURRENCY.VND? "%,.0f": "%,.2f",invoiceItem.amount)}' />
@@ -328,28 +335,32 @@
         <TableRow
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:padding="3dp">
+            android:padding="3dp"
+            android:visibility="@{invoiceItem.printTemplate == PRINT_TEMPLATE.INVOICE? View.VISIBLE:View.INVISIBLE}">
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
-                android:text="Thuế suất GTGT" />
+                android:text="Thuế suất GTGT"
+                android:visibility="@{invoiceItem.printTemplate == PRINT_TEMPLATE.INVOICE? View.VISIBLE:View.INVISIBLE}" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
-                android:text='@{String.format("%.0f%%",invoiceItem.taxRate*100)}' />
+                android:text='@{String.format("%.0f%%",invoiceItem.taxRate*100)}'
+                android:visibility="@{invoiceItem.printTemplate == PRINT_TEMPLATE.INVOICE? View.VISIBLE:View.INVISIBLE}" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
-                android:text="Tiền thuế GTGT" />
+                android:text="Tiền thuế GTGT"
+                android:visibility="@{invoiceItem.printTemplate == PRINT_TEMPLATE.INVOICE? View.VISIBLE:View.INVISIBLE}" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
                 android:text='@{String.format(invoiceItem.currency == CURRENCY.VND? "%,.0f": "%,.2f",invoiceItem.vatAmount)}' />
@@ -360,16 +371,17 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="#efefef"
-            android:padding="3dp">
+            android:padding="3dp"
+            android:visibility="@{invoiceItem.printTemplate == PRINT_TEMPLATE.INVOICE? View.VISIBLE:View.INVISIBLE}">
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
                 android:text="@string/total_amount" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text='@{String.format(invoiceItem.currency == CURRENCY.VND? "%,.0f": "%,.2f",invoiceItem.totalAmount)}' />
@@ -379,18 +391,19 @@
         <TableRow
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:padding="3dp">
+            android:padding="3dp"
+            android:visibility="@{invoiceItem.printTemplate == PRINT_TEMPLATE.INVOICE? View.VISIBLE:View.INVISIBLE}">
 
             <TextView
                 android:id="@+id/textView17"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
                 android:text="@string/in_words" />
 
             <TextView
                 android:id="@+id/textView21"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@{invoiceItem.inWords}" />
@@ -404,31 +417,37 @@
             android:padding="4dp">
 
 
+            <RadioGroup
+                android:id="@+id/radioTemplate"
+                android:layout_width="0dp"
+                android:layout_weight=".5">
+
+                <RadioButton
+                    android:id="@+id/radInvoice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/print_invoice" />
+
+                <RadioButton
+                    android:id="@+id/radBill"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/print_bill" />
+                <!--<RadioButton-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content" android:text="@string/print_bill2" />-->
+            </RadioGroup>
             <Button
                 android:id="@+id/btnPrintInvoice"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight=".3"
-                android:text="@string/print_invoice" />
-
-            <Button
-                android:id="@+id/btnPrintBill"
-                android:layout_width="0dp"
-                android:layout_weight=".3"
-                android:layout_height="wrap_content"
-                android:text="@string/print_bill" />
-
-            <Button
-                android:id="@+id/btnPrintBill2"
-                android:layout_width="0dp"
-                android:layout_weight=".3"
-                android:layout_height="wrap_content"
-                android:visibility="invisible"
-                android:text="@string/print_bill2" />
+                android:layout_weight=".2"
+                android:text="@string/print" />
 
             <Button
                 android:id="@+id/btnPrintCancel"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
+                android:layout_weight=".2"
                 android:layout_height="wrap_content"
                 android:layout_gravity="right"
                 android:text="@string/back" />

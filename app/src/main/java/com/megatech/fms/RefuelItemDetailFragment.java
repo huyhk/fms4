@@ -3,9 +3,6 @@ package com.megatech.fms;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,13 +10,14 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.fragment.app.Fragment;
+
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.megatech.fms.model.REFUEL_ITEM_STATUS;
 import com.megatech.fms.model.RefuelItemData;
 import com.megatech.fms.model.RefuelViewModel;
-import com.megatech.fms.helpers.PrintWorker;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -79,13 +77,7 @@ public class RefuelItemDetailFragment extends Fragment  {
                      refuel(mItem);
                  }
              });
-             Button btnPrint = rootView.findViewById(R.id.refuelitem_detail_bntprint);
-             btnPrint.setOnClickListener(new View.OnClickListener() {
-                 @Override
-                 public void onClick(View v) {
-                     new PrintWorker(activity).printItem(mItem);
-                 }
-             });
+
 
             ((TextView) rootView.findViewById(R.id.new_refuel_flightCode)).setText(mItem.getFlightCode());
             ((TextView) rootView.findViewById(R.id.refuelitem_detail_aircraftCode)).setText(mItem.getAircraftCode());
@@ -107,10 +99,7 @@ public class RefuelItemDetailFragment extends Fragment  {
 
                 ((TextView) rootView.findViewById(R.id.refuelitem_detail_realAmount)).setText(String.format("%.2f",mItem.getRealAmount()));
             }
-            else if (status != REFUEL_ITEM_STATUS.DONE)
-            {
-                btnPrint.setVisibility(View.GONE);
-            }
+
         }
 
         return rootView;

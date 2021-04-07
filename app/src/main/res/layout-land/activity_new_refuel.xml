@@ -265,7 +265,7 @@
                             android:inputType="time"
                             android:onClick="onClick"
                             android:padding="10dp"
-                            android:text='@={DateUtils.getTime(mItem.arrivalTime)}'
+                            android:text='@{DateUtils.getTime(mItem.arrivalTime)}'
                             android:textIsSelectable="true" />
 
                         <TextView
@@ -286,7 +286,7 @@
                             android:inputType="time"
                             android:onClick="onClick"
                             android:padding="10dp"
-                            android:text='@={DateUtils.getTime(mItem.departureTime)}'
+                            android:text='@{DateUtils.getTime(mItem.departureTime)}'
                             android:textIsSelectable="true" />
                     </TableRow>
 
@@ -316,7 +316,7 @@
                             android:inputType="date"
                             android:onClick="onClick"
                             android:padding="10dp"
-                            android:text='@={DateUtils.getTime(mItem.refuelTime)}'
+                            android:text='@{DateUtils.getTime(mItem.refuelTime)}'
                             android:textIsSelectable="true" />
 
 

@@ -2,8 +2,11 @@ package com.megatech.fms.data.entity;
 
 import androidx.room.Entity;
 
+import com.megatech.fms.model.AirlineModel;
+
 @Entity
-public class Customer extends BaseEntity {
+public class Airline extends BaseEntity {
+
 
 
     private String name;
@@ -68,6 +71,20 @@ public class Customer extends BaseEntity {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public static Airline fromAirlineModel(AirlineModel model) {
+        Airline item = new Airline();
+        item.setId(model.getId());
+        item.setLocalId(model.getLocalId());
+        item.setJsonData(gson.toJson(model));
+        return item;
+    }
+
+    public AirlineModel toAirlineModel() {
+        AirlineModel model = gson.fromJson(this.getJsonData(), AirlineModel.class);
+        model.setLocalId(this.getLocalId());
+        return model;
     }
 }
 

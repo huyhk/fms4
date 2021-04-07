@@ -2,7 +2,6 @@ package com.megatech.fms.view;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -96,6 +95,7 @@ public class RefuelRecyclerViewAdapter extends RecyclerView.Adapter<RefuelRecycl
             Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
 
             intent.putExtra("REFUEL_ID", item.getId());
+            intent.putExtra("REFUEL_LOCAL_ID", item.getLocalId());
             //intent.putExtra("REFUEL", gson.toJson(item));
 
             mContext.startActivityForResult(intent, item.getId());

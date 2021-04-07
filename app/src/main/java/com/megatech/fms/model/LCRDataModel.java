@@ -39,7 +39,7 @@ public class LCRDataModel {
         this.grossQty = qty;
 
         //if ( !(volFlag )){
-            Log.e("FMS",Float.toString(endMeterNumber) + " - " + Float.toString(this.grossQty));
+        Log.e("FMS", endMeterNumber + " - " + this.grossQty);
             this.setStartMeterNumber(this.endMeterNumber - this.grossQty);
         //}
 
@@ -113,7 +113,7 @@ public class LCRDataModel {
     public void setEndMeterNumber(float endMeterNumber) {
         this.endMeterNumber = endMeterNumber;
         //if ( !(totalFlag)){
-            Log.e("FMS",Float.toString(endMeterNumber) + " - " + Float.toString(this.grossQty));
+        Log.e("FMS", endMeterNumber + " - " + this.grossQty);
             this.setStartMeterNumber(this.endMeterNumber - this.grossQty);
         //}
 

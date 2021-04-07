@@ -51,6 +51,14 @@
                     android:text="@string/reconnect"
                     android:visibility="invisible" />
 
+                <Button
+                    android:id="@+id/btnTest"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:onClick="onClick"
+                    android:text="@string/test"
+                    android:visibility="invisible" />
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -68,7 +76,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:onClick="onClick"
-                    android:visibility="invisible"
+                    android:visibility="visible"
                     android:text="@string/restart_app" />
             </LinearLayout>
 
@@ -106,10 +114,10 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="0.25"
                             android:padding="5dp"
-                            android:text="Mã chuyến bay" />
+                            android:text="@string/flight_code" />
 
                         <TextView
-                            android:id="@+id/new_refuel_flightCode"
+                            android:id="@+id/refuelitem_detail_flightCode"
                             style="?android:attr/textAppearanceMedium"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -421,80 +429,6 @@
                 </TableLayout>
 
 
-                <Button
-                    android:id="@+id/refuelitem_detail_bntprint"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/print_order"
-                    android:visibility="gone"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@id/btnUpdate"
-                    tools:ignore="InvalidId" />
-
-                <androidx.constraintlayout.widget.Guideline
-                    android:id="@+id/guideline_left"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    app:layout_constraintGuide_percent="0" />
-
-                <androidx.constraintlayout.widget.Guideline
-                    android:id="@+id/guideline_center_left"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    app:layout_constraintGuide_percent=".25" />
-
-                <androidx.constraintlayout.widget.Guideline
-                    android:id="@+id/guideline_right"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    app:layout_constraintGuide_percent="0.5" />
-
-                <androidx.constraintlayout.widget.Guideline
-                    android:id="@+id/guideline_right5"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    app:layout_constraintGuide_percent="0.75" />
-
-                <androidx.constraintlayout.widget.Guideline
-                    android:id="@+id/guideline_right6"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    app:layout_constraintGuide_percent="1" />
-
-                <androidx.constraintlayout.widget.Guideline
-                    android:id="@+id/guideline_bottom"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="#002B2626"
-                    android:orientation="horizontal"
-                    app:layout_constraintGuide_percent="0.8" />
-
-                <Button
-                    android:id="@+id/btnEdit"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:text="@string/edit_refuel"
-                    android:visibility="gone"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@id/guideline_right6" />
-
-                <Button
-                    android:id="@+id/btnUpdate"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:text="@string/save"
-                    android:visibility="gone"
-
-
-                    app:layout_constraintEnd_toStartOf="@+id/btnEdit" />
-
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.cardview.widget.CardView>
 
@@ -507,45 +441,6 @@
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
-
-                <TextView
-                    style="?android:attr/textAppearanceMedium"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Giờ bắt đầu tra nạp"
-                    android:visibility="invisible"
-                    app:layout_constraintStart_toEndOf="@id/guideline_center_left4"
-                    app:layout_constraintTop_toTopOf="@id/lblStartMeter" />
-
-                <TextView
-                    android:id="@+id/textView2"
-                    style="?android:attr/textAppearanceMedium"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Giờ kết thúc tra nạp"
-                    android:visibility="invisible"
-                    app:layout_constraintStart_toEndOf="@id/guideline_center_left4"
-                    app:layout_constraintTop_toTopOf="@id/lblEndMeter" />
-
-                <TextView
-                    android:id="@+id/refuelitem_detail_startTime"
-                    style="?android:attr/textAppearanceMedium"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textIsSelectable="true"
-                    android:visibility="invisible"
-                    app:layout_constraintEnd_toStartOf="@id/guideline_center2"
-                    app:layout_constraintTop_toTopOf="@id/lblStartMeter" />
-
-                <TextView
-                    android:id="@+id/refuelitem_detail_endTime"
-                    style="?android:attr/textAppearanceMedium"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textIsSelectable="true"
-                    android:visibility="invisible"
-                    app:layout_constraintEnd_toStartOf="@id/guideline_center2"
-                    app:layout_constraintTop_toTopOf="@id/lblEndMeter" />
 
                 <TextView
                     android:id="@+id/lblStartMeter"
@@ -599,6 +494,7 @@
                     android:layout_gravity="right"
                     android:enabled="false"
                     android:text="@string/start"
+                    android:onClick="onClick"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@id/guideline_center2"
                     app:layout_constraintStart_toStartOf="parent"

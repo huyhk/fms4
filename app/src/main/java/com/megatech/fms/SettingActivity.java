@@ -3,12 +3,8 @@ package com.megatech.fms;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlarmManager;
-import android.app.AlertDialog;
 import android.app.PendingIntent;
-import android.app.ProgressDialog;
 import android.content.Context;
-
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
@@ -23,7 +19,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
-import android.widget.SpinnerAdapter;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -32,11 +27,8 @@ import androidx.core.content.ContextCompat;
 
 import com.liquidcontrols.lcr.iq.sdk.lc.api.constants.LCR.LCR_COMMAND;
 import com.liquidcontrols.lcr.iq.sdk.lc.api.constants.LCR.LCR_DEVICE_CONNECTION_STATE;
-import com.megatech.fms.data.entity.Truck;
 import com.megatech.fms.helpers.DataHelper;
-import com.megatech.fms.helpers.HttpClient;
 import com.megatech.fms.helpers.LCRReader;
-import com.megatech.fms.model.AirlineModel;
 import com.megatech.fms.model.LCRDataModel;
 import com.megatech.fms.model.TruckModel;
 
@@ -309,6 +301,8 @@ public class SettingActivity extends UserBaseActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 TruckModel model = (TruckModel) parent.getItemAtPosition(position);
                 if (model != null) {
+                    settingModel.setTruckNo(model.getTruckNo());
+                    settingModel.setId(model.getId());
                     ((EditText) findViewById(R.id.txtCurrentAmount)).setText(String.format("%.0f", model.getCurrentAmount()));
                 }
             }
