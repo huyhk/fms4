@@ -229,7 +229,7 @@ public class FMSApplication extends Application implements LifecycleObserver {
         SharedPreferences.Editor editor = preferences.edit();
         //editor.putFloat("CURRENT_AMOUNT", currentAmount + addedAmount);
         editor.putString("SHIFT", model.toJson());
-        editor.apply();
+        editor.commit();
     }
 
     public ShiftModel getShift() {
@@ -237,6 +237,27 @@ public class FMSApplication extends Application implements LifecycleObserver {
         String shiftJson = preferences.getString("SHIFT", "");
         ShiftModel model = ShiftModel.fromJson(shiftJson);
         return model;
+    }
+
+    public void saveCurrentRefuel(int id, int localId) {
+        final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putInt("REFUEL_ID", id);
+        editor.putInt("REFUEL_LOCAL_ID", localId);
+        editor.apply();
+    }
+
+    public void clearCurrentRefuel() {
+        final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.remove("REFUEL_ID");
+        editor.remove("REFUEL_LOCAL_ID");
+        editor.apply();
+    }
+
+    public int getCurrentRefuel(boolean local) {
+        final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
+        return preferences.getInt(local ? "REFUEL_LOCAL_ID" : "REFUEL_ID", 0);
     }
 }
 

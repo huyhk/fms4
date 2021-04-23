@@ -1,5 +1,6 @@
 package com.megatech.fms;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -180,7 +181,8 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
                     for (int j = 0; j < lv.getChildCount(); j++)
                         lv.getChildAt(j).setBackgroundColor(Color.TRANSPARENT);
                     // change the background color of the selected element
-                    lv.getChildAt(i).setBackgroundColor(Color.LTGRAY);
+                    lv.getAdapter().getView(i, null, lv).setBackgroundColor(Color.LTGRAY);
+
                     return false;
                 }
 
@@ -358,9 +360,10 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
             public void onClick(View v) {
 
                 boolean invoice = ((RadioButton) radioGroup.getChildAt(0)).isChecked();
+                boolean old = ((RadioButton) printDialog.findViewById(R.id.radOld)).isChecked();
                 if (invoice)
-                    printInvoice();
-                else printBill();
+                    printInvoice(old);
+                else printBill(old);
             }
         });
 
@@ -377,12 +380,12 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
         printDialog.show();
     }
 
-    private void printBill() {
+    private void printBill(boolean old) {
         /*if (!new PrintWorker(this).printItem(refuelData, printMode, PRINT_TEMPLATE.BILL)) {
             refuelData.setPrintStatus(RefuelItemData.ITEM_PRINT_STATUS.ERROR);
         }
         */
-        if (!printWorker.printBill(invoiceModel)) {
+        if (!printWorker.printBill(invoiceModel, old)) {
             refuelData.setPrintStatus(RefuelItemData.ITEM_PRINT_STATUS.ERROR);
         }
 
@@ -391,10 +394,10 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
 
     }
 
-    private void printInvoice() {
+    private void printInvoice(boolean old) {
         //boolean isOK = new PrintWorker(this).printItem(refuelData, printMode, PRINT_TEMPLATE.INVOICE);
 
-        boolean isOK = printWorker.printInvoice(invoiceModel);
+        boolean isOK = printWorker.printInvoice(invoiceModel, old);
 
         if (!isOK) {
             refuelData.setPrintStatus(RefuelItemData.ITEM_PRINT_STATUS.ERROR);
@@ -1029,18 +1032,20 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
         }
         updateBinding();
         //toggleEdit();
-//        ActivityRefuelPreviewBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_refuel_preview);
-//        binding.setMItem(refuelData);
+//        ActivityRefuelPreviewBinding shiftBinding = DataBindingUtil.setContentView(this, R.layout.activity_refuel_preview);
+//        shiftBinding.setMItem(refuelData);
 
     }
 
     private boolean isEditing = false;
 
+    @SuppressLint("StaticFieldLeak")
     private void createNewItem() {
-        RefuelItemData itemData = null;
+
         try {
-            itemData = (RefuelItemData) refuelData.clone();
+            final RefuelItemData itemData = (RefuelItemData) refuelData.clone();
             itemData.setId(0);
+            itemData.setLocalId(0);
             itemData.setTruckId(currentApp.getSetting().getTruckId());
             itemData.setTruckNo(currentApp.getTruckNo());
             itemData.setStatus(REFUEL_ITEM_STATUS.NONE);
@@ -1048,14 +1053,29 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
             itemData.setRealAmount(0);
             itemData.setEndNumber(0);
 
-        } catch (CloneNotSupportedException ex) {
+            new AsyncTask<Void, Void, RefuelItemData>() {
+                @Override
+                protected RefuelItemData doInBackground(Void... voids) {
+                    //RefuelItemData response = DataHelper.postRefuel(itemData);
+                    return itemData;
+                }
 
+                @Override
+                protected void onPostExecute(RefuelItemData response) {
+                    postRefuelCompleted(response);
+                    super.onPostExecute(response);
+                }
+            }.execute();
+        } catch (CloneNotSupportedException ex) {
+            Toast.makeText(this, ex.getLocalizedMessage(), Toast.LENGTH_LONG).show();
         }
+    }
+
+    private void postRefuelCompleted(RefuelItemData itemData) {
         if (itemData != null) {
             Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
 
             String data = gson.toJson(itemData);
-
 
             Intent intent = new Intent(this, RefuelDetailActivity.class);
             intent.putExtra("REFUEL", data);

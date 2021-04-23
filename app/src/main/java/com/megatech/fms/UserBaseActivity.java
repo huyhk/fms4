@@ -29,7 +29,6 @@ import androidx.appcompat.widget.Toolbar;
 
 import com.megatech.fms.helpers.HttpClient;
 import com.megatech.fms.helpers.Logger;
-import com.megatech.fms.model.ShiftModel;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -75,15 +74,10 @@ public class UserBaseActivity extends BaseActivity {
         if (lblInventory!=null)
             lblInventory.setText(String.format("%s: %.0f", currentApp.getTruckNo(), currentApp.getCurrentAmount()));
 
-        TextView lblShift = findViewById(R.id.lblShiftInfo);
-        if (lblShift != null) {
-            ShiftModel model = new HttpClient().getShift();
-            if (model != null) {
-                currentApp.saveShift(model);
-                lblShift.setText(String.format("%s: %s ", getString(R.string.shift), model.toString()));
-            }
-        }
+
     }
+
+
 
     protected void setToolbar() {
         Toolbar toolbar = findViewById(R.id.toolbar);

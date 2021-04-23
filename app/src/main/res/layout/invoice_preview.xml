@@ -420,7 +420,7 @@
             <RadioGroup
                 android:id="@+id/radioTemplate"
                 android:layout_width="0dp"
-                android:layout_weight=".5">
+                android:layout_weight=".3">
 
                 <RadioButton
                     android:id="@+id/radInvoice"
@@ -433,6 +433,28 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/print_bill" />
+                <!--<RadioButton-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content" android:text="@string/print_bill2" />-->
+            </RadioGroup>
+
+            <RadioGroup
+                android:id="@+id/radioVersion"
+                android:layout_width="0dp"
+                android:layout_weight=".3">
+
+                <RadioButton
+                    android:id="@+id/radOld"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/old_version" />
+
+                <RadioButton
+                    android:id="@+id/radNew"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:text="@string/new_version" />
                 <!--<RadioButton-->
                 <!--android:layout_width="wrap_content"-->
                 <!--android:layout_height="wrap_content" android:text="@string/print_bill2" />-->

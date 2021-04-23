@@ -11,6 +11,51 @@ public class ShiftModel extends BaseModel {
     private Date startTime;
     private Date endTime;
     private int airportId;
+    private Date preStart;
+    private Date nextEnd;
+    private ShiftModel prevShift;
+    private boolean selected;
+    private ShiftModel nextShift;
+
+    public boolean isSelected() {
+        return selected;
+    }
+
+    public void setSelected(boolean selected) {
+        this.selected = selected;
+    }
+
+    public ShiftModel getPrevShift() {
+        return prevShift;
+    }
+
+    public void setPrevShift(ShiftModel prevShift) {
+        this.prevShift = prevShift;
+    }
+
+    public ShiftModel getNextShift() {
+        return nextShift;
+    }
+
+    public void setNextShift(ShiftModel nextShift) {
+        this.nextShift = nextShift;
+    }
+
+    public Date getPreStart() {
+        return preStart;
+    }
+
+    public void setPreStart(Date preStart) {
+        this.preStart = preStart;
+    }
+
+    public Date getNextEnd() {
+        return nextEnd;
+    }
+
+    public void setNextEnd(Date nextEnd) {
+        this.nextEnd = nextEnd;
+    }
 
     public ShiftModel() {
         name = "N/A";

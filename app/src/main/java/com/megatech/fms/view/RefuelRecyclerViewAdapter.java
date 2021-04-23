@@ -80,6 +80,8 @@ public class RefuelRecyclerViewAdapter extends RecyclerView.Adapter<RefuelRecycl
     public int getItemCount() {
         return mDataFiltered.size();
     }
+
+    int REQUEST_CODE = 5546;
     private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -98,7 +100,7 @@ public class RefuelRecyclerViewAdapter extends RecyclerView.Adapter<RefuelRecycl
             intent.putExtra("REFUEL_LOCAL_ID", item.getLocalId());
             //intent.putExtra("REFUEL", gson.toJson(item));
 
-            mContext.startActivityForResult(intent, item.getId());
+            mContext.startActivityForResult(intent, REQUEST_CODE);
         }
     };
 

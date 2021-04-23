@@ -332,6 +332,7 @@ public class HttpClient {
             String data = sendGET(url);
 
             ShiftModel model = gson.fromJson(data, ShiftModel.class);
+            model.setSelected(true);
 
             return model;
         } catch (Exception e) {

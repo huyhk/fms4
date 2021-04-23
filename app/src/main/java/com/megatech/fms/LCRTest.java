@@ -1,12 +1,12 @@
 package com.megatech.fms;
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Context;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.liquidcontrols.lcr.iq.sdk.LcrSdk;
 import com.liquidcontrols.lcr.iq.sdk.utils.AsyncCallback;
@@ -46,4 +46,6 @@ public class LCRTest extends AppCompatActivity  {
     protected void onDestroy() {
         super.onDestroy();
     }
+
+
 }

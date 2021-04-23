@@ -221,7 +221,7 @@
     <string name="price">Giá bán</string>
     <string name="printer_error">Lỗi: không kết nối được máy in!</string>
     <string name="print_completed">In thành công</string>
-    <string name="force_stop_confirm">Thiết bị LCR đang bị lỗi, có muốn kết thúc mẻ tra nạp không?</string>
+    <string name="force_stop_confirm"><![CDATA[Lỗi kết nối thiết bị LCR, bạn có muốn kết thúc mẻ tra nạp không?  Phải chắc chắn thiết bị LCR đã kết thúc tra nạp. ]]></string>
     <string name="reconnect">Kết nối lại</string>
     <string name="print_bill">In phiếu xuất kho</string>
     <string name="operator">Nhân viên tra nạp</string>
@@ -267,6 +267,18 @@
     <string name="wrong_truck_connect">Kết nối không đúng xe đã đăng ký.</string>
     <string name="update_aircraftType">Sửa loại tàu bay</string>
     <string name="invalid_airline_model">Thông tin hãng bay không đúng, vui lòng kiểm tra lại</string>
+    <string name="refuel_not_start">Chưa tra nạp</string>
+    <string name="refuel_ended">Đã kết thúc tra nạp</string>
+    <string name="refuel_ending">Đang kết thúc tra nạp</string>
+    <string name="refuel_processing">Đang tra nạp</string>
+    <string name="current_shift">Ca hiện tại</string>
+    <string name="next_shift">Ca sau</string>
+    <string name="prev_shift">Ca trước</string>
+    <string name="confirm">Đồng ý</string>
+    <string name="shift_select">Chọn ca</string>
+    <string name="force_stop">Kết thúc thủ công</string>
+    <string name="new_version">Mẫu mới</string>
+    <string name="old_version">Mẫu cũ</string>
 
 
     <string-array name="vat_array">

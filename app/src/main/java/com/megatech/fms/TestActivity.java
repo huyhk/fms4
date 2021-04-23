@@ -1,8 +1,5 @@
 package com.megatech.fms;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
@@ -10,6 +7,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -51,8 +51,8 @@ import com.liquidcontrols.lcr.iq.sdk.lc.api.constants.LCR.PRINTING_STATE;
 import com.liquidcontrols.lcr.iq.sdk.lc.api.device.InternalEvent;
 import com.liquidcontrols.lcr.iq.sdk.lc.api.network.NETWORK_TYPE;
 import com.liquidcontrols.lcr.iq.sdk.utils.AsyncCallback;
-import com.megatech.fms.model.LCRDataModel;
 import com.megatech.fms.helpers.LCRReader;
+import com.megatech.fms.model.LCRDataModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -1138,6 +1138,11 @@ public class TestActivity extends UserBaseActivity {
 
                 }
                 ((TextView)findViewById(R.id.textView11)).setText(logText);
+            }
+
+            @Override
+            public void onFieldAddSucess(String field_name) {
+
             }
         });
 

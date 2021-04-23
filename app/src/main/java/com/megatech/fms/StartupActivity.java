@@ -1,31 +1,21 @@
 package com.megatech.fms;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.megatech.fms.helpers.Logger;
 
 public class StartupActivity extends BaseActivity {
     protected int SETTING_CODE = 2;
     protected int MAGICAL_NUMBER = 1;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        //setContentView(R.layout.activity_startup);
-
-        if (currentApp.isLoggedin()) {
-            if (currentApp.isFirstUse()) {
-                setting();
-            } else {
-                showMain();
-            }
-        } else {
-
-            showLogin();
-        }
-
-    }
+    private int REFUEL_CONTINUE = 44567;
 
     @Override
     protected void onResume() {
@@ -39,16 +29,47 @@ public class StartupActivity extends BaseActivity {
 
     private void showLogin() {
         Intent intent = new Intent(this, LoginActivity.class);
-        startActivityForResult(intent,LOGIN_CODE );
+        startActivityForResult(intent, LOGIN_CODE);
     }
+
+    private int REQUEST_WRITE_PERMISSION = 1;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        //setContentView(R.layout.activity_startup);
+        checkStoragePermission();
+        if (currentApp.isLoggedin()) {
+            if (currentApp.isFirstUse()) {
+                setting();
+            } else {
+                showMain();
+            }
+        } else {
+
+            showLogin();
+        }
+
+    }
+
+    private int LOGIN_CODE = 44563;
 
     private void showMain() {
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
         finish();
-    }
 
-    private int LOGIN_CODE = 44563;
+        // check incomplete refuel
+        // if incomplete refuel exists, open it
+        if (currentApp.getCurrentRefuel(true) > 0) {
+            Logger.appendLog("STRT", "continue refuel local" + currentApp.getCurrentRefuel(true));
+            continueRefuel(0, currentApp.getCurrentRefuel(true));
+        } else if (currentApp.getCurrentRefuel(false) > 0) {
+            Logger.appendLog("STRT", "continue refuel remote" + currentApp.getCurrentRefuel(false));
+
+            continueRefuel(currentApp.getCurrentRefuel(false), 0);
+        }
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -70,4 +91,33 @@ public class StartupActivity extends BaseActivity {
         finish();
     }
 
+    private void continueRefuel(int id, int localId) {
+
+        Intent intent = new Intent(this, RefuelDetailActivity.class);
+        intent.putExtra("REFUEL_ID", id);
+        intent.putExtra("REFUEL_LOCAL_ID", localId);
+        intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        startActivity(intent);
+
+        currentApp.clearCurrentRefuel();
+    }
+
+    protected boolean checkStoragePermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED &&
+                    checkSelfPermission(Manifest.permission.REQUEST_INSTALL_PACKAGES) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{
+                        android.Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.REQUEST_INSTALL_PACKAGES}, REQUEST_WRITE_PERMISSION);
+                return false;
+            }
+            return true;
+        }
+        return true;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+    }
 }

@@ -22,7 +22,6 @@ import static com.megatech.fms.model.RefuelItemData.GALLON_TO_LITTER;
 public class InvoiceModel {
 
     private static final Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
-    Queue<String> printQueue;
     private String productName = "";
 
     private Date date;
@@ -373,6 +372,191 @@ public class InvoiceModel {
         return lines;
     }
 
+    public Queue<String> createBillTextOld() {
+        try {
+            Locale locale = new Locale("vi", "VN");
+            Locale.setDefault(locale);
+            String truckInfo = "";
+            if (this.items.size() > 3) {
+                int i = 0;
+                for (InvoiceItemModel mItem : this.items) {
+
+                    truckInfo += String.format("%12s  ", mItem.getTruckNo());
+                    if (i == 2)
+                        truckInfo += String.format("%,12.0f\n\n\n", this.getVolume());
+                    else if (i % 3 == 2)
+                        truckInfo += "\n\n\n";
+                    i++;
+                }
+
+                truckInfo += new String(new char[]{27, 100, (char) (10 - (int) Math.ceil(4 - this.items.size() / 2) * 3)});
+
+                //truckInfo += new String(new char[(int)Math.ceil(4-this.items.size() / 2)]).replace('\0','\n');
+            } else {
+                for (InvoiceItemModel mItem : this.items) {
+
+                    truckInfo += (truckInfo != "" ? "\n\n" : "") + String.format("%15s %,15.0f / %,-15.0f   %,10.0f %s\n", mItem.getTruckNo(), mItem.getStartNumber(), mItem.getEndNumber(), mItem.getVolume(), mItem.isReturn() ? "HT" : " ");
+
+                }
+                if (this.items.size() < 3)
+                    truckInfo += new String(new char[]{27, 100, (char) (9 - this.items.size() * 3)});
+
+            }
+
+            double realAmount = getRealAmount();
+            double saleAmount = getAmount();
+            double volume = getVolume();
+            double weight = getWeight();
+            double taxRate = getTaxRate();
+            double vatAmount = getVatAmount();
+            double totalSaleAmount = getTotalAmount();
+            double price = getPrice();
+            double temperature = getTemperature();
+            double density = getDensity();
+
+            double totalT = volume;
+            double totalP = temperature * volume;
+
+
+            FMSApplication app = FMSApplication.getApplication();
+            SimpleDateFormat format = new SimpleDateFormat("         dd         MM        yyyy\n");
+            SimpleDateFormat timeformat = new SimpleDateFormat("HH:mm");
+            Queue<String> dataToPrint;
+            dataToPrint = new LinkedList<>(Arrays.asList(
+                    new String(new char[]{27, 51, 48}),
+                    "\n",
+                    new String(new char[]{27, 51, 65}),
+                    format.format(getStartTime()),
+                    new String(new char[]{27, 51, 10}),
+
+                    String.format("                            %s\n", qualityNo == null ? "" : qualityNo),
+
+                    String.format("                      %s %s                      %s\n\n", timeformat.format((this.getStartTime())), timeformat.format(this.getEndTime()), VNCharacterUtils.removeAccent(this.getProductName())),
+
+                    new String(new char[]{27, 51, 40}),
+                    "\n",
+                    new String(new char[]{27, 51, 16}),
+                    //String.format("    %s           %.0f    %.0f                    %.2f\n",mItem.getTruckNo()  ,mItem.getStartNumber(), mItem.getEndNumber(), mItem.getVolume()),
+                    truckInfo,
+                    "\n",
+                    new String(new char[]{27, 51, 16}),
+                    String.format("                   %s\n", VNCharacterUtils.removeAccent(this.getCustomerName())),
+                    String.format("                   %s\n", taxCode == null ? "" : taxCode),
+                    String.format("             %s\n", VNCharacterUtils.removeAccent(this.getAddress())),
+                    String.format("%30s%34s\n", this.getAircraftType(), this.getAircraftCode()),
+                    String.format("%30s%34s\n", this.getFlightCode(), this.getRouteName()),
+                    String.format("%,30.0f%,34.0f\n", this.getRealAmount(), this.getVolume()),
+                    String.format("%30.2f%34.4f\n", this.getTemperature(), this.getDensity()),
+                    String.format("%,30.0f                                \n", this.getWeight())
+
+            ));
+
+            return dataToPrint;
+        } catch (Exception ex) {
+            Logger.appendLog("Error creating bill text: " + ex.getMessage());
+            return null;
+        }
+    }
+
+    public Queue<String> createInvoiceTextOld() {
+        try {
+            Locale locale = new Locale("vi", "VN");
+            Locale.setDefault(locale);
+            String truckInfo = "";
+
+            if (this.items.size() > 3) {
+                int i = 0;
+                for (InvoiceItemModel mItem : this.items) {
+
+                    truckInfo += String.format("%12s  ", mItem.getTruckNo());
+                    if (i == 1)
+                        truckInfo += String.format("%,12.0f\n\n", this.getVolume());
+                    else if (i % 2 == 1)
+                        truckInfo += "\n";
+                    i++;
+                }
+                truckInfo += new String(new char[(int) Math.ceil(4 - this.items.size() / 2)]).replace('\0', '\n');
+            } else {
+                for (InvoiceItemModel mItem : this.items) {
+                    truckInfo += (truckInfo != "" ? "\n" : "") + String.format("%12s %,15.0f / %,-15.0f %s  %,12.0f\n", mItem.getTruckNo(), mItem.getStartNumber(), mItem.getEndNumber(), mItem.isReturn() ? "HT" : " ", mItem.getVolume());
+
+                }
+
+                if (this.items.size() < 3)
+                    truckInfo += new String(new char[]{27, 100, (char) (6 - this.items.size() * 2)});
+
+            }
+            double realAmount = this.getRealAmount();
+            double saleAmount = this.getAmount();
+            double volume = this.getVolume();
+            double weight = this.getWeight();
+            double taxRate = this.getTaxRate();
+            double vatAmount = this.getVatAmount();
+            double totalSaleAmount = this.getTotalAmount();
+            double price = this.getPrice();
+            double temperature = this.getTemperature();
+            double density = this.getDensity();
+
+            double totalT = volume;
+            double totalP = temperature * volume;
+
+            Queue<String> dataToPrint;
+
+
+            FMSApplication app = FMSApplication.getApplication();
+            SimpleDateFormat format = new SimpleDateFormat("         dd           MM         yyyy\n");
+            SimpleDateFormat timeformat = new SimpleDateFormat("HH:mm");
+            dataToPrint = new LinkedList<>(Arrays.asList(
+                    new String(new char[]{27, 51, 40}),
+                    "\n",
+                    new String(new char[]{27, 51, 72}),
+                    format.format(this.getStartTime()),
+                    new String(new char[]{27, 51, 14}),
+                    String.format("                         %s\n", this.qualityNo == null ? "" : this.qualityNo),
+                    String.format("                       %s  %s                       %s\n", timeformat.format((this.getStartTime())), timeformat.format(this.getEndTime()), VNCharacterUtils.removeAccent(this.getProductName())),
+
+                    new String(new char[]{27, 51, 9}),
+                    "\n\n\n\n\n",
+                    new String(new char[]{27, 51, 16}),
+                    //String.format("    %s           %.0f    %.0f                    %.2f\n",mItem.getTruckNo()  ,mItem.getStartNumber(), mItem.getEndNumber(), mItem.getVolume()),
+                    truckInfo,
+                    //new String(new char[]{27,51,1}),
+                    new String(new char[]{27, 51, 10}),
+                    "\n",
+                    new String(new char[]{27, 51, 13}),
+                    String.format("                   %s\n", VNCharacterUtils.removeAccent(this.getCustomerName())),
+                    String.format("                   %s\n", this.taxCode == null ? "" : this.taxCode),
+                    String.format("             %s\n", VNCharacterUtils.removeAccent(this.getAddress())),
+                    String.format("%32s%32s\n", this.getAircraftType(), this.getAircraftCode()),
+                    String.format("%32s%32s\n", this.getFlightCode(), this.getRouteName()),
+                    String.format("%32.2f%32.4f\n", temperature, density),
+                    String.format("%,32.0f%,32.0f\n", volume, weight),
+                    String.format(currency == RefuelItemData.CURRENCY.VND ?
+                            "%,32.0f%,32.0f\n"
+                            : "%,32.0f%,32.2f\n", realAmount, price),
+                    new String(new char[]{27, 51, 14}),
+                    String.format(currency == RefuelItemData.CURRENCY.VND ?
+                            "%,32.0f\n"
+                            : "%,32.2f\n", this.getAmount()),
+                    String.format(currency == RefuelItemData.CURRENCY.VND ?
+                            "%,31.0f%%%,32.0f\n"
+                            : "%,31.0f%%%,32.2f\n", taxRate * 100, vatAmount),
+
+                    String.format(currency == RefuelItemData.CURRENCY.VND ?
+                            "%,30.0f\n"
+                            : " %,30.2f\n", totalSaleAmount),
+                    String.format("                    %s\n", inWords)
+
+
+            ));
+
+            return dataToPrint;
+        } catch (Exception ex) {
+            Logger.appendLog("Error creating invoice text: " + ex.getMessage());
+            return null;
+        }
+    }
+
     public Queue<String> createBillText() {
         try {
             Locale locale = new Locale("vi", "VN");
@@ -495,8 +679,8 @@ public class InvoiceModel {
 
                 }
 
-                if (this.items.size() < 5)
-                    truckInfo += new String(new char[]{27, 51, (char) (66 - this.items.size() * 13)}) + "\n";// new String(new char[]{27, 100, (char) (12 - this.items.size() * 3)});
+                if (this.items.size() < 6)
+                    truckInfo += new String(new char[]{27, 51, (char) (78 - this.items.size() * 12)}) + "\n";// new String(new char[]{27, 100, (char) (12 - this.items.size() * 3)});
 
             }
             double realAmount = this.getRealAmount();
@@ -529,44 +713,49 @@ public class InvoiceModel {
             SimpleDateFormat format = new SimpleDateFormat("       dd           MM         yyyy\n");
             SimpleDateFormat timeformat = new SimpleDateFormat("HH:mm");
             dataToPrint = new LinkedList<>(Arrays.asList(
-                    "\n\n\n\n\n",
-                    new String(new char[]{27, 51, 50}),
+                    new String(new char[]{27, 51, 38}),
+                    "\n",
+                    new String(new char[]{27, 51, 47}),
                     format.format(this.getStartTime()) + "\n",
-                    new String(new char[]{27, 51, 16}),
+                    new String(new char[]{27, 51, 15}),
                     String.format("                         %s\n", this.qualityNo == null ? "" : this.qualityNo),
-                    new String(new char[]{27, 51, 34}),
+                    new String(new char[]{27, 51, 32}),
                     String.format("                       %s / %s                     %s\n", timeformat.format((this.getStartTime())), timeformat.format(this.getEndTime()), VNCharacterUtils.removeAccent(this.getProductName())),
                     new String(new char[]{27, 51, 12}),
                     truckInfo,
-                    new String(new char[]{27, 51, 6}),
-                    "\n",
-                    new String(new char[]{27, 51, 12}),
+                    new String(new char[]{27, 51, 11}),
                     String.format("                 %s\n", names[0]),
+                    new String(new char[]{27, 51, 11}),
                     String.format(" %s\n", names[1]),
+                    new String(new char[]{27, 51, 12}),
                     String.format("                 %s\n", this.taxCode == null ? "" : this.taxCode),
+                    new String(new char[]{27, 51, 11}),
                     String.format("            %s\n", addresses[0]),
-                    new String(new char[]{27, 51, 12}),
+                    new String(new char[]{27, 51, 11}),
                     String.format(" %s\n", addresses[1]),
+                    new String(new char[]{27, 51, 14}),
                     String.format("%31s%34s\n", this.getAircraftType(), this.getAircraftCode()),
-                    new String(new char[]{27, 51, 14}),
                     String.format("%31s%34s\n", this.getFlightCode(), this.getRouteName()),
-
-                    String.format("%31.2f%34.4f\n", temperature, density),
-                    new String(new char[]{27, 51, 13}),
-                    String.format("%,31.0f%,34.0f\n", volume, weight),
                     new String(new char[]{27, 51, 14}),
-                    String.format("%,31.0f%,34.0f\n", realAmount, price),
-                    String.format(currency == RefuelItemData.CURRENCY.VND ?
-                            "%,38.0f\n"
-                            : "%,38.2f\n", this.getAmount()),
-                    String.format(currency == RefuelItemData.CURRENCY.VND ?
-                            "%,20.0f%%%,44.0f\n"
-                            : "20%,.0f%%%,44.2f\n", taxRate * 100, vatAmount),
+                    String.format("%31.2f%34.4f\n", temperature, density),
+
+                    String.format("%,31.0f%,34.0f\n", volume, weight),
+
 
                     String.format(currency == RefuelItemData.CURRENCY.VND ?
-                            "%,38.0f                     \n"
-                            : "%,38.2f                     \n", totalSaleAmount),
-                    new String(new char[]{27, 51, 12}),
+                            "%,31.0f%,30.0f VND\n"
+                            : "%,31.0f%,30.2f USD\n", realAmount, price),
+                    String.format(currency == RefuelItemData.CURRENCY.VND ?
+                            "%,34.0f VND\n"
+                            : "%,34.2f USD\n", this.getAmount()),
+                    String.format(currency == RefuelItemData.CURRENCY.VND ?
+                            "%,20.0f%%%,40.0f VND\n"
+                            : "%,20.0f%%%,40.2f USD\n", taxRate * 100, vatAmount),
+
+                    String.format(currency == RefuelItemData.CURRENCY.VND ?
+                            "%,34.0f VND                     \n"
+                            : "%,34.2f USD                    \n", totalSaleAmount),
+                    new String(new char[]{27, 51, 11}),
                     String.format("                  %s\n", words[0]),
                     String.format(" %s\n", words[1])
 

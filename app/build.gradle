@@ -21,8 +21,8 @@ android {
         applicationId "com.megatech.fms"
         minSdkVersion 21
         targetSdkVersion 27
-        versionCode 6
-        versionName "1.2.2"
+        versionCode 7
+        versionName "1.7.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         javaCompileOptions {
             annotationProcessorOptions {
@@ -36,7 +36,7 @@ android {
     buildTypes {
         debug {
             buildConfigField 'String', 'API_BASE_URL', '"http://10.0.2.2:53579/"'
-            //buildConfigField 'String', 'API_BASE_URL', '"http://demofmsapi.megatech.com.vn/"'
+            //buildConfigField 'String', 'API_BASE_URL', '"http://fmsapi.megatech.com.vn/"'
 
             //buildConfigField 'String', 'API_BASE_URL', '"http://fms.webmienphi.info/"'
             //buildConfigField 'String', 'API_BASE_URL', '"http://fmsapi.megatech.com.vn/"'
@@ -56,7 +56,7 @@ android {
             }
         }
         release {
-            buildConfigField 'String', 'API_BASE_URL', '"http://demofmsapi.megatech.com.vn/"'
+            buildConfigField 'String', 'API_BASE_URL', '"http://fmsapi.megatech.com.vn/"'
             buildConfigField 'String', 'DB_FILE', '"fms_release.db"'
             //buildConfigField 'String', 'IMEI_LIST', '"353700094068846,353700094064027,358240051111110"'
             minifyEnabled false
@@ -72,7 +72,22 @@ android {
             }
         }
 
+        demo {
+            buildConfigField 'String', 'API_BASE_URL', '"http://demofmsapi.megatech.com.vn/"'
+            buildConfigField 'String', 'DB_FILE', '"fms_demo.db"'
+            //buildConfigField 'String', 'IMEI_LIST', '"353700094068846,353700094064027,358240051111110"'
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            applicationVariants.all { variant ->
+                variant.outputs.all { output ->
+                    def date = new Date()
+                    def formattedDate = date.format('yyyyMMdd')
 
+                    outputFileName = "fms-${variant.name}-${variant.versionCode}-" + formattedDate + ".apk"
+
+                }
+            }
+        }
 
     }
 

@@ -20,10 +20,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.liquidcontrols.lcr.iq.sdk.lc.api.constants.LCR.LCR_COMMAND;
 import com.liquidcontrols.lcr.iq.sdk.lc.api.constants.LCR.LCR_DEVICE_CONNECTION_STATE;
-import com.megatech.fms.model.LCRDataModel;
-import com.megatech.fms.model.RefuelItemData;
 import com.megatech.fms.helpers.HttpClient;
 import com.megatech.fms.helpers.LCRReader;
+import com.megatech.fms.model.LCRDataModel;
+import com.megatech.fms.model.RefuelItemData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -199,6 +199,11 @@ public class RefuelActivity extends UserBaseActivity  implements View.OnClickLis
 
                 }
             }
+
+            @Override
+            public void onFieldAddSucess(String field_name) {
+
+            }
         });
 
         reader.setStateListener(new LCRReader.LCRStateListener() {
@@ -359,22 +364,24 @@ public class RefuelActivity extends UserBaseActivity  implements View.OnClickLis
 
     @Override
     public void onClick(View v) {
+
         int id = v.getId();
-        if (id == R.id.refuel_chk_connect_lcr){
+        if (id == R.id.refuel_chk_connect_lcr) {
             if (reader.isDeviceError())
                 reconnect();
             return;
         }
         CheckedTextView chkTxt = findViewById(id);
 
-            boolean isChecked = chkTxt.isChecked();
-            chkTxt.setChecked(!isChecked);
-            chkTxt.setCheckMarkDrawable(isChecked ? R.drawable.ic_unchecked : R.drawable.ic_checked);
-            if (id == R.id.refuel_check_condition)
-                conditionIsReady = !isChecked;
-            else
-                inventoryIsReady = !isChecked;
-            setEnableButton(deviceIsReady && conditionIsReady && inventoryIsReady);
+        boolean isChecked = chkTxt.isChecked();
+        chkTxt.setChecked(!isChecked);
+        chkTxt.setCheckMarkDrawable(isChecked ? R.drawable.ic_unchecked : R.drawable.ic_checked);
+        if (id == R.id.refuel_check_condition)
+            conditionIsReady = !isChecked;
+        else
+            inventoryIsReady = !isChecked;
+        setEnableButton(deviceIsReady && conditionIsReady && inventoryIsReady);
+
 
 
     }

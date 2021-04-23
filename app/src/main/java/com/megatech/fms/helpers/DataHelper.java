@@ -66,12 +66,19 @@ public class DataHelper {
                 }
             }.run();
 
-            ShiftModel shiftModel = httpClient.getShift();
-            if (shiftModel == null) shiftModel = FMSApplication.getApplication().getShift();
-            if (shiftModel != null) {
+            ShiftModel shiftModel = FMSApplication.getApplication().getShift();
+            Date d = new Date();
+            if (shiftModel == null || d.compareTo(shiftModel.getStartTime()) < 0 || d.compareTo(shiftModel.getEndTime()) > 0) {
+                shiftModel = httpClient.getShift();
                 FMSApplication.getApplication().saveShift(shiftModel);
-                long start = shiftModel.getStartTime().getTime() - 30 * 60 * 1000;
-                long end = shiftModel.getEndTime().getTime() + 30 * 60 * 1000;
+            }
+            ShiftModel selected = shiftModel.isSelected() ? shiftModel : shiftModel.getPrevShift().isSelected() ? shiftModel.getPrevShift() : shiftModel.getNextShift();
+            if (selected != null) {
+
+
+                long start = selected.getStartTime().getTime() - 30 * 60 * 1000;
+                long end = selected.getEndTime().getTime() + 30 * 60 * 1000;
+
                 return repo.getRefuelList(FMSApplication.getApplication().getTruckNo(), FMSApplication.getApplication().getTruckId(), self, type, start, end);
             }
             return repo.getRefuelList(FMSApplication.getApplication().getTruckNo(), FMSApplication.getApplication().getTruckId(), self, type);
@@ -193,7 +200,7 @@ public class DataHelper {
 
     public static RefuelItemData postRefuel(RefuelItemData refuelData) {
         if (isDebug) {
-
+            Logger.appendLog("DTH", "postRefuel " + refuelData.getId() + " - " + refuelData.getLocalId());
             RefuelItem localItem = repo.getRefuel(refuelData.getId(), refuelData.getLocalId());
             if (localItem == null) {
                 localItem = RefuelItem.fromRefuelItemData(refuelData);

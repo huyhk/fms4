@@ -74,11 +74,13 @@ public class PrintWorker implements Observer {
         return  dataToPrint.size();
     }
 
+    public  boolean printBill(InvoiceModel invoiceModel) {
+        return printBill(invoiceModel, false);
+    }
 
-    public  boolean printBill(InvoiceModel invoiceModel)
-    {
+    public boolean printBill(InvoiceModel invoiceModel, boolean old) {
 
-        dataToPrint = invoiceModel.createBillText();
+        dataToPrint = old ? invoiceModel.createBillTextOld() : invoiceModel.createBillText();
         if (dataToPrint == null)
             return false;
 
@@ -88,18 +90,19 @@ public class PrintWorker implements Observer {
             this.mTcpClient.addObserver(this);
             this.mTcpClient.connect();
 
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             Log.e("ERROR", e.toString());
             return false;
         }
         return true;
     }
-
     public  boolean printInvoice(InvoiceModel invoiceModel)
     {
-        dataToPrint = invoiceModel.createInvoiceText();
+        return printInvoice(invoiceModel, false);
+    }
+
+    public boolean printInvoice(InvoiceModel invoiceModel, boolean old) {
+        dataToPrint = old ? invoiceModel.createInvoiceTextOld() : invoiceModel.createInvoiceText();
         if (dataToPrint == null)
             return false;
         try {
