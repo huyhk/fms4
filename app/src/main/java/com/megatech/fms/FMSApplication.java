@@ -228,7 +228,8 @@ public class FMSApplication extends Application implements LifecycleObserver {
         float currentAmount = getSetting().getCurrentAmount();
         SharedPreferences.Editor editor = preferences.edit();
         //editor.putFloat("CURRENT_AMOUNT", currentAmount + addedAmount);
-        editor.putString("SHIFT", model.toJson());
+        if (model != null)
+            editor.putString("SHIFT", model.toJson());
         editor.commit();
     }
 

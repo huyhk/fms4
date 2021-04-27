@@ -35,7 +35,7 @@ public class VersionUpdateActivity extends BaseActivity implements View.OnClickL
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_version_update);
         TextView txt = findViewById(R.id.info_dialog_version);
-        txt.setText(String.format("%d", BuildConfig.VERSION_CODE));
+        txt.setText(String.format("%d (%s)", BuildConfig.VERSION_CODE, BuildConfig.VERSION_NAME));
         new CheckVersionAsyncTask().execute(API_BASE_URL + "files/version.txt");
     }
 
@@ -76,8 +76,12 @@ public class VersionUpdateActivity extends BaseActivity implements View.OnClickL
             try {
                 String[] info = versionInfo.split("-");
                 String version = info[0];
+                String build = info[1];
                 long newVersion = Long.parseLong(version);
                 long currentVersion = BuildConfig.VERSION_CODE;
+
+
+                String currentVersionName = BuildConfig.VERSION_NAME;
 
                 if (newVersion > currentVersion) {
                     ((TextView) findViewById(R.id.version_check_message)).setText(getString(R.string.new_version_available));

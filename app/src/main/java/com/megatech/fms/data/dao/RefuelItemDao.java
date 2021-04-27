@@ -27,20 +27,20 @@ public interface RefuelItemDao {
     @Query("Select * from RefuelItem where flightId = :id")
     List<RefuelItem> getByFlightId(int id);
 
-    @Query("Select * from RefuelItem where truckNo = :truckNo and refuelTime between :start and :end")
-    List<RefuelItem> getByTruckNo(String truckNo, long start, long end);
+    @Query("Select * from RefuelItem where truckNo = :truckNo AND refuelItemType= :type and refuelTime between :start and :end")
+    List<RefuelItem> getByTruckNo(String truckNo, long start, long end, int type);
 
 
-    @Query("Select * from RefuelItem where truckNo = :truckNo")
-    List<RefuelItem> getByTruckNo(String truckNo);
+    @Query("Select * from RefuelItem where truckNo = :truckNo AND refuelItemType = :type")
+    List<RefuelItem> getByTruckNo(String truckNo, int type);
 
 
-    @Query("Select * from RefuelItem where truckNo != :truckNo and refuelTime between :start and :end")
-    List<RefuelItem> getOthers(String truckNo, long start, long end);
+    @Query("Select * from RefuelItem where truckNo != :truckNo and refuelItemType = :type and refuelTime between :start and :end")
+    List<RefuelItem> getOthers(String truckNo, long start, long end, int type);
 
 
-    @Query("Select * from RefuelItem where truckNo != :truckNo")
-    List<RefuelItem> getOthers(String truckNo);
+    @Query("Select * from RefuelItem where truckNo != :truckNo and refuelItemType = :type  ")
+    List<RefuelItem> getOthers(String truckNo, int type);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAll(List<RefuelItem> items);

@@ -1,10 +1,5 @@
 package com.megatech.fms;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,10 +7,12 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.megatech.fms.helpers.HttpClient;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.megatech.fms.helpers.DataHelper;
 import com.megatech.fms.model.RefuelItemData;
 import com.megatech.fms.model.UserInfo;
-import com.megatech.fms.view.RefuelRecyclerView;
 import com.megatech.fms.view.RefuelRecyclerViewAdapter;
 
 import java.util.List;
@@ -63,7 +60,7 @@ public class ExtractActivity extends UserBaseActivity implements View.OnClickLis
         new Thread(new Runnable() {
             @Override
             public void run() {
-                lstData = (new HttpClient()).getExtractList();
+                lstData = DataHelper.getRefuelList(true, 1);
                 if (activity != null)
                     activity.runOnUiThread(new Runnable() {
                         @Override

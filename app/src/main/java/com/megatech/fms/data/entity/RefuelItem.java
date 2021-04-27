@@ -41,6 +41,7 @@ public class RefuelItem extends BaseEntity {
         item.setLocalId(itemData.getLocalId());
         item.setDateUpdated(itemData.getDateUpdated());
         item.setFlightId(itemData.getFlightId());
+        item.setRefuelItemType(RefuelItem.REFUEL_ITEM_TYPE.values()[itemData.getRefuelItemType().ordinal()]);
         return  item;
     }
     private int flightId;

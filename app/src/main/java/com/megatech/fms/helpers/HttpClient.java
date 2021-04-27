@@ -402,6 +402,7 @@ public class HttpClient {
                     RefuelItemData item;
 
                     item = gson.fromJson(o.toString(), RefuelItemData.class);
+
                     lst.add(item);
                 }
             }

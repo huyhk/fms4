@@ -81,9 +81,9 @@ public class DataRepository {
     public List<RefuelItemData> getRefuelList(String truckNo, int truckId, boolean self, int type, long start, long end) {
         List<RefuelItem> localList;
         if (self)
-            localList = db.refuelItemDao().getByTruckNo(truckNo, start, end);
+            localList = db.refuelItemDao().getByTruckNo(truckNo, start, end, type);
         else
-            localList = db.refuelItemDao().getOthers(truckNo, start, end);
+            localList = db.refuelItemDao().getOthers(truckNo, start, end, type);
 
         return toRefuelList(localList);
     }
@@ -91,9 +91,9 @@ public class DataRepository {
     public List<RefuelItemData> getRefuelList(String truckNo, int truckId, boolean self, int type) {
         List<RefuelItem> localList;
         if (self)
-            localList = db.refuelItemDao().getByTruckNo(truckNo);
+            localList = db.refuelItemDao().getByTruckNo(truckNo, type);
         else
-            localList = db.refuelItemDao().getOthers(truckNo);
+            localList = db.refuelItemDao().getOthers(truckNo, type);
         return toRefuelList(localList);
     }
 

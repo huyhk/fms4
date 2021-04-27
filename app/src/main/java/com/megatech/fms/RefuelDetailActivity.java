@@ -37,10 +37,12 @@ import com.megatech.fms.model.LCRDataModel;
 import com.megatech.fms.model.REFUEL_ITEM_STATUS;
 import com.megatech.fms.model.RefuelItemData;
 
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -198,8 +200,10 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
             if (itemData == null)
                 itemData = DataHelper.getRefuelItem(id, localId);
 
-            if (itemData != null)
+            if (itemData != null) {
                 mItem = itemData;
+                mItem.setQualityNo(currentApp.getQCNo());
+            }
             Logger.appendLog("RFW", "Flight Code: " + mItem.getFlightCode());
             runOnUiThread(() -> {
                 if (!isFinishing())
@@ -331,7 +335,7 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
         startButtonPress = true;
         mItem.setStartTime(new Date());
         // send START DELIVERY command to LCR
-        //reader.start();
+        reader.start();
         setRefuelStatus(REFUEL_STATUS.STARTING);
 
     }
@@ -347,7 +351,7 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
             showForceStopDialog();
         } else {
             //send END DELIVERY command to LCR
-            //reader.end(restartRequest);
+            reader.end();
             setRefuelStatus(REFUEL_STATUS.ENDING);
         }
 
@@ -693,22 +697,28 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
             setRefuelStatus(refuel_status);
         }
         if (started && endRetry < 3) {
-            endRetry++;
+
             //wait 5s to receive END TIME and last GROSSQTY, TOTALIZER, TEMPERATURE data
             Timer tmrStop = new Timer();
             tmrStop.schedule(new TimerTask() {
                 @Override
                 public void run() {
-                    // if not receive ENDTIME within 5s, restart LCR service
+                    endRetry++;
+                    // if not receive ENDTIME within 5s, retry 3times, if not received ask user to input data manually
                     if ((field_data_flag & FIELD_DATA_FLAG.FIELD_ENDTIME) > 0) {
                         tmrStop.cancel();
                         doStop();
 
+                    } else if (endRetry >= 3) {
+                        tmrStop.cancel();
+                        runOnUiThread(() -> {
+                                    showDataInput();
+                                }
+                        );
+
                     }
                 }
             }, 1000 * 5, 1000 * 3);
-        } else if (started) {
-            showDataInput();
         }
     }
 
@@ -753,11 +763,16 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
                 .setPositiveButton(R.string.save, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
-                        AlertDialog v = (AlertDialog) dialog;
-                        mItem.setEndNumber(Float.parseFloat(((EditText) v.findViewById(R.id.dialog_meter)).getText().toString().replaceAll(",", "")));
-                        mItem.setRealAmount(Float.parseFloat(((EditText) v.findViewById(R.id.dialog_volume)).getText().toString().replaceAll(",", "")));
-                        mItem.setTemperature(Float.parseFloat(((EditText) v.findViewById(R.id.dialog_temperature)).getText().toString().replaceAll(",", "")));
-                        mItem.setManualTemperature(Float.parseFloat(((EditText) v.findViewById(R.id.dialog_temperature)).getText().toString().replaceAll(",", "")));
+                        try {
+                            Locale locale = Locale.getDefault();
+                            NumberFormat numberFormat = NumberFormat.getInstance(locale);
+                            AlertDialog v = (AlertDialog) dialog;
+                            mItem.setEndNumber(numberFormat.parse(((EditText) v.findViewById(R.id.dialog_meter)).getText().toString()).floatValue());
+                            mItem.setRealAmount(numberFormat.parse(((EditText) v.findViewById(R.id.dialog_volume)).getText().toString()).floatValue());
+                            mItem.setTemperature(numberFormat.parse(((EditText) v.findViewById(R.id.dialog_temperature)).getText().toString()).floatValue());
+                            mItem.setManualTemperature(numberFormat.parse(((EditText) v.findViewById(R.id.dialog_temperature)).getText().toString()).floatValue());
+                        } catch (Exception ex) {
+                        }
                         dialog.dismiss();
                         doStop();
                     }
@@ -792,14 +807,14 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
                         if ((field_data_flag & FIELD_DATA_FLAG.FIELD_GROSSQTY) == 0
                                 || (field_data_flag & FIELD_DATA_FLAG.FIELD_TOTALLIZER) == 0) {
                             tmrCheckData.cancel();
-                            restartReader();
+                            //reader.requestData();
                         }
 
                     }
                     field_data_flag = FIELD_DATA_FLAG.FIELD_NOT_DEFINED;
                 }
             };
-            //tmrCheckData.schedule(tmrTask,1000*10);
+            tmrCheckData.schedule(tmrTask, 1000 * 10);
 
 
             started = true;

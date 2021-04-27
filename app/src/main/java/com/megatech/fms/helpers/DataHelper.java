@@ -72,14 +72,15 @@ public class DataHelper {
                 shiftModel = httpClient.getShift();
                 FMSApplication.getApplication().saveShift(shiftModel);
             }
-            ShiftModel selected = shiftModel.isSelected() ? shiftModel : shiftModel.getPrevShift().isSelected() ? shiftModel.getPrevShift() : shiftModel.getNextShift();
-            if (selected != null) {
+            if (shiftModel != null) {
+                ShiftModel selected = shiftModel.isSelected() ? shiftModel : shiftModel.getPrevShift().isSelected() ? shiftModel.getPrevShift() : shiftModel.getNextShift();
+                if (selected != null) {
 
+                    long start = selected.getStartTime().getTime() - 30 * 60 * 1000;
+                    long end = selected.getEndTime().getTime() + 30 * 60 * 1000;
 
-                long start = selected.getStartTime().getTime() - 30 * 60 * 1000;
-                long end = selected.getEndTime().getTime() + 30 * 60 * 1000;
-
-                return repo.getRefuelList(FMSApplication.getApplication().getTruckNo(), FMSApplication.getApplication().getTruckId(), self, type, start, end);
+                    return repo.getRefuelList(FMSApplication.getApplication().getTruckNo(), FMSApplication.getApplication().getTruckId(), self, type, start, end);
+                }
             }
             return repo.getRefuelList(FMSApplication.getApplication().getTruckNo(), FMSApplication.getApplication().getTruckId(), self, type);
         }

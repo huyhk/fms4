@@ -447,13 +447,14 @@
                     android:id="@+id/radOld"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:checked="true"
                     android:text="@string/old_version" />
 
                 <RadioButton
                     android:id="@+id/radNew"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:checked="true"
+                    android:checked="false"
                     android:text="@string/new_version" />
                 <!--<RadioButton-->
                 <!--android:layout_width="wrap_content"-->

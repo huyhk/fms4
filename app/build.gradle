@@ -18,11 +18,15 @@ android {
     }
     compileSdkVersion 28
     defaultConfig {
+        def date = new Date()
+        def formattedDate = date.format('yyyyMMdd')
+
         applicationId "com.megatech.fms"
         minSdkVersion 21
         targetSdkVersion 27
         versionCode 7
-        versionName "1.7.0"
+        def versionBuild = 3
+        versionName "${versionCode}.${versionBuild}.${formattedDate}"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         javaCompileOptions {
             annotationProcessorOptions {
