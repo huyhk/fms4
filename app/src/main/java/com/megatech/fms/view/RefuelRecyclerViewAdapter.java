@@ -16,9 +16,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.gson.FieldNamingPolicy;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.megatech.fms.R;
 import com.megatech.fms.RefuelDetailActivity;
 import com.megatech.fms.RefuelPreviewActivity;
@@ -94,7 +91,7 @@ public class RefuelRecyclerViewAdapter extends RecyclerView.Adapter<RefuelRecycl
                 intent = new Intent(mContext, RefuelPreviewActivity.class);
             else
                 intent = new Intent(mContext, RefuelDetailActivity.class);
-            Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
+            //Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
 
             intent.putExtra("REFUEL_ID", item.getId());
             intent.putExtra("REFUEL_LOCAL_ID", item.getLocalId());

@@ -64,7 +64,7 @@ public class LCRReader {
     private boolean deviceError = true;
     private static boolean _dateFormatRequested = false;
     private static SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
-
+    private static boolean isLCR600 = false;
     public boolean getConnected() {
         if (lcrSdk !=null)
         {
@@ -232,40 +232,6 @@ public class LCRReader {
         }
     };
     /**
-     * Device operation switch state listener
-     */
-    public SwitchStateListener switchStateListener = new SwitchStateListener() {
-        /**
-         * Event of Switch State changed
-         * @param deviceId        Device identification
-         * @param deviceInfo    Device info
-         * @param newValue        New switch state
-         * @param oldValue        Old switch state
-         */
-        @Override
-        public void onSwitchStateChanged(
-                @NonNull String deviceId,
-                @NonNull DeviceInfo deviceInfo,
-                @Nullable LCR_SWITCH_STATE newValue,
-                @Nullable LCR_SWITCH_STATE oldValue) {
-
-            // Make variables for show status (getString formatting don't allow null)
-//            String newValueText = "(null)";
-//            if(newValue != null) {
-//                newValueText = newValue.toString();
-//            }
-
-            // Set switch state text
-
-            raiseError("Switch state : " + oldValue + " -> " + newValue);
-
-            //if(newValue == LCR_SWITCH_STATE.SWITCH_RUN) {
-            //    onConnected();
-            //}
-        }
-
-    };
-    /**
      * Printer status monitoring
      */
     PrinterStatusListener printerStatusListener = new PrinterStatusListener() {
@@ -354,14 +320,50 @@ public class LCRReader {
             //raiseError("Print failed : " + strCause);
         }
     };
-    private boolean fieldAvail = false;
+    private LCR_SWITCH_STATE old_switch = null;
+    /**
+     * Device operation switch state listener
+     */
+    public SwitchStateListener switchStateListener = new SwitchStateListener() {
+        /**
+         * Event of Switch State changed
+         *
+         * @param deviceId   Device identification
+         * @param deviceInfo Device info
+         * @param newValue   New switch state
+         * @param oldValue   Old switch state
+         */
+        @Override
+        public void onSwitchStateChanged(
+                @NonNull String deviceId,
+                @NonNull DeviceInfo deviceInfo,
+                @Nullable LCR_SWITCH_STATE newValue,
+                @Nullable LCR_SWITCH_STATE oldValue) {
 
-    private void onDeviceAdded(boolean failed) {
-        if (connectionListener != null)
-            connectionListener.onDeviceAdded(false);
-        if (!failed)
-            doConnectDevice();
-    }
+            // Make variables for show status (getString formatting don't allow null)
+//            String newValueText = "(null)";
+//            if(newValue != null) {
+//                newValueText = newValue.toString();
+//            }
+
+            // Set switch state text
+
+            raiseError("Switch state : " + oldValue + " -> " + newValue);
+
+            if (newValue == LCR_SWITCH_STATE.SWITCH_RUN && isLCR600) {
+                if (oldValue == LCR_SWITCH_STATE.SWITCH_PRINT
+                        || oldValue == LCR_SWITCH_STATE.SWITCH_SHIFT_PRINT
+                        || old_switch == LCR_SWITCH_STATE.SWITCH_PRINT
+                        || old_switch == LCR_SWITCH_STATE.SWITCH_SHIFT_PRINT)
+                    if (!isStarted)
+                        sendCommand(LCR_COMMAND.RUN);
+            }
+            if (newValue != LCR_SWITCH_STATE.SWITCH_STOP)
+                old_switch = newValue;
+        }
+
+    };
+    private boolean fieldAvail = false;
     /**
      * Listener to handle all Field operation events
      */
@@ -390,6 +392,12 @@ public class LCRReader {
                 //availableLCRFields.addAll(fields);
             }
             fieldAvail = true;
+            lcrSdk.fieldToolsFindField(getDeviceId(), "DBMNODE", new AsyncCallback() {
+                @Override
+                public void onAsyncReturn(@Nullable Throwable throwable) {
+                    isLCR600 = throwable == null;
+                }
+            });
             processFieldQueue();
         }
 
@@ -518,6 +526,11 @@ public class LCRReader {
                     }
                 }
             }
+
+            if (responseFieldName.equals("DBMNODE")) {
+                isLCR600 = true;
+                removeFieldData(requestField.getItemToRequest());
+            }
             if (showInLog) {
                 String logText = "Field data arrive : "
                         + responseField.getFieldItem().getFieldName()
@@ -622,7 +635,9 @@ public class LCRReader {
             // Logging data request add success event
             raiseError("Field data request add success : " + requestField.getItemToRequest().getFieldName());
 
-            //process next reques
+            //remove queue top and process next request field
+            if (requestFields.contains(requestField.getItemToRequest().getFieldName()))
+                requestFields.remove(requestField.getItemToRequest().getFieldName());
             processFieldQueue();
         }
 
@@ -729,8 +744,6 @@ public class LCRReader {
             raiseError("Field data write failed : " + fieldItem.getFieldName() + " Cause : " + errorMsg);
         }
     };
-
-    private boolean isError = false;
     /**
      * DeviceCommunicationListener report SDK communication information to LCR device
      */
@@ -810,13 +823,22 @@ public class LCRReader {
             if (newValue == LCR_COMMUNICATION_STATUS.ERROR)
                 onError();
             if (((oldValue == LCR_COMMUNICATION_STATUS.ERROR || oldValue == LCR_COMMUNICATION_STATUS.RETRY)
-                    && newValue == LCR_COMMUNICATION_STATUS.OK)
+                    && (newValue == LCR_COMMUNICATION_STATUS.OK || newValue == LCR_COMMUNICATION_STATUS.QUEUED))
             )
             {
                 onConnected();
             }
         }
     };
+
+    private boolean isError = false;
+
+    private void onDeviceAdded(boolean failed) {
+        if (connectionListener != null)
+            connectionListener.onDeviceAdded(false);
+        if (!failed)
+            doConnectDevice();
+    }
     private LCR_DEVICE_STATE current_device_state;
     private void onCommandError(LCR_COMMAND command) {
         if (connectionListener!=null)
@@ -993,8 +1015,13 @@ public class LCRReader {
                         public void onAsyncReturn(@Nullable Throwable throwable) {
                             if (throwable != null) {
                                 Logger.appendLog("LCR", "fieldToolsFindField " + fieldName + " failed: " + throwable.getLocalizedMessage());
-                                requestFields.remove();
+                                requestFields.remove(fieldName);
+                                //processFieldQueue();
                             }
+
+
+                            if (fieldName == "DBMNODE" && throwable == null)
+                                isLCR600 = true;
                         }
                     }));
 
@@ -1002,6 +1029,10 @@ public class LCRReader {
                 }
             }
         }
+    }
+
+    public boolean isLCR600() {
+        return  isLCR600;
     }
 
     public interface LCRConnectionListener {
@@ -1119,8 +1150,11 @@ public class LCRReader {
     public void requestDateFormat() {
 
         if (!_dateFormatRequested) {
+            raiseError("Request DATEFORMAT & DBMNODE");
             dateFormat = new SimpleDateFormat("DD/MM/YYYY HH:mm:ss");
-            requestFieldData("DATEFORMAT");
+            addRequestQueue("DATEFORMAT");
+            //addRequestQueue("DBMNODE");
+            processFieldQueue();
             _dateFormatRequested = true;
         }
     }
@@ -1130,17 +1164,20 @@ public class LCRReader {
         isStarted = false;
         isStopped = false;
         isRestart = false;
-
+        sendCommand(LCR_COMMAND.RUN);
     }
 
     private void onConnected() {
         //lcrSdk.addListener(deviceStatusListener);
+
         raiseError("onConnected");
         if (connectionListener != null)
             connectionListener.onConnected();
         if (isStarted()) {
             onStarted();
         }
+
+        processFieldQueue();
         isError = false;
     }
 
@@ -1189,15 +1226,16 @@ public class LCRReader {
         requestFieldData(endTime);
         requestFieldData(temp);
         */
+        raiseError("Request data");
+        addRequestQueue("GROSSMETERQTY");
+        addRequestQueue("GROSSQTY");
+        addRequestQueue("DELIVERYFINISH");
+        addRequestQueue("DELIVERYSTART");
+        addRequestQueue("AVGTEMP");
+        addRequestQueue("PREVIOUSGROSS");
 
-        requestFieldData("GROSSMETERQTY");
-        requestFieldData("GROSSQTY");
-        requestFieldData("DELIVERYFINISH");
-        requestFieldData("DELIVERYSTART");
-        requestFieldData("AVGTEMP");
-        requestFieldData("PREVIOUSGROSS");
-
-
+        if (fieldAvail)
+            processFieldQueue();
     }
 
     private void removeFieldData(final FieldItem field) {
@@ -1206,10 +1244,14 @@ public class LCRReader {
 
     }
 
+    private void addRequestQueue(String fieldName) {
+        if (!requestFields.contains(fieldName))
+            requestFields.add(fieldName);
+    }
+
     private void requestFieldData(String fieldName) {
 
         requestFields.add(fieldName);
-
         if (fieldAvail) {
             processFieldQueue();
         }
@@ -1266,7 +1308,7 @@ public class LCRReader {
     private void end(boolean restart) {
         isStopped = false;
         this.isRestart = restart;
-        //sendCommand(LCR_COMMAND.END_DELIVERY);
+        sendCommand(LCR_COMMAND.END_DELIVERY);
     }
     private void doAddDevice(String ipAddress){
         if(lcrSdk == null) {
@@ -1479,7 +1521,7 @@ public class LCRReader {
         // Device status / state
         lcrSdk.addListener(deviceStatusListener);
         // Switch state listener
-        //lcrSdk.addListener(switchStateListener);
+        lcrSdk.addListener(switchStateListener);
         // Printer status listener
         //lcrSdk.addListener(printerStatusListener);
 

@@ -8,11 +8,16 @@ import android.app.TimePickerDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -21,6 +26,7 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
+import android.widget.Toast;
 
 import androidx.databinding.DataBindingUtil;
 
@@ -28,6 +34,7 @@ import com.liquidcontrols.lcr.iq.sdk.lc.api.constants.LCR.LCR_COMMAND;
 import com.liquidcontrols.lcr.iq.sdk.lc.api.constants.LCR.LCR_DEVICE_CONNECTION_STATE;
 import com.megatech.fms.databinding.ActivityRefuelDetailBinding;
 import com.megatech.fms.databinding.EditRefuelDialogBinding;
+import com.megatech.fms.databinding.SelectUserBinding;
 import com.megatech.fms.helpers.DataHelper;
 import com.megatech.fms.helpers.DateUtils;
 import com.megatech.fms.helpers.LCRReader;
@@ -36,14 +43,19 @@ import com.megatech.fms.model.AirlineModel;
 import com.megatech.fms.model.LCRDataModel;
 import com.megatech.fms.model.REFUEL_ITEM_STATUS;
 import com.megatech.fms.model.RefuelItemData;
+import com.megatech.fms.model.UserModel;
 
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class RefuelDetailActivity extends UserBaseActivity implements View.OnClickListener {
 
@@ -103,6 +115,10 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
 
     private Button btnStart;
     private int field_data_flag = FIELD_DATA_FLAG.FIELD_NOT_DEFINED;
+    Locale locale = Locale.getDefault();
+    NumberFormat numberFormat = NumberFormat.getInstance(locale);
+    String m_Title = "";
+    private List<UserModel> userList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -119,11 +135,15 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
         btnBack = findViewById(R.id.btnBack);
         btnStart = findViewById(R.id.btnStart);
 
+
         String storedIP = currentApp.getDeviceIP();
         reader = LCRReader.create(this, storedIP, 10001, false);
         //reader =  new LCRReader(this, storedIP);
-        addListeners();
 
+        if (reader.isLCR600())
+            btnStart.setVisibility(View.VISIBLE);
+
+        addListeners();
 
         this.model = new LCRDataModel();
         model.setUserId(currentUser.getUserId());
@@ -142,50 +162,80 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
     }
 
     private void setConnectionCheckmark(CONNECTION_STATUS status) {
+        runOnUiThread(() -> {
+            switch (status) {
+                case OK:
+                    findViewById(R.id.progressBar).setVisibility(View.GONE);
+                    ((CheckedTextView) findViewById(R.id.refuel_detail_chk_connect_lcr)).setChecked(true);
+                    ((TextView) findViewById(R.id.lbl_connection_status)).setText(getString(R.string.lcr_connection_ok));
+                    ((TextView) findViewById(R.id.lbl_connection_status)).setTextColor(getResources().getColor(R.color.colorDarkGreen));
+                    ((CheckedTextView) findViewById(R.id.refuel_detail_chk_connect_lcr)).setCheckMarkDrawable(R.drawable.ic_checked_circle);
+                    btnReconnect.setVisibility(View.INVISIBLE);
+                    //btnStart.setEnabled(true);
+                    //btnForceStop.setVisibility(View.INVISIBLE);
+                    break;
+                case CONNECTING:
+                    CheckedTextView chkTxt = findViewById(R.id.refuel_detail_chk_connect_lcr);
+                    chkTxt.setCheckMarkDrawable(null);
+                    findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
 
-        switch (status) {
-            case OK:
-                findViewById(R.id.progressBar).setVisibility(View.GONE);
-                ((CheckedTextView) findViewById(R.id.refuel_detail_chk_connect_lcr)).setChecked(true);
-                ((TextView) findViewById(R.id.lbl_connection_status)).setText(getString(R.string.lcr_connection_ok));
-                ((TextView) findViewById(R.id.lbl_connection_status)).setTextColor(getResources().getColor(R.color.colorDarkGreen));
-                ((CheckedTextView) findViewById(R.id.refuel_detail_chk_connect_lcr)).setCheckMarkDrawable(R.drawable.ic_checked_circle);
-                btnReconnect.setVisibility(View.INVISIBLE);
-                btnForceStop.setVisibility(View.INVISIBLE);
-                break;
-            case CONNECTING:
-                CheckedTextView chkTxt = findViewById(R.id.refuel_detail_chk_connect_lcr);
-                chkTxt.setCheckMarkDrawable(null);
-                findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
+                    ((TextView) findViewById(R.id.lbl_connection_status)).setText(getString(R.string.lcr_connection_connecting));
+                    ((TextView) findViewById(R.id.lbl_connection_status)).setTextColor(Color.BLACK);
+                    btnReconnect.setVisibility(View.VISIBLE);
+                    btnRestart.setVisibility(View.VISIBLE);
+                    btnReconnect.setEnabled(false);
+                    //btnRestart.setEnabled(false);
+                    break;
+                case ERROR:
+                    findViewById(R.id.progressBar).setVisibility(View.GONE);
+                    ((TextView) findViewById(R.id.lbl_connection_status)).setText(getString(R.string.lcr_connection_error));
+                    ((TextView) findViewById(R.id.lbl_connection_status)).setTextColor(Color.RED);
+                    ((CheckedTextView) findViewById(R.id.refuel_detail_chk_connect_lcr)).setCheckMarkDrawable(R.drawable.ic_error);
+                    btnReconnect.setVisibility(View.VISIBLE);
+                    btnRestart.setVisibility(View.VISIBLE);
+                    btnForceStop.setVisibility(View.VISIBLE);
+                    btnReconnect.setEnabled(true);
+                    btnRestart.setEnabled(true);
+                    btnForceStop.setEnabled(true);
+                    setEnableButton(started);
+                    break;
+            }
+        });
 
-                ((TextView) findViewById(R.id.lbl_connection_status)).setText(getString(R.string.lcr_connection_connecting));
-                ((TextView) findViewById(R.id.lbl_connection_status)).setTextColor(Color.BLACK);
-                btnReconnect.setVisibility(View.VISIBLE);
-                btnRestart.setVisibility(View.VISIBLE);
-                btnReconnect.setEnabled(false);
-                //btnRestart.setEnabled(false);
-                break;
-            case ERROR:
-                findViewById(R.id.progressBar).setVisibility(View.GONE);
-                ((TextView) findViewById(R.id.lbl_connection_status)).setText(getString(R.string.lcr_connection_error));
-                ((TextView) findViewById(R.id.lbl_connection_status)).setTextColor(Color.RED);
-                ((CheckedTextView) findViewById(R.id.refuel_detail_chk_connect_lcr)).setCheckMarkDrawable(R.drawable.ic_error);
-                btnReconnect.setVisibility(View.VISIBLE);
-                btnRestart.setVisibility(View.VISIBLE);
-                btnForceStop.setVisibility(View.VISIBLE);
-                btnReconnect.setEnabled(true);
-                btnRestart.setEnabled(true);
-                btnForceStop.setEnabled(true);
-                setEnableButton(started);
-                break;
-        }
 
+    }
+
+    private void showConfirmDialog(int id) {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.app_name);
+        builder.setMessage(id == R.id.btnStart ? R.string.start_confirm : R.string.stop_confirm);
+
+        builder.setPositiveButton(getString(id == R.id.btnStart ? R.string.start : R.string.stop), (dialog, id12) -> {
+            Logger.appendLog(id == R.id.btnStart ? "Confirm start " : "Confirm stop");
+            if (id == R.id.btnStop) {
+                stop();
+            } else if (id == R.id.btnStart) {
+                start();
+            }
+            dialog.dismiss();
+        });
+        builder.setNegativeButton(getString(R.string.back), (dialog, id1) -> dialog.dismiss());
+
+        builder.create().show();
+    }
+
+    private void pause() {
+        reader.pause();
     }
 
     private void loaddata() {
 
         new Thread(() -> {
             airlines = DataHelper.getAirlines();
+            if (userList == null)
+                userList = DataHelper.getUsers();
+
             Bundle b = getIntent().getExtras();
             Integer id = b.getInt("REFUEL_ID", 0);
             Integer localId = b.getInt("REFUEL_LOCAL_ID", 0);
@@ -198,8 +248,10 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
             if (itemData == null)
                 itemData = DataHelper.getRefuelItem(id, localId);
 
-            if (itemData != null)
+            if (itemData != null) {
                 mItem = itemData;
+                mItem.setQualityNo(currentApp.getQCNo());
+            }
             Logger.appendLog("RFW", "Flight Code: " + mItem.getFlightCode());
             runOnUiThread(() -> {
                 if (!isFinishing())
@@ -212,8 +264,13 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
             onStarted();
     }
 
+    private void clearListeners() {
+        reader.setConnectionListener(null);
+        reader.setStateListener(null);
+        reader.setFieldDataListener(null);
+    }
+
     private void showData() {
-        //shiftBinding.setMItem(mItem);
 
         setTextBoxValue(R.id.refuelitem_detail_aircraftCode, mItem.getAircraftCode());
         setTextBoxValue(R.id.refuelitem_detail_Density, mItem.getDensity(), "%.4f");
@@ -221,11 +278,11 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
         setTextBoxValue(R.id.refuelitem_detail_parking, mItem.getParkingLot());
         setTextBoxValue(R.id.refuelitem_detail_qc_no, mItem.getQualityNo());
         setTextBoxValue(R.id.refuelitem_detail_estimateAmount, mItem.getEstimateAmount(), "%.0f");
-        setTextBoxValue(R.id.refuelitem_detail_Temperature, mItem.getTemperature(), "%.2f");
+        setTextBoxValue(R.id.refuelitem_detail_Temperature, mItem.getManualTemperature(), "%.2f");
         setTextBoxValue(R.id.refuelitem_detail_realAmount, mItem.getRealAmount(), "%.0f");
-        setTextBoxValue(R.id.refuelitem_detail_aircraftCode, mItem.getAircraftCode());
-        setTextBoxValue(R.id.refuelitem_detail_aircraftCode, mItem.getAircraftCode());
-        setTextBoxValue(R.id.refuelitem_detail_aircraftCode, mItem.getAircraftCode());
+        setTextBoxValue(R.id.refuelitem_detail_aircraftType, mItem.getAircraftType());
+        setTextBoxValue(R.id.refuelitem_detail_driver, mItem.getDriverName());
+        setTextBoxValue(R.id.refuelitem_detail_operator, mItem.getOperatorName());
 
         activity = this;
         if (mItem.isAlert())
@@ -302,44 +359,14 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
 
     }
 
-    private void showConfirmDialog(int id) {
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(R.string.app_name);
-        builder.setMessage(id == R.id.btnStart ? R.string.start_confirm : R.string.stop_confirm);
-
-        builder.setPositiveButton(getString(id == R.id.btnStart ? R.string.start : R.string.stop), (dialog, id12) -> {
-            Logger.appendLog(id == R.id.btnStart ? "Confirm start " : "Confirm stop");
-            if (id == R.id.btnStop) {
-                stop();
-            } else if (id == R.id.btnStart) {
-                start();
-            }
-            dialog.dismiss();
-        });
-        builder.setNegativeButton(getString(R.string.back), (dialog, id1) -> dialog.dismiss());
-
-        builder.create().show();
-    }
-
-    private void pause() {
-        reader.pause();
-    }
-
     private void start() {
 
         startButtonPress = true;
         mItem.setStartTime(new Date());
         // send START DELIVERY command to LCR
-        //reader.start();
-        setRefuelStatus(REFUEL_STATUS.STARTING);
+        reader.start();
+        //setRefuelStatus(REFUEL_STATUS.STARTING);
 
-    }
-
-    private void clearListeners() {
-        reader.setConnectionListener(null);
-        reader.setStateListener(null);
-        reader.setFieldDataListener(null);
     }
 
     private void stop() {
@@ -347,12 +374,194 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
             showForceStopDialog();
         } else {
             //send END DELIVERY command to LCR
-            //reader.end(restartRequest);
+            reader.end();
             setRefuelStatus(REFUEL_STATUS.ENDING);
         }
 
     }
 
+    private void showEditDialog(final int id, int inputType) {
+        showEditDialog(id, inputType, ".*");
+    }
+
+    private void showEditDialog(final int id, int inputType, String pattern) {
+
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(m_Title);
+        final EditText input = new EditText(this);
+        input.setInputType(inputType);
+        input.setTypeface(Typeface.DEFAULT);
+        input.setText(((TextView) findViewById(id)).getText());
+        input.setSelectAllOnFocus(true);
+        input.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        input.setGravity(Gravity.CENTER_HORIZONTAL);
+        input.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                return actionId == EditorInfo.IME_ACTION_DONE;
+            }
+
+
+        });
+        builder.setView(input);
+
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+            }
+        });
+
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        final AlertDialog dialog = builder.create();// builder.show();
+
+        dialog.show();
+
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (doUpdateResult())
+                    dialog.dismiss();
+            }
+
+            private boolean doUpdateResult() {
+                try {
+                    m_Text = input.getText().toString();
+                    Pattern regex = Pattern.compile(pattern);
+                    Matcher matcher = regex.matcher(m_Text);
+                    if (!matcher.find()) {
+                        Toast.makeText(getBaseContext(), getString(R.string.invalid_data), Toast.LENGTH_LONG).show();
+                        return false;
+                    }
+                    switch (id) {
+                        case R.id.refuelitem_detail_aircraftCode:
+                            mItem.setAircraftCode(m_Text);
+                            //((TextView)findViewById(R.id.lblAircraftNo)).setText(refuelData.getAircraftCode());
+                            break;
+
+                        case R.id.refuelitem_detail_aircraftType:
+                            mItem.setAircraftType(m_Text);
+                            break;
+
+                        case R.id.refuelitem_detail_Density:
+                            mItem.setDensity(numberFormat.parse(m_Text).doubleValue());
+                            break;
+                        case R.id.refuelitem_detail_Temperature:
+
+                            mItem.setManualTemperature(numberFormat.parse(m_Text).doubleValue());
+                            //mItem.setTemperature(numberFormat.parse(m_Text).floatValue());
+
+                            break;
+
+                        case R.id.refuelitem_detail_parking:
+                            mItem.setParkingLot(m_Text);
+
+                            break;
+
+                    }
+                } catch (Exception ex) {
+
+                }
+                updateBinding();
+
+                return true;
+            }
+        });
+    }
+
+    private void updateBinding() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                DataHelper.postRefuel(mItem);
+            }
+        }).start();
+
+        showData();
+
+    }
+
+    private void showSelectUser() {
+
+        if (userList != null) {
+            Dialog dialog = new Dialog(this);
+            SelectUserBinding binding = DataBindingUtil.inflate(dialog.getLayoutInflater(), R.layout.select_user, null, false);
+            binding.setRefuelItem(mItem);
+            dialog.setContentView(binding.getRoot());
+            Spinner spn = (Spinner) dialog.findViewById(R.id.select_user_driver);
+
+            ArrayAdapter<UserModel> spinnerAdapter = new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, userList);
+            spinnerAdapter.setDropDownViewResource(android.R.layout.simple_list_item_single_choice);
+
+            spn.setAdapter(spinnerAdapter);
+            spn.setSelection(findUser(mItem.getDriverId(), userList));
+
+            spn = (Spinner) dialog.findViewById(R.id.select_user_operator);
+
+            spn.setAdapter(spinnerAdapter);
+            spn.setSelection(findUser(mItem.getOperatorId(), userList));
+
+            dialog.show();
+
+            dialog.findViewById(R.id.btn_select).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    Spinner spnDriver = (Spinner) dialog.findViewById(R.id.select_user_driver);
+                    UserModel driver = (UserModel) spnDriver.getSelectedItem();
+
+
+                    Spinner spnOperator = (Spinner) dialog.findViewById(R.id.select_user_operator);
+                    UserModel operator = (UserModel) spnOperator.getSelectedItem();
+
+                    if (driver.getId() == operator.getId()) {
+                        new AlertDialog.Builder(dialog.getContext())
+                                .setTitle(R.string.select_user)
+                                .setMessage(R.string.error_same_user)
+                                .setIcon(R.drawable.ic_error)
+                                .show();
+                        return;
+                    }
+
+                    if (driver != null) {
+                        mItem.setDriverId(driver.getId());
+                        mItem.setDriverName(driver.getName());
+                    }
+
+                    if (operator != null) {
+                        mItem.setOperatorId(operator.getId());
+                        mItem.setOperatorName(operator.getName());
+                    }
+
+                    updateBinding();
+                    dialog.dismiss();
+                }
+            });
+
+            dialog.findViewById(R.id.btn_back).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    dialog.dismiss();
+                }
+            });
+        }
+    }
+
+    private int findUser(int userId, List<UserModel> userList) {
+        int pos = 0;
+        for (UserModel item : userList) {
+            if (item.getId() == userId)
+                return pos;
+            pos++;
+        }
+        return -1;
+    }
     public void onClick(View v) {
         int id = v.getId();
         Logger.appendLog("Click: " + v.toString());
@@ -377,20 +586,24 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
             case R.id.btnForceStop:
                 showForceStopDialog();
                 break;
+            case R.id.refuelitem_detail_aircraftType:
+                m_Title = getString(R.string.update_aircraftType);
+                showEditDialog(id, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
 
+                break;
             case R.id.refuelitem_detail_aircraftCode:
-                String m_Title = getString(R.string.update_aircraftCode);
-                //showEditDialog(id, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
+                m_Title = getString(R.string.update_aircraftCode);
+                showEditDialog(id, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
 
                 break;
             case R.id.refuelitem_detail_Density:
                 m_Title = getString(R.string.update_density);
-                //showEditDialog(id, InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                showEditDialog(id, InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
 
                 break;
             case R.id.refuelitem_detail_Temperature:
                 m_Title = getString(R.string.update_temparature);
-                //showEditDialog(id, InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                showEditDialog(id, InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
 
                 break;
             case R.id.refuelitem_detail_realAmount:
@@ -405,7 +618,7 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
                 break;
             case R.id.refuelitem_detail_parking:
                 m_Title = getString(R.string.update_parking_lot);
-                //showEditDialog(id, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
+                showEditDialog(id, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
 
                 break;
             case R.id.refuelitem_detail_vat:
@@ -439,6 +652,11 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
 
                 showEndTimePicker();
 
+                break;
+
+            case R.id.refuelitem_detail_driver:
+            case R.id.refuelitem_detail_operator:
+                showSelectUser();
                 break;
         }
 
@@ -502,9 +720,11 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
     {
         int btnText = R.string.start;
         int color = R.color.bgPrimary;
+        btnStart.setVisibility(View.GONE);
         switch (status) {
             case NONE:
                 btnText = R.string.start;
+
                 break;
             case STARTING:
                 btnText = R.string.sending_start;
@@ -593,7 +813,7 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
             @Override
             public void onDataChanged(LCRDataModel dataModel, LCRReader.FIELD_CHANGE field_change) {
 
-                String errorLog = " onDataChanged " + field_change.toString() + ": ";
+
                 switch (field_change  )
                 {
                     case ENDTIME:
@@ -603,7 +823,7 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
                         if (refuel_status == REFUEL_STATUS.ENDED) {
 
                         }
-                        errorLog += dataModel.getEndTime();
+
                         break;
 
                     case STARTTIME:
@@ -615,7 +835,7 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
 
                             setRefuelStatus(REFUEL_STATUS.STARTED);
                         }
-                        errorLog += dataModel.getStartTime();
+
                         break;
                     case GROSSQTY:
                         field_data_flag = field_data_flag | FIELD_DATA_FLAG.FIELD_GROSSQTY;
@@ -623,7 +843,7 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
                             TextView txtGrossQty = findViewById(R.id.txtGrossQty);
                             txtGrossQty.setText(String.format("%.0f", dataModel.getGrossQty()));
                         });
-                        errorLog += dataModel.getGrossQty();
+
                         break;
                     case TOTALIZER:
                         field_data_flag = field_data_flag | FIELD_DATA_FLAG.FIELD_TOTALLIZER;
@@ -631,7 +851,7 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
                             ((TextView) findViewById(R.id.txtStartMeter)).setText(String.format("%,.0f", dataModel.getStartMeterNumber()));
                             ((TextView) findViewById(R.id.txtEndMeter)).setText(String.format("%,.0f", dataModel.getEndMeterNumber()));
                         });
-                        errorLog += dataModel.getEndMeterNumber();
+
                         break;
                     case TEMPERATURE:
                         field_data_flag = field_data_flag | FIELD_DATA_FLAG.FIELD_TEMPERATURE;
@@ -639,11 +859,11 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
                             TextView txtTemp = findViewById(R.id.txtTemp);
                             txtTemp.setText(String.format("%.2f", dataModel.getTemperature()));
                         });
-                        errorLog += dataModel.getTemperature();
+
                         break;
                 }
 
-                //Logger.appendLog("RFW",errorLog);
+
                 model = dataModel;
 
                 updateRefuelData();
@@ -693,22 +913,28 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
             setRefuelStatus(refuel_status);
         }
         if (started && endRetry < 3) {
-            endRetry++;
+
             //wait 5s to receive END TIME and last GROSSQTY, TOTALIZER, TEMPERATURE data
             Timer tmrStop = new Timer();
             tmrStop.schedule(new TimerTask() {
                 @Override
                 public void run() {
-                    // if not receive ENDTIME within 5s, restart LCR service
+                    endRetry++;
+                    // if not receive ENDTIME within 5s, retry 3times, if not received ask user to input data manually
                     if ((field_data_flag & FIELD_DATA_FLAG.FIELD_ENDTIME) > 0) {
                         tmrStop.cancel();
                         doStop();
 
+                    } else if (endRetry >= 3) {
+                        tmrStop.cancel();
+                        runOnUiThread(() -> {
+                                    showDataInput();
+                                }
+                        );
+
                     }
                 }
             }, 1000 * 5, 1000 * 3);
-        } else if (started) {
-            showDataInput();
         }
     }
 
@@ -753,11 +979,16 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
                 .setPositiveButton(R.string.save, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
-                        AlertDialog v = (AlertDialog) dialog;
-                        mItem.setEndNumber(Float.parseFloat(((EditText) v.findViewById(R.id.dialog_meter)).getText().toString().replaceAll(",", "")));
-                        mItem.setRealAmount(Float.parseFloat(((EditText) v.findViewById(R.id.dialog_volume)).getText().toString().replaceAll(",", "")));
-                        mItem.setTemperature(Float.parseFloat(((EditText) v.findViewById(R.id.dialog_temperature)).getText().toString().replaceAll(",", "")));
-                        mItem.setManualTemperature(Float.parseFloat(((EditText) v.findViewById(R.id.dialog_temperature)).getText().toString().replaceAll(",", "")));
+                        try {
+
+                            AlertDialog v = (AlertDialog) dialog;
+                            mItem.setEndNumber(numberFormat.parse(((EditText) v.findViewById(R.id.dialog_meter)).getText().toString()).floatValue());
+                            mItem.setRealAmount(numberFormat.parse(((EditText) v.findViewById(R.id.dialog_volume)).getText().toString()).floatValue());
+                            mItem.setTemperature(numberFormat.parse(((EditText) v.findViewById(R.id.dialog_temperature)).getText().toString()).floatValue());
+                            mItem.setManualTemperature(numberFormat.parse(((EditText) v.findViewById(R.id.dialog_temperature)).getText().toString()).floatValue());
+                            mItem.setStartNumber(mItem.getEndNumber() - mItem.getRealAmount());
+                        } catch (Exception ex) {
+                        }
                         dialog.dismiss();
                         doStop();
                     }
@@ -792,14 +1023,14 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
                         if ((field_data_flag & FIELD_DATA_FLAG.FIELD_GROSSQTY) == 0
                                 || (field_data_flag & FIELD_DATA_FLAG.FIELD_TOTALLIZER) == 0) {
                             tmrCheckData.cancel();
-                            restartReader();
+                            reader.requestData();
                         }
 
                     }
                     field_data_flag = FIELD_DATA_FLAG.FIELD_NOT_DEFINED;
                 }
             };
-            //tmrCheckData.schedule(tmrTask,1000*10);
+            tmrCheckData.schedule(tmrTask, 1000 * 10);
 
 
             started = true;
@@ -829,6 +1060,7 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
             switch (status) {
 
                 case STARTING:
+                    break;
                 case ENDING:
                     lblrefuelStatus.setText(R.string.refuel_ending);
                     lblrefuelStatus.setBackgroundColor(getResources().getColor(R.color.bgPrimary));
@@ -837,6 +1069,7 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
                     lblrefuelStatus.setText(R.string.refuel_ended);
                     lblrefuelStatus.setBackgroundColor(getResources().getColor(R.color.bgInfo));
                     //setEnableButton(false);
+                    btnForceStop.setEnabled(false);
                     break;
 
 
@@ -844,6 +1077,7 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
                     started = status == REFUEL_STATUS.STARTED;
                     lblrefuelStatus.setText(R.string.refuel_processing);
                     lblrefuelStatus.setBackgroundColor(getResources().getColor(R.color.bgSuccess));
+                    btnStart.setVisibility(View.GONE);
                     //setEnableButton(true);
                     break;
                 default:
@@ -859,7 +1093,8 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
             mItem.setRealAmount(model.getGrossQty());
             mItem.setGallon(model.getGrossQty());
             mItem.setTemperature(model.getTemperature());
-            mItem.setManualTemperature(model.getTemperature());
+
+            //mItem.setManualTemperature(model.getTemperature());
             mItem.setDeviceStartTime(model.getStartTime());
             mItem.setDeviceEndTime(model.getEndTime());
             //mItem.setStartNumber(model.getEndMeterNumber() - model.getGrossQty());
@@ -890,6 +1125,9 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
                     long dateDiff = mItem.getDeviceEndTime().getTime() - mItem.getDeviceStartTime().getTime();
                     mItem.setStartTime(new Date(mItem.getEndTime().getTime() - dateDiff));
                 }
+
+                if (mItem.getManualTemperature() == 0)
+                    mItem.setManualTemperature(model.getTemperature());
                 boolean isExtract = mItem.getRefuelItemType() == RefuelItemData.REFUEL_ITEM_TYPE.EXTRACT;
                 currentApp.setCurrentAmount(currentApp.getCurrentAmount() + (isExtract ? model.getGrossQty() : -model.getGrossQty()));
 
@@ -956,7 +1194,8 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
     }
 
     private void setEnableButton(boolean enabled) {
-        findViewById(R.id.btnStart).setEnabled(enabled);
+        btnStart.setEnabled(enabled);
+
     }
 
     private interface FIELD_DATA_FLAG {

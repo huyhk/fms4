@@ -536,6 +536,8 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
 
             dialog.show();
 
+            dialog.getWindow().setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+
             dialog.findViewById(R.id.btn_select).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -1052,6 +1054,7 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
             itemData.setStartNumber(0);
             itemData.setRealAmount(0);
             itemData.setEndNumber(0);
+            itemData.setOthers(null);
 
             new AsyncTask<Void, Void, RefuelItemData>() {
                 @Override

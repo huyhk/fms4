@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <data>
 
@@ -71,6 +71,7 @@
                     android:textStyle="bold"
                     tools:textFontWeight="20" />
 
+
                 <Button
                     android:id="@+id/btnForceStop"
                     android:layout_width="wrap_content"
@@ -84,8 +85,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:onClick="onClick"
-                    android:visibility="visible"
-                    android:text="@string/restart_app" />
+                    android:text="@string/restart_app"
+                    android:visibility="visible" />
             </LinearLayout>
 
         </androidx.appcompat.widget.Toolbar>
@@ -96,7 +97,7 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="0.6"
-            app:cardCornerRadius="2dp"
+            app:cardCornerRadius="1dp"
             app:cardUseCompatPadding="true"
             tools:context=".RefuelDetailActivity">
 
@@ -110,11 +111,44 @@
                     android:layout_height="match_parent">
 
                     <TableRow
+                        android:background="#ffffff"
+                        android:paddingTop="1dp"
+                        android:paddingBottom="1dp">
+
+                        <TextView
+                            android:id="@+id/textView14"
+                            style="?android:attr/textAppearanceMedium"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.25"
+                            android:padding="5dp"
+                            android:text="Hãng bay" />
+
+                        <Spinner
+                            android:id="@+id/refuelitem_detail_airline_spinner"
+                            android:layout_width="0dp"
+                            android:layout_height="30dp"
+                            android:layout_weight="0.75"
+                            android:spinnerMode="dropdown"
+                            android:visibility="gone" />
+
+                        <TextView
+                            android:id="@+id/refuelitem_detail_airline"
+                            style="?android:attr/textAppearanceMedium"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.75"
+                            android:focusable="false"
+                            android:padding="5dp"
+                            android:text="@{mItem.airlineModel.name}" />
+                    </TableRow>
+
+                    <TableRow
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:background="#ffffff"
-                        android:paddingTop="5dp"
-                        android:paddingBottom="5dp">
+                        android:background="#efefef"
+                        android:paddingTop="1dp"
+                        android:paddingBottom="1dp">
 
                         <TextView
                             style="?android:attr/textAppearanceMedium"
@@ -136,40 +170,35 @@
                             android:textIsSelectable="true" />
 
                         <TextView
-                            android:id="@+id/textView14"
                             style="?android:attr/textAppearanceMedium"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="0.25"
                             android:padding="5dp"
-                            android:text="Hãng bay" />
-
-                        <Spinner
-                            android:id="@+id/refuelitem_detail_airline_spinner"
-                            android:layout_width="0dp"
-                            android:layout_height="30dp"
-                            android:layout_weight="0.25"
-                            android:spinnerMode="dropdown"
-                            android:visibility="gone" />
+                            android:text="@string/aircraft_type" />
 
                         <TextView
-                            android:id="@+id/refuelitem_detail_airline"
+                            android:id="@+id/refuelitem_detail_aircraftType"
                             style="?android:attr/textAppearanceMedium"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="0.25"
+                            android:drawableStart="@drawable/ic_edit"
                             android:focusable="false"
+                            android:hint="@string/touch_to_edit"
+                            android:onClick="onClick"
                             android:padding="5dp"
-                            android:text="@{mItem.airlineModel.name}" />
+                            android:text="@{mItem.aircraftType}"
+                            android:textIsSelectable="true" />
 
                     </TableRow>
 
                     <TableRow
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:background="#efefef"
-                        android:paddingTop="5dp"
-                        android:paddingBottom="5dp">
+                        android:background="#ffffff"
+                        android:paddingTop="1dp"
+                        android:paddingBottom="1dp">
 
                         <TextView
                             style="?android:attr/textAppearanceMedium"
@@ -185,7 +214,10 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="0.25"
+                            android:drawableStart="@drawable/ic_edit"
                             android:focusable="false"
+                            android:hint="@string/touch_to_edit"
+                            android:onClick="onClick"
                             android:padding="5dp"
                             android:text="@{mItem.aircraftCode}"
                             android:textIsSelectable="true"
@@ -215,7 +247,10 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="0.25"
+                            android:drawableStart="@drawable/ic_edit"
                             android:focusable="false"
+                            android:hint="@string/touch_to_edit"
+                            android:onClick="onClick"
                             android:padding="5dp"
                             android:text="@{mItem.parkingLot}"
                             android:textIsSelectable="true" />
@@ -225,9 +260,9 @@
                     <TableRow
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:background="#ffffff"
-                        android:paddingTop="5dp"
-                        android:paddingBottom="5dp">
+                        android:background="#efefef"
+                        android:paddingTop="1dp"
+                        android:paddingBottom="1dp">
 
                         <TextView
                             style="?android:attr/textAppearanceMedium"
@@ -269,9 +304,9 @@
                     <TableRow
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:background="#efefef"
-                        android:paddingTop="5dp"
-                        android:paddingBottom="5dp">
+                        android:background="#ffffff"
+                        android:paddingTop="1dp"
+                        android:paddingBottom="1dp">
 
                         <TextView
                             style="?android:attr/textAppearanceMedium"
@@ -316,9 +351,9 @@
                     </TableRow>
 
                     <TableRow
-                        android:background="#ffffff"
-                        android:paddingTop="5dp"
-                        android:paddingBottom="5dp">
+                        android:background="#efefef"
+                        android:paddingTop="1dp"
+                        android:paddingBottom="1dp">
 
                         <TextView
                             android:id="@+id/textView12"
@@ -335,19 +370,14 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="0.25"
+                            android:drawableStart="@drawable/ic_edit"
                             android:focusable="false"
+                            android:hint="@string/touch_to_edit"
+                            android:onClick="onClick"
                             android:padding="5dp"
                             android:text='@{String.format("%.2f",mItem.manualTemperature)}'
                             android:textIsSelectable="true" />
 
-                        <EditText
-                            android:id="@+id/edtTemperature"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:ems="10"
-                            android:inputType="numberDecimal"
-                            android:selectAllOnFocus="true"
-                            android:visibility="gone" />
 
                         <TextView
                             android:id="@+id/textView13"
@@ -364,27 +394,22 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="0.25"
+                            android:drawableStart="@drawable/ic_edit"
                             android:focusable="false"
+                            android:hint="@string/touch_to_edit"
+                            android:onClick="onClick"
                             android:padding="5dp"
+
                             android:text='@{String.format("%.4f",mItem.density)}'
                             android:textIsSelectable="true" />
 
-                        <EditText
-                            android:id="@+id/edtDensity"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:ems="10"
-                            android:inputType="numberDecimal"
-                            android:selectAllOnFocus="true"
-                            android:text='@{String.format("%.4f",mItem.density)}'
-                            android:visibility="gone" />
 
                     </TableRow>
 
                     <TableRow
-                        android:background="#efefef"
-                        android:paddingTop="5dp"
-                        android:paddingBottom="5dp">
+                        android:background="#ffffff"
+                        android:paddingTop="1dp"
+                        android:paddingBottom="1dp">
 
                         <TextView
                             android:id="@+id/lblQCNo"
@@ -434,6 +459,58 @@
                             android:spinnerMode="dropdown"
                             android:visibility="gone" />
                     </TableRow>
+
+                    <TableRow
+                        android:background="#efefef"
+                        android:paddingTop="1dp"
+                        android:paddingBottom="1dp">
+
+                        <TextView
+
+                            style="?android:attr/textAppearanceMedium"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.25"
+                            android:padding="5dp"
+                            android:text="@string/driver" />
+
+                        <TextView
+                            android:id="@+id/refuelitem_detail_driver"
+                            style="?android:attr/textAppearanceMedium"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.25"
+                            android:drawableStart="@drawable/ic_edit"
+                            android:focusable="false"
+                            android:hint="@string/touch_to_edit"
+                            android:onClick="onClick"
+                            android:padding="5dp"
+                            android:text='@{mItem.driverName}'
+                            android:textIsSelectable="true" />
+
+                        <TextView
+
+                            style="?android:attr/textAppearanceMedium"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.25"
+                            android:padding="5dp"
+                            android:text="@string/operator" />
+
+                        <TextView
+                            android:id="@+id/refuelitem_detail_operator"
+                            style="?android:attr/textAppearanceMedium"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.25"
+                            android:drawableStart="@drawable/ic_edit"
+                            android:focusable="false"
+                            android:hint="@string/touch_to_edit"
+                            android:onClick="onClick"
+                            android:padding="5dp"
+                            android:text='@{mItem.operatorName}'
+                            android:textIsSelectable="true" />
+                    </TableRow>
                 </TableLayout>
 
 
@@ -444,7 +521,7 @@
             android:id="@+id/refuel_detail_card_refuel"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="0.4">
+            android:layout_weight="0.35">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
@@ -470,9 +547,9 @@
                     android:layout_marginStart="@dimen/margin_start"
                     android:layout_marginTop="@dimen/margin_top"
                     android:text="@string/start_meter"
+                    android:visibility="gone"
                     app:layout_constraintStart_toEndOf="@id/guideline_center2"
-                    app:layout_constraintTop_toBottomOf="@id/cardAmount"
-                    android:visibility="gone"/>
+                    app:layout_constraintTop_toBottomOf="@id/cardAmount" />
 
                 <TextView
                     android:id="@+id/txtStartMeter"
@@ -480,10 +557,10 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_top"
+                    android:visibility="gone"
                     app:layout_constraintEnd_toEndOf="@id/guideline_right4"
                     app:layout_constraintStart_toEndOf="@id/guideline_right2"
-                    app:layout_constraintTop_toBottomOf="@id/cardAmount"
-                    android:visibility="gone" />
+                    app:layout_constraintTop_toBottomOf="@id/cardAmount" />
 
                 <TextView
                     android:id="@+id/lblEndMeter"
@@ -507,19 +584,7 @@
                     app:layout_constraintTop_toBottomOf="@id/lblStartMeter" />
 
 
-                <Button
-                    android:id="@+id/btnStart"
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:layout_gravity="right"
-                    android:enabled="false"
-                    android:text="@string/start"
-                    android:onClick="onClick"
-                    android:visibility="gone"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@id/guideline_center2"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/refuel_detail_chk_connect_lcr" />
+
 
                 <androidx.constraintlayout.widget.Guideline
                     android:id="@+id/guideline_left3"
@@ -569,6 +634,7 @@
                     android:layout_width="33dp"
                     android:layout_height="25dp"
                     app:layout_constraintEnd_toEndOf="@id/guideline_center_left4"
+                    android:visibility="invisible"
                     app:layout_constraintTop_toTopOf="@id/refuel_detail_chk_connect_lcr" />
 
                 <CheckedTextView
@@ -643,7 +709,7 @@
                     android:id="@+id/cardAmount"
                     android:layout_width="0dp"
                     android:layout_height="120dp"
-                    app:cardCornerRadius="2dp"
+                    app:cardCornerRadius="1dp"
                     app:layout_constraintEnd_toStartOf="@id/guideline_right2"
                     app:layout_constraintStart_toEndOf="@id/guideline_center2"
                     app:layout_constraintTop_toTopOf="parent">
@@ -665,24 +731,47 @@
                         android:textSize="@dimen/largest_text" />
                 </androidx.cardview.widget.CardView>
 
-                <TextView
-                    android:id="@+id/lbl_refuel_status"
-                    style="?android:attr/textAppearanceMedium"
+                <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:background="@color/bgSecondary"
-                    android:gravity="center"
-                    android:padding="10dp"
-                    android:text="@string/refuel_not_start"
-                    android:textColor="@color/colorWhite"
-                    android:textSize="30sp"
-                    android:textStyle="italic"
-                    android:visibility="visible"
                     app:layout_constraintEnd_toStartOf="@id/guideline_center2"
                     app:layout_constraintHorizontal_bias="1.0"
                     app:layout_constraintStart_toEndOf="@id/guideline_left3"
-                    app:layout_constraintTop_toBottomOf="@id/refuel_detail_chk_connect_lcr" />
+                    android:orientation="horizontal"
+                    app:layout_constraintTop_toBottomOf="@id/refuel_detail_chk_connect_lcr">
+
+                    <TextView
+                        android:id="@+id/lbl_refuel_status"
+                        style="?android:attr/textAppearanceMedium"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:layout_weight="1"
+                        android:background="@color/bgSecondary"
+                        android:gravity="center"
+                        android:padding="10dp"
+                        android:text="@string/refuel_not_start"
+                        android:textColor="@color/colorWhite"
+                        android:textSize="30sp"
+                        android:textStyle="italic"
+                        android:visibility="visible" />
+
+                    <Button
+                        android:id="@+id/btnStart"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:layout_weight="1"
+                        android:onClick="onClick"
+                        android:padding="15dp"
+                        android:text="@string/start"
+                        android:textSize="30sp"
+                        android:visibility="gone"
+
+                        />
+                </LinearLayout>
+
+
             </androidx.constraintlayout.widget.ConstraintLayout>
 
         </androidx.cardview.widget.CardView>
