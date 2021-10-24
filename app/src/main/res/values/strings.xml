@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">FMS Delivery</string>
+<!--    <string name="app_name">FMS Delivery</string>-->
     <string name="action_settings">Cài đặt</string>
     <string name="sign_in">Đăng nhập</string>
     <string name="user_name">Tên đăng nhập</string>
@@ -126,7 +126,7 @@
     <string name="detail_info">Thông tin chi tiết</string>
     <string name="current_amount">Lượng nhiên liệu hiện tại</string>
     <string name="refuel_item_already_fueled">Mẻ tra nạp đã thực hiện xong</string>
-    <string name="login_error_message">Lỗi đăng nhập! Vui lòng kiểm tra thông tin.</string>
+    <string name="login_error_message">Lỗi đăng nhập! Sai tên đăng nhập hoặc mật khẩu</string>
     <string name="refuel_mannual_temperature">Nhiệt độ thực tế</string>
     <string name="start_meter">Số đồng hồ bắt đầu</string>
     <string name="flightCode">Mã chuyến bay</string>
@@ -167,7 +167,8 @@
     <string name="update_list">Cập nhật kế hoạch</string>
     <string name="sending_start">Đang bắt đầu &#8230; </string>
     <string name="sending_stop">Đang kết thúc &#8230;</string>
-    <string name="update_real_amount">Cập nhật sản lượng thực tế</string>
+    <string name="update_real_amount">Cập nhật sản lượng thực tế (GALLON)</string>
+    <string name="update_real_amount_kg">Cập nhật sản lượng thực tế (KG)</string>
     <string name="new_item">Tra nạp thêm</string>
     <string name="error_not_found">Không tìm thấy thông tin mẻ tra nạp</string>
     <string name="truck_list">Danh sách tra nạp</string>
@@ -213,12 +214,12 @@
     <string name="shift">Ca làm việc</string>
     <string name="restart_alert">Ứng dụng sẽ khởi động lại sau khi cập nhật thông số</string>
     <string name="error_empty_field">Dữ liệu không được để trống</string>
-    <string name="internet_connection_error">Không thể kết nối Internet</string>
+    <string name="internet_connection_error">Không thể kết nối máy chủ, vui lòng kiểm tra lại</string>
     <string name="internet_connection_error_title">Lỗi kết nối</string>
     <string name="new_customer">Thêm hãng bay mới</string>
     <string name="address">Địa chỉ</string>
     <string name="taxcode">Mã số thuế</string>
-    <string name="price">Giá bán</string>
+    <string name="price">Đơn giá</string>
     <string name="printer_error">Lỗi: không kết nối được máy in!</string>
     <string name="print_completed">In thành công</string>
     <string name="force_stop_confirm"><![CDATA[Lỗi kết nối thiết bị LCR, bạn có muốn kết thúc mẻ tra nạp không?  Phải chắc chắn thiết bị LCR đã kết thúc tra nạp. ]]></string>
@@ -228,11 +229,11 @@
     <string name="driver">Nhân viên lái xe</string>
     <string name="select_operator">Chọn nhân viên tra nạp</string>
     <string name="select_driver">Chọn lái xe</string>
-    <string name="return_amount">Hoàn trả</string>
-    <string name="weight_note">Khối lượng tham chiếu</string>
+    <string name="return_amount">Hoàn trả (KG)</string>
+    <string name="weight_note">Techlog</string>
     <string name="select">Chọn</string>
-    <string name="update_return_amount">Cập nhật khối lượng hoàn trả</string>
-    <string name="update_weight_note">Cập nhật khối lượng tham chiếu</string>
+    <string name="update_return_amount">Cập nhật khối lượng hoàn trả (KG)</string>
+    <string name="update_weight_note">Cập nhật Techlog (KG)</string>
     <string name="edit_not_allow">Không được sửa thông tin tra nạp trên xe khác</string>
     <string name="print_current">In mẻ hiện tại</string>
     <string name="print_bill2">Phiếu đường trường</string>
@@ -254,6 +255,7 @@
     <string name="refuel_continue">Tiếp tục tra nạp</string>
     <string name="added_amount">Lượng nhập thêm</string>
     <string name="invalid_amount">Số lượng nhập thêm phải lớn hơn 0, vui lòng kiểm tra lại</string>
+    <string name="invalid_data_input">Số liệu nhập không hợp lệ, vui lòng kiểm tra lại</string>
     <string name="inventory_alert">Lượng hàng tồn ít hơn sản lượng dự kiến, tiếp tục tra nạp?</string>
     <string name="btn_continue">Tiếp tục tra nạp</string>
     <string name="btn_stop">Trở lại</string>
@@ -274,17 +276,79 @@
     <string name="current_shift">Ca hiện tại</string>
     <string name="next_shift">Ca sau</string>
     <string name="prev_shift">Ca trước</string>
-    <string name="confirm">Đồng ý</string>
+    <string name="confirm">Xác nhận</string>
     <string name="shift_select">Chọn ca</string>
     <string name="force_stop">Kết thúc thủ công</string>
     <string name="new_version">Mẫu mới</string>
     <string name="old_version">Mẫu cũ</string>
+    <string name="invalid_density">Nhập sai giới hạn tỉ trọng cho nhiên liệu Jet A-1 (0.72 - 0.86)</string>
+    <string name="invalid_number_format">Định dạng số không đúng</string>
+    <string name="assigned_to_another_truck">Mẻ này được phân công cho xe khác, bạn muốn thực hiện tra nạp?</string>
+    <string name="internet_status">Trạng thái 3G</string>
+    <string name="flight_type">Bay quốc tế</string>
+    <string name="international">Quốc tế</string>
+    <string name="domestic">Nội địa</string>
+    <string name="update_route_name">Cập nhật đường bay</string>
+    <string name="update_price">Cập nhật giá</string>
+    <string name="charter_name">Tên in hóa đơn</string>
+    <string name="update_charter_name">Cập nhật tên in hóa đơn</string>
+    <string name="invalid_aircraft_code">Số hiệu tàu bay không được để trống</string>
+    <string name="send_log">Gửi file log</string>
+    <string name="send_log_completed">Đã gửi thành công</string>
+    <string name="cancelled_alert">Chuyến bay đã hủy, không thể tra nạp</string>
+    <string name="invalid_user">Thông tin Nhân viên không được để trống, vui lòng kiểm tra lại</string>
+    <string name="invalid_qc_no">Số phiếu hóa nghiệm không được để trống, vui lòng kiểm tra lại</string>
+    <string name="bill">Phiếu xuất kho</string>
+    <string name="form_no">Mẫu số</string>
+    <string name="sign">Ký hiệu</string>
+    <string name="preview_empty_list">Chưa chọn mẻ in</string>
+    <string name="new_return_amount_value">Giá trị hoàn trả là:</string>
+    <string name="return_amount_greater_warning">Giá trị hoàn trả lớn hơn sản lượng thực tế</string>
+    <string name="density_must_input">Vui lòng nhập tỷ trọng trước</string>
+    <string name="print_selected">In mẻ được chọn</string>
+    <string name="print_extract">In phiếu hoàn trả</string>
+    <string name="update_tax_rate">Cập nhật VAT(%)</string>
+    <string name="duplicate_invoice_number">Nhập trùng số hóa đơn. Vui lòng kiểm tra lại</string>
+    <string name="empty_required_field">Dữ liệu không được dể trống, vui lòng kiểm tra lại</string>
+    <string name="print_error">Có lỗi khi in, bạn muốn tiếp tục nhập số hóa đơn?</string>
+    <string name="invalid_device">Sai thiết bị LCR</string>
+    <string name="invalid_device_message">Kết nối không đúng đồng hồ LCR, vui lòng kiểm tra lại</string>
+    <string name="refresh">Cập nhật</string>
+    <string name="update_start_meter">Cập nhật số đồng hồ bắt đầu</string>
+    <string name="update_end_meter">Cập nhật số đồng hồ kết thúc</string>
+    <string name="invalid_temperature">Nhiệt độ phải lớn hơn 0.</string>
+    <string name="invalid_real_amount"><![CDATA[Sản lượng thực tế phải > 0]]></string>
+    <string name="invalid_start_end_meter">Số đồng hồ bắt đầu/kết thúc không hợp lý.</string>
+    <string name="invalid_start_end_time">Thời gian bắt đầu/kết thúc không hợp lý</string>
+    <string name="comfirm_refuel_data">Xác nhận dữ liệu tra nạp</string>
+    <string name="cancel_refuel">Hủy tra nạp</string>
+    <string name="cancel_refuel_message">Bạn thực sự muốn hủy mẻ tra nạp này?</string>
+    <string name="return_invoice_number">Số phiếu hút</string>
+    <string name="update_return_invoice_number">Cập nhật số phiếu hút</string>
+    <string name="invalid_device_confirm">Kết nối sai thiết bị LCR, bạn muốn tiếp tục tra nạp?</string>
+    <string name="check_form">Phiếu kiểm tra</string>
+    <string name="check_form_create">Tạo Phiếu kiểm tra</string>
+    <string name="check_form_view">Xem Phiếu kiểm tra</string>
+    <string name="bonding_cable">Dây truyền tĩnh điện đã được đưa về vị trí quy định trên xe tra nạp</string>
+    <string name="fueling_cap">Nắp cửa nạp nhiên liệu của tàu bay đã được đóng</string>
+    <string name="ladder">Thang tra nạp/giàn nâng đã được đưa về vị trí quy định trên xe tra nạp</string>
+    <string name="fueling_hose">Ống tra nạp đã được ngắt kết nối với tàu bay và đưa về vị trí quy định</string>
+    <string name="delete">Xóa</string>
+    <string name="check_form_delete">Bạn muốn xóa phiếu kiểm tra này?</string>
+    <string name="incomplete_continue">Có mẻ tra nạp chưa hoàn thành, bạn có muốn mở lại?</string>
+    <string name="real_amount_kg">Sản lượng thực tế (KG)</string>
+    <string name="real_amount_gal">Sản lượng thực tế (GALLON)</string>
 
 
     <string-array name="vat_array">
         <item>0%</item>
         <item>10%</item>
 
+    </string-array>
+    <string-array name="unit_array">
+
+        <item>LIT</item>
+        <item>GAL</item>
     </string-array>
 
 

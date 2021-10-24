@@ -65,6 +65,7 @@ public class LCRReader {
     private static boolean _dateFormatRequested = false;
     private static SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
     private static boolean isLCR600 = false;
+    private boolean isRefuel = false;
     public boolean getConnected() {
         if (lcrSdk !=null)
         {
@@ -95,7 +96,10 @@ public class LCRReader {
         this.wifiIpAddress = ipAddress;
         this.wifiPort = port;
         initLCR();
+
     }
+
+    private static LCRDataModel lastData;
     private static LCRReader _reader;
     private final String serialFieldName = "METERID";
     private final Queue<String> requestFields = new LinkedList<>();
@@ -350,12 +354,12 @@ public class LCRReader {
 
             raiseError("Switch state : " + oldValue + " -> " + newValue);
 
-            if (newValue == LCR_SWITCH_STATE.SWITCH_RUN && isLCR600) {
+            if (newValue == LCR_SWITCH_STATE.SWITCH_RUN || newValue == LCR_SWITCH_STATE.SWITCH_BETWEEN) {
                 if (oldValue == LCR_SWITCH_STATE.SWITCH_PRINT
                         || oldValue == LCR_SWITCH_STATE.SWITCH_SHIFT_PRINT
                         || old_switch == LCR_SWITCH_STATE.SWITCH_PRINT
                         || old_switch == LCR_SWITCH_STATE.SWITCH_SHIFT_PRINT)
-                    if (!isStarted)
+                    if (!isStarted && isRefuel)
                         sendCommand(LCR_COMMAND.RUN);
             }
             if (newValue != LCR_SWITCH_STATE.SWITCH_STOP)
@@ -452,8 +456,11 @@ public class LCRReader {
                 // Format setText string
                 if (dataListener != null) {
                     try {
-                        model.setGrossQty(numberFormat.parse(responseField.getNewValue()).floatValue());
-                        onDataChanged(model, FIELD_CHANGE.GROSSQTY);
+                        float qty = numberFormat.parse(responseField.getNewValue()).floatValue();
+                        //if (qty>=model.getGrossQty()) {
+                            model.setGrossQty(qty);
+                            onDataChanged(model, FIELD_CHANGE.GROSSQTY);
+                        //}
                     } catch (ParseException e) {
                     }
                 }
@@ -636,8 +643,7 @@ public class LCRReader {
             raiseError("Field data request add success : " + requestField.getItemToRequest().getFieldName());
 
             //remove queue top and process next request field
-            if (requestFields.contains(requestField.getItemToRequest().getFieldName()))
-                requestFields.remove(requestField.getItemToRequest().getFieldName());
+            requestFields.remove(requestField.getItemToRequest().getFieldName());
             processFieldQueue();
         }
 
@@ -972,8 +978,8 @@ public class LCRReader {
 
     public void requestSerial() {
 
-        FieldItem serial = findUserFieldByName(serialFieldName);
-        requestFieldData(serial);
+        //FieldItem serial = findUserFieldByName(serialFieldName);
+        requestFieldData(serialFieldName);
     }
 
     private void reset() {
@@ -1111,7 +1117,14 @@ public class LCRReader {
     private void initLCR(){
         if (lcrSdk!=null) {
             lcrSdk.disconnect(getDeviceId());
-            lcrSdk.removeDevice(getDeviceId());
+            try {
+                lcrSdk.removeDevice(getDeviceId());
+            }
+            catch ( Exception ex)
+            {
+
+            }
+
         }
         lcrSdk = new LcrSdk(context);
         init();
@@ -1121,9 +1134,12 @@ public class LCRReader {
 
         if (lcrSdk != null) {
             doDisconnectDevice();
-
+            try {
+                lcrSdk.removeDevice(getDeviceId());
+            } catch (Exception ex) {
+            }
             // Remove device
-            lcrSdk.removeDevice(getDeviceId());
+
             // Remove used listeners
             lcrSdk.removeAllListeners();
 
@@ -1163,19 +1179,28 @@ public class LCRReader {
     public void start() {
         isStarted = false;
         isStopped = false;
-        isRestart = false;
+
         sendCommand(LCR_COMMAND.RUN);
     }
 
     private void onConnected() {
         //lcrSdk.addListener(deviceStatusListener);
+        if (!isLCR600 && fieldAvail)
+        {
+            lcrSdk.fieldToolsFindField(getDeviceId(), "DBMNODE", new AsyncCallback() {
+                @Override
+                public void onAsyncReturn(@Nullable Throwable throwable) {
+                    isLCR600 = throwable == null;
+                }
+            });
+        }
 
         raiseError("onConnected");
         if (connectionListener != null)
             connectionListener.onConnected();
-        if (isStarted()) {
-            onStarted();
-        }
+//        if (isStarted()) {
+//            onStarted();
+//        }
 
         processFieldQueue();
         isError = false;
@@ -1408,7 +1433,7 @@ public class LCRReader {
         raiseError("onStarted");
         //requestData();
         isStarted = true;
-
+        lastData = null;
         if (stateListener !=null ){
                 stateListener.onStart();
         }
@@ -1517,7 +1542,7 @@ public class LCRReader {
         // Field listener
         lcrSdk.addListener(fieldListener);
         // Command listener
-        //lcrSdk.addListener(commandListener);
+        lcrSdk.addListener(commandListener);
         // Device status / state
         lcrSdk.addListener(deviceStatusListener);
         // Switch state listener
@@ -1622,7 +1647,7 @@ public class LCRReader {
 
     private void onDataChanged(LCRDataModel model, FIELD_CHANGE field_change) {
 
-
+        lastData = model;
         if (field_change == FIELD_CHANGE.DATE_FORMAT
             || field_change == FIELD_CHANGE.STARTTIME
                 || field_change == FIELD_CHANGE.PREVIOUSGROSS
@@ -1641,6 +1666,12 @@ public class LCRReader {
     public boolean isStarted() {
         return isStarted;
     }
+
+    public void setRefuel(boolean refuel)
+    {
+        isRefuel = refuel;
+    }
+
 
     private void raiseError(String errorMsg) {
         Log.e("FMS", errorMsg);

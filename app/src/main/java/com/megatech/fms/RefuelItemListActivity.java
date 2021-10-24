@@ -216,9 +216,9 @@ public class RefuelItemListActivity extends UserBaseActivity {
 
             ViewHolder(View view) {
                 super(view);
-                mFlightCodeView = (TextView) view.findViewById(R.id.txtFlightCode);
-                mAircraftView = (TextView) view.findViewById(R.id.txtAircraftCode);
-                mParkingLotView =  (TextView) view.findViewById(R.id.txtParkingLot);
+                mFlightCodeView = view.findViewById(R.id.txtFlightCode);
+                mAircraftView = view.findViewById(R.id.txtAircraftCode);
+                mParkingLotView = view.findViewById(R.id.txtParkingLot);
                 position = getAdapterPosition();
             }
         }
@@ -241,10 +241,10 @@ public class RefuelItemListActivity extends UserBaseActivity {
 
             ItemViewHolder(View view) {
                 super(view);
-                mFlightCodeView = (TextView) view.findViewById(R.id.txtFlightCode);
-                mAircraftView = (TextView) view.findViewById(R.id.txtAircraftCode);
-                mParkingLotView =  (TextView) view.findViewById(R.id.txtParkingLot);
-                mCheck = (CheckedTextView) view.findViewById(R.id.txtCheck);
+                mFlightCodeView = view.findViewById(R.id.txtFlightCode);
+                mAircraftView = view.findViewById(R.id.txtAircraftCode);
+                mParkingLotView = view.findViewById(R.id.txtParkingLot);
+                mCheck = view.findViewById(R.id.txtCheck);
                 position = getAdapterPosition();
             }
         }

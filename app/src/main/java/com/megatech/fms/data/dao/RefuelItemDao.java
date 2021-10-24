@@ -8,6 +8,7 @@ import androidx.room.Query;
 import androidx.room.Update;
 
 import com.megatech.fms.data.entity.RefuelItem;
+import com.megatech.fms.model.RefuelItemData;
 
 import java.util.Date;
 import java.util.List;
@@ -30,6 +31,8 @@ public interface RefuelItemDao {
     @Query("Select * from RefuelItem where truckNo = :truckNo and refuelTime between :start and :end")
     List<RefuelItem> getByTruckNo(String truckNo, long start, long end);
 
+    @Query("Select * from RefuelItem where truckNo = :truckNo and refuelTime between :start and :end and refuelItemType = :type")
+    List<RefuelItem> getByTruckNo(String truckNo, long start, long end, int type);
 
     @Query("Select * from RefuelItem where truckNo = :truckNo")
     List<RefuelItem> getByTruckNo(String truckNo);
@@ -38,6 +41,8 @@ public interface RefuelItemDao {
     @Query("Select * from RefuelItem where truckNo != :truckNo and refuelTime between :start and :end")
     List<RefuelItem> getOthers(String truckNo, long start, long end);
 
+    @Query("Select * from RefuelItem where truckNo != :truckNo and refuelTime between :start and :end and refuelItemType = :type ")
+    List<RefuelItem> getOthers(String truckNo, long start, long end, int type);
 
     @Query("Select * from RefuelItem where truckNo != :truckNo")
     List<RefuelItem> getOthers(String truckNo);
@@ -68,4 +73,11 @@ public interface RefuelItemDao {
 
     @Query("Select Max(dateUpdated) from RefuelItem ")
     Date getLastModifiedDate();
+
+    @Query("delete from RefuelItem where NOT isLocalModified and refuelTime < :d")
+
+    void deleteByDate(long d);
+
+    @Query("Select * from RefuelItem where status = 1 and  truckNo = :truckNo limit 1")
+    RefuelItem getIncomplete(String truckNo);
 }

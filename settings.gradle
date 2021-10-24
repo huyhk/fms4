@@ -1,1 +1,1 @@
-include ':app', ':sdk-iq', ':tcpclient'
+include ':app', ':tcpclient', ':sdk-iq'

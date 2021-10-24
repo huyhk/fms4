@@ -1,5 +1,8 @@
 apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
+apply plugin: 'com.google.firebase.crashlytics'
+apply plugin: 'com.google.firebase.firebase-perf'
+
 android {
     signingConfigs {
         release {
@@ -15,18 +18,28 @@ android {
             keyAlias = 'key1'
             keyPassword 'megatech'
         }
+
+        spc {
+            storeFile file('C:\\Users\\huy\\Documents\\FMS\\fms-release.jks')
+            storePassword 'megatech'
+            keyAlias = 'key1'
+            keyPassword 'megatech'
+        }
     }
-    compileSdkVersion 28
+    compileSdkVersion 29
     defaultConfig {
         def date = new Date()
         def formattedDate = date.format('yyyyMMdd')
 
         applicationId "com.megatech.fms"
-        minSdkVersion 21
-        targetSdkVersion 27
-        versionCode 7
-        def versionBuild = 3
-        versionName "${versionCode}.${versionBuild}.${formattedDate}"
+
+        minSdkVersion 26
+        targetSdkVersion 29
+        versionCode 14
+        def versionNumber = "8"
+        def buildNumber = "4"
+        versionName "${versionNumber}.${buildNumber}.${formattedDate}.${versionCode}"
+
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         javaCompileOptions {
             annotationProcessorOptions {
@@ -36,14 +49,15 @@ android {
                         "room.expandProjection": "true"]
             }
         }
+        resValue "string", "app_name", "FMS Delivery"
     }
     buildTypes {
         debug {
-            buildConfigField 'String', 'API_BASE_URL', '"http://10.0.2.2:53579/"'
+            //buildConfigField 'String', 'API_BASE_URL', '"http://10.0.2.2:61013/"'
             //buildConfigField 'String', 'API_BASE_URL', '"http://fmsapi.megatech.com.vn/"'
 
-            //buildConfigField 'String', 'API_BASE_URL', '"http://fms.webmienphi.info/"'
-            //buildConfigField 'String', 'API_BASE_URL', '"http://fmsapi.megatech.com.vn/"'
+            buildConfigField 'String', 'API_BASE_URL', '"http://fmsapi.webmienphi.info/"'
+            //buildConfigField 'String', 'API_BASE_URL', '"http://fmsapi.skypec.com.vn/"'
 
             //buildConfigField 'String', 'IMEI_LIST', '"353700094068846,353700094064027,358240051111110"'
             buildConfigField 'String', 'DB_FILE', '"fms_debug.db"'
@@ -53,14 +67,15 @@ android {
                     def formattedDate = date.format('yyyyMMdd')
 
                     //outputFileName = new File(outputFileName.replace("-release", "-release-" + formattedDate))
-                    outputFileName = "fms-${variant.name}-${variant.versionCode}-" + formattedDate + ".apk"
+                    outputFileName = "fms-${variant.name}-${variant.versionName}" + ".apk"
 
 
                 }
             }
+            resValue "string", "app_name", "FMS Delivery DEBUG"
         }
         release {
-            buildConfigField 'String', 'API_BASE_URL', '"http://fmsapi.megatech.com.vn/"'
+            buildConfigField 'String', 'API_BASE_URL', '"http://fmsapi.skypec.com.vn/"'
             buildConfigField 'String', 'DB_FILE', '"fms_release.db"'
             //buildConfigField 'String', 'IMEI_LIST', '"353700094068846,353700094064027,358240051111110"'
             minifyEnabled false
@@ -70,14 +85,14 @@ android {
                     def date = new Date()
                     def formattedDate = date.format('yyyyMMdd')
 
-                    outputFileName = "fms-${variant.name}-${variant.versionCode}-" + formattedDate + ".apk"
+                    outputFileName = "fms-${variant.name}-${variant.versionName}" + ".apk"
 
                 }
             }
         }
 
         demo {
-            buildConfigField 'String', 'API_BASE_URL', '"http://demofmsapi.megatech.com.vn/"'
+            buildConfigField 'String', 'API_BASE_URL', '"http://skypecapi.megatech.com.vn/"'
             buildConfigField 'String', 'DB_FILE', '"fms_demo.db"'
             //buildConfigField 'String', 'IMEI_LIST', '"353700094068846,353700094064027,358240051111110"'
             minifyEnabled false
@@ -87,12 +102,31 @@ android {
                     def date = new Date()
                     def formattedDate = date.format('yyyyMMdd')
 
-                    outputFileName = "fms-${variant.name}-${variant.versionCode}-" + formattedDate + ".apk"
+                    outputFileName = "fms-${variant.name}-${variant.versionName}" + ".apk"
 
                 }
             }
+            resValue "string", "app_name", "FMS Delivery DEMO"
         }
 
+        spc {
+            buildConfigField 'String', 'API_BASE_URL', '"http://fmsapi.skypec.com.vn/"'
+            buildConfigField 'String', 'DB_FILE', '"fms_spc.db"'
+
+            //buildConfigField 'String', 'IMEI_LIST', '"353700094068846,353700094064027,358240051111110"'
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            applicationVariants.all { variant ->
+                variant.outputs.all { output ->
+                    def date = new Date()
+                    def formattedDate = date.format('yyyyMMdd')
+
+                    outputFileName = "fms-${variant.name}-${variant.versionName}" + ".apk"
+
+                }
+            }
+            resValue "string", "app_name", "FMS Delivery SKY"
+        }
     }
 
     dataBinding {
@@ -112,10 +146,10 @@ dependencies {
     implementation 'com.google.android.material:material:1.0.0'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.recyclerview:recyclerview:1.0.0'
+    implementation 'androidx.lifecycle:lifecycle-extensions:2.0.0'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.1.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0'
-    implementation project(path: ':sdk-iq')
     //implementation 'com.google.firebase:firebase-analytics:17.2.1'
     //implementation 'com.google.firebase:firebase-messaging:20.1.0'
     //implementation 'com.android.volley:dc-volley:1.1.0'
@@ -125,7 +159,17 @@ dependencies {
     implementation 'androidx.room:room-common:2.2.4'
     implementation 'androidx.room:room-runtime:2.2.4'
     annotationProcessor 'androidx.room:room-compiler:2.2.4'
-    implementation 'com.squareup.retrofit2:retrofit:2.8.1'
+    implementation project(path: ':sdk-iq')
+    //implementation 'com.squareup.retrofit2:retrofit:2.8.1'
 
+    // Import the BoM for the Firebase platform
+    implementation platform('com.google.firebase:firebase-bom:28.4.2')
+
+    // Declare the dependencies for the Crashlytics and Analytics libraries
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    implementation 'com.google.firebase:firebase-crashlytics'
+    implementation 'com.google.firebase:firebase-analytics'
+
+    implementation 'com.google.firebase:firebase-perf'
 
 }

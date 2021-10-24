@@ -118,7 +118,7 @@ public class TestActivity extends UserBaseActivity {
 
 
         addListerners();
-        ((Button)findViewById(R.id.button2)).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.button2).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 lcrReader.start();
@@ -126,7 +126,7 @@ public class TestActivity extends UserBaseActivity {
             }
         });
 
-        ((Button)findViewById(R.id.button3)).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.button3).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 lcrReader.end();
@@ -988,7 +988,7 @@ public class TestActivity extends UserBaseActivity {
             Integer lineNumber = 1;
             for(InternalEvent event : cause.getEvents()) {
                 // Print events (all type of events)
-                Log.e("ERROR_EVENT", String.valueOf(lineNumber++) + " - " + objToStrWithNullCheck(event.toShortFormat()));
+                Log.e("ERROR_EVENT", lineNumber++ + " - " + objToStrWithNullCheck(event.toShortFormat()));
             }
             Log.e("ERROR_EVENT", "--------- event data end ---------");
         }
@@ -1153,7 +1153,7 @@ public class TestActivity extends UserBaseActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        ((Button)findViewById(R.id.button2)).setEnabled(true);
+                        findViewById(R.id.button2).setEnabled(true);
 
                     }
                 });

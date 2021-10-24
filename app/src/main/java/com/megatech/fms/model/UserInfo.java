@@ -11,13 +11,13 @@ public class UserInfo {
     public UserInfo() {
     }
 
-    public UserInfo(int userId, String userName, String token, int permission) {
+    public UserInfo(int userId, String userName, String token, int permission, String airport) {
         this.userId = userId;
         this.userName = userName;
         this.token = token;
         this.permission = permission;
         this.lastLogin = new Date();
-
+        this.airport = airport;
     }
 
     private Date lastLogin;
@@ -58,6 +58,16 @@ public class UserInfo {
 
     }
 
+    private String airport;
+
+    public String getAirport() {
+        return airport;
+    }
+
+    public void setAirport(String airport) {
+        this.airport = airport;
+    }
+
     public void setUserName(String userName) {
         this.userName = userName;
     }
@@ -69,8 +79,11 @@ public class UserInfo {
         editor.putString("USER_NAME", this.userName);
         editor.putInt("USER_ID", this.userId);
         editor.putString("TOKEN", this.token);
+        editor.putString("AIRPORT", this.airport);
         editor.putLong("LOGIN_TIME", (new Date()).getTime());
         editor.putInt("PERMISSION", this.permission);
+        editor.putInt("BUILD", 12);
+
         editor.commit();
     }
     public void readFromSharedPreferences(Context ctx)
@@ -90,6 +103,7 @@ public class UserInfo {
         user.userName = sharedPreferences.getString("USER_NAME", "");
         user.token = sharedPreferences.getString("TOKEN", "");
         user.permission = sharedPreferences.getInt("PERMISSION", 0);
+        user.airport = sharedPreferences.getString("AIRPORT","");
         return user;
     }
     public static void logout(Context ctx){
@@ -99,6 +113,7 @@ public class UserInfo {
         editor.remove("USER_ID");
         editor.remove("TOKEN");
         editor.remove("LOGIN_TIME");
+        editor.remove("SHIFT");
         editor.commit();
     }
 

@@ -8,7 +8,7 @@
         <import type="com.megatech.fms.model.REFUEL_ITEM_STATUS" />
         <import type="com.megatech.fms.model.RefuelItemData.CURRENCY" />
 
-        <import type="com.megatech.fms.model.InvoiceModel.PRINT_TEMPLATE" />
+        <import type="com.megatech.fms.model.InvoiceModel.INVOICE_TYPE" />
 
         <import type="android.view.View"></import>
         <variable
@@ -262,7 +262,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
-                android:text='@{String.format("%,.0f",invoiceItem.volume)}' />
+                android:text='@{String.format("%,.0f",invoiceItem.totalVolume)}' />
 
             <TextView
                 android:layout_width="0dp"
@@ -274,7 +274,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
-                android:text='@{String.format("%,.0f",invoiceItem.weight)}' />
+                android:text='@{String.format("%,.0f",invoiceItem.totalWeight)}' />
 
         </TableRow>
 
@@ -293,21 +293,21 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
-                android:text='@{String.format("%,.0f",invoiceItem.realAmount)}' />
+                android:text='@{String.format("%,.0f",invoiceItem.totalGallon)}' />
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
                 android:text="Đơn giá"
-                android:visibility="@{invoiceItem.printTemplate == PRINT_TEMPLATE.INVOICE? View.VISIBLE:View.INVISIBLE}" />
+                android:visibility="@{invoiceItem.printTemplate == INVOICE_TYPE.INVOICE? View.VISIBLE:View.INVISIBLE}" />
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
                 android:text='@{String.format(invoiceItem.currency == CURRENCY.VND? "%,.0f": "%,.2f",invoiceItem.price)}'
-                android:visibility="@{invoiceItem.printTemplate == PRINT_TEMPLATE.INVOICE? View.VISIBLE:View.INVISIBLE}" />
+                android:visibility="@{invoiceItem.printTemplate == INVOICE_TYPE.INVOICE? View.VISIBLE:View.INVISIBLE}" />
 
         </TableRow>
 
@@ -316,7 +316,7 @@
             android:layout_height="match_parent"
             android:background="#efefef"
             android:padding="3dp"
-            android:visibility="@{invoiceItem.printTemplate == PRINT_TEMPLATE.INVOICE? View.VISIBLE:View.INVISIBLE}">
+            android:visibility="@{invoiceItem.printTemplate == INVOICE_TYPE.INVOICE? View.VISIBLE:View.INVISIBLE}">
 
             <TextView
                 android:layout_width="0dp"
@@ -328,7 +328,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text='@{String.format(invoiceItem.currency == CURRENCY.VND? "%,.0f": "%,.2f",invoiceItem.amount)}' />
+                android:text='@{String.format(invoiceItem.currency == CURRENCY.VND? "%,.0f": "%,.2f",invoiceItem.saleAmount)}' />
 
         </TableRow>
 
@@ -336,28 +336,28 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:padding="3dp"
-            android:visibility="@{invoiceItem.printTemplate == PRINT_TEMPLATE.INVOICE? View.VISIBLE:View.INVISIBLE}">
+            android:visibility="@{invoiceItem.printTemplate == INVOICE_TYPE.INVOICE? View.VISIBLE:View.INVISIBLE}">
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
                 android:text="Thuế suất GTGT"
-                android:visibility="@{invoiceItem.printTemplate == PRINT_TEMPLATE.INVOICE? View.VISIBLE:View.INVISIBLE}" />
+                android:visibility="@{invoiceItem.printTemplate == INVOICE_TYPE.INVOICE? View.VISIBLE:View.INVISIBLE}" />
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
                 android:text='@{String.format("%.0f%%",invoiceItem.taxRate*100)}'
-                android:visibility="@{invoiceItem.printTemplate == PRINT_TEMPLATE.INVOICE? View.VISIBLE:View.INVISIBLE}" />
+                android:visibility="@{invoiceItem.printTemplate == INVOICE_TYPE.INVOICE? View.VISIBLE:View.INVISIBLE}" />
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
                 android:text="Tiền thuế GTGT"
-                android:visibility="@{invoiceItem.printTemplate == PRINT_TEMPLATE.INVOICE? View.VISIBLE:View.INVISIBLE}" />
+                android:visibility="@{invoiceItem.printTemplate == INVOICE_TYPE.INVOICE? View.VISIBLE:View.INVISIBLE}" />
 
             <TextView
                 android:layout_width="0dp"
@@ -372,7 +372,7 @@
             android:layout_height="match_parent"
             android:background="#efefef"
             android:padding="3dp"
-            android:visibility="@{invoiceItem.printTemplate == PRINT_TEMPLATE.INVOICE? View.VISIBLE:View.INVISIBLE}">
+            android:visibility="@{invoiceItem.printTemplate == INVOICE_TYPE.INVOICE? View.VISIBLE:View.INVISIBLE}">
 
             <TextView
                 android:layout_width="0dp"
@@ -392,7 +392,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:padding="3dp"
-            android:visibility="@{invoiceItem.printTemplate == PRINT_TEMPLATE.INVOICE? View.VISIBLE:View.INVISIBLE}">
+            android:visibility="@{invoiceItem.printTemplate == INVOICE_TYPE.INVOICE? View.VISIBLE:View.INVISIBLE}">
 
             <TextView
                 android:id="@+id/textView17"
@@ -420,7 +420,7 @@
             <RadioGroup
                 android:id="@+id/radioTemplate"
                 android:layout_width="0dp"
-                android:layout_weight=".3">
+                android:layout_weight=".2">
 
                 <RadioButton
                     android:id="@+id/radInvoice"
@@ -441,7 +441,7 @@
             <RadioGroup
                 android:id="@+id/radioVersion"
                 android:layout_width="0dp"
-                android:layout_weight=".3">
+                android:layout_weight=".2">
 
                 <RadioButton
                     android:id="@+id/radOld"
@@ -459,20 +459,88 @@
                 <!--android:layout_width="wrap_content"-->
                 <!--android:layout_height="wrap_content" android:text="@string/print_bill2" />-->
             </RadioGroup>
+            <TableLayout android:layout_width="0dp" android:layout_weight="0.3" android:layout_height="match_parent">
+                <TableRow android:layout_height="0dp" android:layout_weight="0.5"  >
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:layout_weight="0.3"
+                        android:text="@string/form_no" />
+
+                    <TextView
+                        android:drawableStart="@drawable/ic_edit"
+                        android:id="@+id/preview_form_no"
+                        android:layout_width="0dp"
+                        android:layout_weight="0.5"
+                        android:layout_gravity="center_vertical"
+                        android:text="@{invoiceItem.formNo}"
+                        android:onClick="onClick"/>
+                </TableRow>
+                <TableRow  android:layout_height="0dp" android:layout_weight="0.5"
+                    >
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:layout_weight="0.3"
+                        android:text="@string/sign" />
+
+                    <TextView
+                        android:drawableStart="@drawable/ic_edit"
+                        android:layout_gravity="center_vertical"
+                        android:id="@+id/preview_sign"
+                        android:layout_width="0dp"
+                        android:layout_weight="0.5"
+                        android:text="@{invoiceItem.sign}"
+                        android:onClick="onClick"/>
+                </TableRow>
+            </TableLayout>
+            <!--<Spinner android:id="@+id/preview_spinner_form_no">
+
+            </Spinner>-->
+    <TableLayout android:layout_weight=".4" android:layout_width="0dp" android:layout_height="wrap_content">
+        <TableRow android:id="@+id/row_invoice_number" android:visibility="invisible">
+            <TextView android:layout_height="wrap_content" android:layout_width="0dp"
+                android:layout_weight=".5"
+                android:text="@string/invoice_number">
+
+            </TextView>
+            <TextView
+                android:drawableStart="@drawable/ic_edit"
+                android:layout_gravity="center_vertical"
+                android:id="@+id/preview_invoice_number"
+                android:layout_width="0dp"
+                android:layout_weight="0.5"
+                android:text="@{invoiceItem.invoiceNumber}"
+                android:onClick="onClick"/>
+        </TableRow>
+        <TableRow>
+            <Button
+                android:id="@+id/btnPrintTest"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight=".3"
+                android:text="@string/test" />
             <Button
                 android:id="@+id/btnPrintInvoice"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight=".2"
+                android:layout_weight=".3"
                 android:text="@string/print" />
 
             <Button
                 android:id="@+id/btnPrintCancel"
                 android:layout_width="0dp"
-                android:layout_weight=".2"
+                android:layout_weight=".3"
                 android:layout_height="wrap_content"
                 android:layout_gravity="right"
                 android:text="@string/back" />
+        </TableRow>
+    </TableLayout>
+
         </TableRow>
     </TableLayout>
 </layout>

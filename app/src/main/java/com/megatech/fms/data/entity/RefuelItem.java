@@ -26,6 +26,7 @@ public class RefuelItem extends BaseEntity {
         RefuelItemData itemData =  gson.fromJson(getJsonData(),RefuelItemData.class);
 
         itemData.setLocalId(this.getLocalId());
+        itemData.setLocalModified(this.isLocalModified());
         return  itemData;
     }
 
@@ -41,8 +42,26 @@ public class RefuelItem extends BaseEntity {
         item.setLocalId(itemData.getLocalId());
         item.setDateUpdated(itemData.getDateUpdated());
         item.setFlightId(itemData.getFlightId());
+        item.setRefuelItemType(REFUEL_ITEM_TYPE.getValue(itemData.getRefuelItemType().ordinal()));
         return  item;
     }
+
+    public void updateData(RefuelItemData itemData) {
+
+        RefuelItem item = this;
+        item.setId(itemData.getId());
+        item.setTruckNo(itemData.getTruckNo());
+        item.setTruckId(itemData.getTruckId());
+        item.setRefuelTime(itemData.getRefuelTime());
+        item.setStatus(REFUEL_ITEM_STATUS.getStatus(itemData.getStatus().getValue()));
+        item.setJsonData(gson.toJson(itemData));
+
+        item.setDateUpdated(itemData.getDateUpdated());
+        item.setFlightId(itemData.getFlightId());
+        item.setRefuelItemType(REFUEL_ITEM_TYPE.getValue(itemData.getRefuelItemType().ordinal()));
+
+    }
+
     private int flightId;
     private String flightCode;
 
@@ -356,6 +375,7 @@ public class RefuelItem extends BaseEntity {
         return refuelItemType;
     }
 
+
     public enum REFUEL_ITEM_TYPE {
         @SerializedName("0") REFUEL(0),
         @SerializedName("1") EXTRACT(1),
@@ -369,7 +389,7 @@ public class RefuelItem extends BaseEntity {
         }
 
         @TypeConverter
-        public static REFUEL_ITEM_TYPE getStatus(int numeral) {
+        public static REFUEL_ITEM_TYPE getValue(int numeral) {
             for (REFUEL_ITEM_TYPE ds : values()) {
                 if (ds.value == numeral) {
                     return ds;

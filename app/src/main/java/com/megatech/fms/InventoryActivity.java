@@ -7,8 +7,11 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.megatech.fms.model.RefuelItemData;
 
 public class InventoryActivity extends UserBaseActivity implements View.OnClickListener {
 
@@ -38,6 +41,12 @@ public class InventoryActivity extends UserBaseActivity implements View.OnClickL
                 float amount = 0;
                 try {
                     amount = Float.parseFloat(edt.getText().toString());
+                    Spinner inventory_unit = findViewById(R.id.inventory_unit);
+                    if (inventory_unit!=null)
+                    {
+                        if (inventory_unit.getSelectedItem().equals("LIT"))
+                            amount = (float)Math.round(amount / RefuelItemData.GALLON_TO_LITTER);
+                    }
                 } catch (NumberFormatException ex) {
                 }
                 if (amount>0) {

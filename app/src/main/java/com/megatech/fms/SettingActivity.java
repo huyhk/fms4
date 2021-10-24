@@ -89,7 +89,7 @@ public class SettingActivity extends UserBaseActivity {
                     public void onError() {
                         v.setEnabled(true);
                         btnSave.setEnabled(true);
-                        btnTest.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.ic_error), null, null, null);
+                        btnTest.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.ic_error, getTheme()), null, null, null);
                         reader.destroy();
                     }
 
@@ -122,7 +122,7 @@ public class SettingActivity extends UserBaseActivity {
                         if (field_change == LCRReader.FIELD_CHANGE.SERIAL) {
                             settingModel.setDeviceSerial(dataModel.getSerialId());
                             reader.destroy();
-                            btnTest.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.ic_check), null, null, null);
+                            btnTest.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.ic_check, getTheme()), null, null, null);
                         }
                     }
 
@@ -151,7 +151,7 @@ public class SettingActivity extends UserBaseActivity {
 
                 settingModel.setDeviceIP(ip);
                 settingModel.setPrinterIP(printerAddress);
-                EditText editText = (EditText)findViewById(R.id.txtCurrentAmount);
+                EditText editText = findViewById(R.id.txtCurrentAmount);
                 float currentAmount = Float.parseFloat(editText.getText().toString());
                 settingModel.setCurrentAmount(currentAmount);
                 currentApp.saveSetting(settingModel);

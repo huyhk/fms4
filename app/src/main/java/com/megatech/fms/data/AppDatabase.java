@@ -7,6 +7,8 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import androidx.room.TypeConverters;
+import androidx.room.migration.Migration;
+import androidx.sqlite.db.SupportSQLiteDatabase;
 
 import com.megatech.fms.BuildConfig;
 import com.megatech.fms.data.dao.AirlineDao;
@@ -18,6 +20,7 @@ import com.megatech.fms.data.dao.UserDao;
 import com.megatech.fms.data.entity.Airline;
 import com.megatech.fms.data.entity.Flight;
 import com.megatech.fms.data.entity.ParkingLot;
+import com.megatech.fms.data.entity.Price;
 import com.megatech.fms.data.entity.RefuelItem;
 import com.megatech.fms.data.entity.Shift;
 import com.megatech.fms.data.entity.Truck;
@@ -29,7 +32,11 @@ import com.megatech.fms.data.entity.User;
         Flight.class,
         Truck.class,
         User.class,
-        Shift.class}, version = 2, exportSchema = false)
+        Shift.class
+        },
+        version = 2,
+        exportSchema = false
+        )
 @TypeConverters({Converters.class,
         RefuelItem.REFUEL_ITEM_STATUS.class,
         RefuelItem.FLIGHT_STATUS.class,

@@ -50,8 +50,8 @@ public class RefuelItemData extends BaseModel implements Cloneable {
     private double temperature;
     private Date endTime = new Date();
     private Date startTime = new Date();
-    private Date deviceStartTime = new Date();
-    private Date deviceEndTime = new Date();
+    private Date deviceStartTime = null;
+    private Date deviceEndTime = null;
     private Date arrivalTime;
     private Date departureTime;
     private  double startNumber;
@@ -162,6 +162,7 @@ public class RefuelItemData extends BaseModel implements Cloneable {
 
     public void setPrintStatus(ITEM_PRINT_STATUS printStatus) {
         this.printStatus = printStatus;
+        this.printed = this.printStatus == ITEM_PRINT_STATUS.SUCCESS;
     }
 
     private ITEM_POST_STATUS postStatus = ITEM_POST_STATUS.SUCCESS;
@@ -225,7 +226,11 @@ public class RefuelItemData extends BaseModel implements Cloneable {
     }
 
     public void setStartTime(Date startTime) {
-        this.startTime = startTime;
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(startTime);
+
+        if (calendar.get(Calendar.YEAR) < 9999)
+            this.startTime = startTime;
     }
 
     private REFUEL_ITEM_STATUS status;
@@ -390,6 +395,31 @@ public class RefuelItemData extends BaseModel implements Cloneable {
         this.deviceEndTime = deviceEndTime;
     }
 
+    private boolean completed;
+
+    public boolean isCompleted() {
+        return completed;
+    }
+
+    public void setCompleted(boolean completed) {
+        this.completed = completed;
+    }
+
+    private boolean printed;
+
+    public boolean isPrinted() {
+        return printed;
+    }
+
+    public void setPrinted(boolean printed) {
+        this.printed = printed;
+        this.printStatus = this.printed? ITEM_PRINT_STATUS.SUCCESS: ITEM_PRINT_STATUS.NONE;
+    }
+
+    public InvoiceModel.INVOICE_TYPE getPrintTemplate()
+    {
+        return printTemplate;
+    }
     private double gallon;
 
     public double getAmount() {
@@ -463,8 +493,8 @@ public class RefuelItemData extends BaseModel implements Cloneable {
         @SerializedName("0")    NONE(0),
         @SerializedName("1") ASSIGNED(1),
         @SerializedName("2") REFUELING(2),
-        @SerializedName("3") REFUELED(3);
-
+        @SerializedName("3") REFUELED(3),
+        @SerializedName("4") CANCELLED(4);
         private  int value;
 
         FLIGHT_STATUS(int i) {
@@ -488,6 +518,27 @@ public class RefuelItemData extends BaseModel implements Cloneable {
 
 
     private String invoiceNumber;
+    private String invoiceNameCharter;
+
+    public String getInvoiceNameCharter() {
+
+        return invoiceNameCharter;
+    }
+
+    public void setInvoiceNameCharter(String invoiceNameCharter) {
+        this.invoiceNameCharter = invoiceNameCharter;
+    }
+
+    private String returnInvoiceNumber;
+
+    public String getReturnInvoiceNumber() {
+        return returnInvoiceNumber;
+    }
+
+    public void setReturnInvoiceNumber(String returnInvoiceNumber) {
+        this.returnInvoiceNumber = returnInvoiceNumber;
+    }
+
     private  double returnAmount;
     private String weightNote;
 
@@ -519,7 +570,6 @@ public class RefuelItemData extends BaseModel implements Cloneable {
         @SerializedName("0") VND(0),
         @SerializedName("1") USD(1),
         @SerializedName("2") TEST(2);
-
 
         private int value;
 
@@ -592,8 +642,152 @@ public class RefuelItemData extends BaseModel implements Cloneable {
         return Math.round(realAmount);
     }
 
+    private boolean isLocalModified;
+
+    public boolean isLocalModified() {
+        return isLocalModified;
+    }
+
+    public void setLocalModified(boolean localModified) {
+        isLocalModified = localModified;
+    }
+
     public String toJson()
     {
         return gson.toJson(this);
+    }
+
+    private InvoiceModel.INVOICE_TYPE printTemplate;
+
+    public void setPrintTemplate(InvoiceModel.INVOICE_TYPE printTemplate) {
+        this.printTemplate = printTemplate;
+    }
+
+    public interface CHANGE_FLAG
+    {
+        int NONE = 0;
+        int PRICE = 1;
+        int GROSS_QTY = 2;
+        int END_METER = 4;
+        int INVOICE_NUMBER = 8;
+
+
+    }
+
+    private int changeFlag;
+
+    public int getChangeFlag() {
+        return changeFlag;
+    }
+
+    public void setChangeFlag(int changeFlag) {
+        this.changeFlag |= changeFlag;
+    }
+    public void removeChangeFlag(int changeFlag) {
+
+        this.changeFlag &= ~changeFlag;
+    }
+    public void clearChangeFlag()
+    {
+        this.changeFlag = CHANGE_FLAG.NONE;
+    }
+
+    private int invoiceFormId;
+    private String formNo;
+    private String sign;
+
+    public int getInvoiceFormId() {
+        return invoiceFormId;
+    }
+
+    public void setInvoiceFormId(int invoiceFormId) {
+        this.invoiceFormId = invoiceFormId;
+    }
+
+    public String getFormNo() {
+        return formNo;
+    }
+
+    public void setFormNo(String formNo) {
+        this.formNo = formNo;
+    }
+
+    public String getSign() {
+        return sign;
+    }
+
+    public void setSign(String sign) {
+        this.sign = sign;
+    }
+
+    private Integer bM2508Result;
+
+    public Integer getBM2508Result() {
+        return bM2508Result;
+    }
+
+    public void setBM2508Result(Integer bM2508Result) {
+        this.bM2508Result = bM2508Result;
+    }
+
+    private boolean BM2508BondingCable;
+    public boolean getBM2508BondingCable() {
+        BM2508BondingCable = bM2508Result != null && (bM2508Result & 1) > 0;
+        return  BM2508BondingCable;
+    }
+    public void setBM2508BondingCable(boolean value) {
+        if (bM2508Result == null)
+            bM2508Result = 0;
+        bM2508Result |= 1;
+        if (!value)
+            bM2508Result ^= 1;
+    }
+    private boolean BM2508FuelingHose;
+    public boolean getBM2508FuelingHose() {
+        BM2508FuelingHose = bM2508Result != null && (bM2508Result & 2) > 0;
+        return  BM2508FuelingHose;
+    }
+
+    public void setBM2508FuelingHose(boolean value) {
+        if (bM2508Result == null)
+            bM2508Result = 0;
+        bM2508Result |= 2;
+        if (!value)
+            bM2508Result ^= 2;
+    }
+    private boolean BM2508FuelingCap;
+    public boolean getBM2508FuelingCap() {
+        BM2508FuelingCap = bM2508Result != null && (bM2508Result & 4) > 0;
+        return  BM2508FuelingCap;
+    }
+    public void setBM2508FuelingCap(boolean value) {
+        if (bM2508Result == null)
+            bM2508Result = 0;
+        bM2508Result |= 4;
+        if (!value)
+            bM2508Result ^= 4;
+    }
+    private boolean BM2508Ladder;
+    public boolean getBM2508Ladder()
+    {
+        BM2508Ladder = bM2508Result != null && (bM2508Result & 8) > 0;
+        return  BM2508Ladder;
+    }
+    public void setBM2508Ladder(boolean value) {
+        if (bM2508Result == null)
+            bM2508Result = 0;
+        bM2508Result |= 8;
+        if (!value)
+            bM2508Result ^= 8;
+    }
+
+    private InvoiceModel invoiceModel;
+
+    public InvoiceModel getInvoiceModel() {
+        return invoiceModel;
+    }
+
+    public void setInvoiceModel(InvoiceModel invoiceModel) {
+        this.invoiceModel = invoiceModel;
     }
 }

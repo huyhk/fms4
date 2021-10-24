@@ -27,38 +27,37 @@
             android:id="@+id/btnUpdate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:text="@string/save"
             android:layout_gravity="end"
-            app:layout_constraintStart_toEndOf="@+id/txtInventory"
-            app:layout_constraintTop_toBottomOf="@id/lblQualityControlNo" />
+            android:layout_marginStart="16dp"
+            android:text="@string/save" />
     </androidx.appcompat.widget.Toolbar>
 
-    <TableRow android:padding="@dimen/margin_start"
+    <TableRow
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
+        android:layout_height="wrap_content"
+        android:padding="@dimen/margin_start">
+
         <TextView
             android:layout_width="0dp"
-            android:layout_weight="0.25"
             android:layout_height="wrap_content"
+            android:layout_weight="0.25"
 
-            android:text="@string/current_amount"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/toolbar" />
+            android:text="@string/current_amount" />
 
         <TextView
             android:id="@+id/lblInventory"
             android:layout_width="0dp"
-            android:layout_weight="0.75"
             android:layout_height="wrap_content"
-            android:textStyle="bold"
+            android:layout_weight="0.75"
             android:textSize="@dimen/medium_text"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/lblInventory" />
+            android:textStyle="bold" />
     </TableRow>
 
-    <TableRow android:layout_width="match_parent" android:layout_height="wrap_content"
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:padding="@dimen/margin_start">
+
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -72,35 +71,36 @@
         <EditText
             android:id="@+id/txtInventory"
             android:layout_width="0dp"
-            android:layout_weight="0.25"
             android:layout_height="46dp"
+            android:layout_weight="0.25"
 
             android:digits="0123456789."
-            android:inputType="number"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/lblInventory" />
+            android:inputType="number" />
+
+        <Spinner
+            android:id="@+id/inventory_unit"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.15"
+            android:entries="@array/unit_array" />
 
         <TextView
             android:id="@+id/lblQualityControlNo"
             android:layout_width="0dp"
-            android:layout_weight="0.25"
             android:layout_height="wrap_content"
+            android:layout_weight="0.25"
             android:labelFor="@+id/txtQualityControlNo"
-            android:text="@string/qc_no"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/txtInventory" />
+            android:text="@string/qc_no" />
 
 
         <EditText
             android:id="@+id/txtQualityControlNo"
             android:layout_width="0dp"
-            android:layout_weight="0.25"
             android:layout_height="46dp"
+            android:layout_weight="0.25"
 
 
-            android:inputType="textCapCharacters"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/lblQualityControlNo" />
+            android:inputType="textCapCharacters" />
     </TableRow>
 
 </LinearLayout>

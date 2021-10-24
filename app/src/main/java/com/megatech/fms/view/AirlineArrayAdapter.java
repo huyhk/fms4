@@ -76,8 +76,8 @@ public class AirlineArrayAdapter extends ArrayAdapter<AirlineModel> {
 
                         // name match condition. this might differ depending on your requirement
                         // here we are looking for name or phone number match
-                        if (row.getCode().toLowerCase().contains(charString.toLowerCase()) ||
-                                row.getName().toLowerCase().contains(charString.toLowerCase())) {
+                        if ( (row.getCode() !=null &&  row.getCode().toLowerCase().contains(charString.toLowerCase())) ||
+                                (row.getName() !=null && row.getName().toLowerCase().contains(charString.toLowerCase()))) {
                             results.add(row);
                         }
                     }

@@ -12,6 +12,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.megatech.fms.data.DataRepository;
+import com.megatech.fms.helpers.DataHelper;
 import com.megatech.fms.helpers.HttpClient;
 import com.megatech.fms.model.RefuelItemData;
 import com.megatech.fms.model.UserInfo;
@@ -63,7 +65,7 @@ public class ExtractActivity extends UserBaseActivity implements View.OnClickLis
         new Thread(new Runnable() {
             @Override
             public void run() {
-                lstData = (new HttpClient()).getExtractList();
+                lstData = DataHelper.getRefuelList(true,1);
                 if (activity != null)
                     activity.runOnUiThread(new Runnable() {
                         @Override
@@ -73,7 +75,6 @@ public class ExtractActivity extends UserBaseActivity implements View.OnClickLis
                                 //this.getActivity().finishAffinity();
                             } else {
                                 mAdapter = new RefuelRecyclerViewAdapter(activity, lstData);
-
 
                                 extract_list.setLayoutManager(new GridLayoutManager(activity, 1));
 

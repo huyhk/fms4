@@ -10,6 +10,8 @@ import com.megatech.fms.FMSApplication;
 import com.megatech.fms.data.entity.ParkingLot;
 import com.megatech.fms.model.AirlineModel;
 import com.megatech.fms.model.FlightData;
+import com.megatech.fms.model.InvoiceFormModel;
+import com.megatech.fms.model.InvoiceModel;
 import com.megatech.fms.model.LCRDataModel;
 import com.megatech.fms.model.PermissionModel;
 import com.megatech.fms.model.RefuelItemData;
@@ -23,30 +25,37 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 
 public class HttpClient {
     private String API_BASE_URL = BuildConfig.API_BASE_URL;
     private String token;
+    private TruckModel setting;
+    private Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
 
     public HttpClient()
     {
         this.token = FMSApplication.getApplication().getUser().getToken();
+        this.setting = FMSApplication.getApplication().getSetting();
     }
     public HttpClient(String token)
     {
@@ -66,7 +75,9 @@ public class HttpClient {
         String loginUrl = API_BASE_URL + "/token";
         String contentType = "application/x-www-form-urlencoded";
         try {
-            String data = sendPOST(loginUrl, "grant_type=password&username=" + username + "&password=" + password);// executeUrl(loginUrl,contentType,"POST", "grant_type=password&username="+username+"&password="+password);
+            String data = sendPOST(loginUrl, "grant_type=password&username=" + username + "&password=" + password,contentType);// executeUrl(loginUrl,contentType,"POST", "grant_type=password&username="+username+"&password="+password);
+            if (data.contains("Data Error"))
+                data = "{'ResponseCode':'400'}";
             try {
                 JSONObject obj = new JSONObject(data);
                 return obj;
@@ -113,11 +124,11 @@ public class HttpClient {
             url = url+id.toString();
             String data = sendGET(url);
             try {
-                JSONObject json = new JSONObject(data);
-                Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
+                //JSONObject json = new JSONObject(data);
+
                 RefuelItemData item = gson.fromJson(data, RefuelItemData.class);
                 return item;
-            }catch (JSONException e){
+            }catch (Exception e){
                 return  null;
 
             }
@@ -177,13 +188,20 @@ public class HttpClient {
 
     private String sendGET(String url) throws IOException {
         try {
+            /*
             URL obj = new URL(url);
             HttpURLConnection con = (HttpURLConnection) obj.openConnection();
             con.setConnectTimeout(1000);
             con.setRequestMethod("GET");
             con.setRequestProperty("User-Agent", USER_AGENT);
+            this.token =  FMSApplication.getApplication().getUser().getToken();
             if (this.token != null)
-                con.setRequestProperty("Authorization", "bearer " + this.token);
+                con.setRequestProperty("Authorization", "bearer " + this.token);*/
+
+            HttpURLConnection con = createConnection(url, "GET", "*/*");
+            if (con ==null)
+                return  null;
+
             int responseCode = con.getResponseCode();
             System.out.println("GET Response Code :: " + responseCode);
             if (responseCode == HttpURLConnection.HTTP_OK) { // success
@@ -212,9 +230,13 @@ public class HttpClient {
             return "IO error";
         }
     }
-
-    private String sendPOST(String url,String params ) throws IOException {
+    private String sendPOST(String url,String params ) throws IOException
+    {
+        return  sendPOST(url,params,"application/json; utf-8");
+    }
+    private String sendPOST(String url,String params, String contentType ) throws IOException {
         try {
+            /*
             URL obj = new URL(url);
             HttpURLConnection con = (HttpURLConnection) obj.openConnection();
             con.setConnectTimeout(1000);
@@ -222,8 +244,14 @@ public class HttpClient {
             con.setRequestProperty("Content-Type", "application/json; utf-8");
             con.setRequestProperty("Accept", "application/json");
             con.setRequestProperty("User-Agent", USER_AGENT);
+            this.token =  FMSApplication.getApplication().getUser().getToken();
             if (this.token != null)
                 con.setRequestProperty("Authorization", "bearer " + this.token);
+            */
+
+            HttpURLConnection con = createConnection(url, "POST",contentType );
+            if(con ==null)
+                return null;
             // For POST only - START
             con.setDoOutput(true);
             OutputStream os = con.getOutputStream();
@@ -234,7 +262,7 @@ public class HttpClient {
             // For POST only - END
 
             int responseCode = con.getResponseCode();
-            System.out.println("POST Response Code :: " + responseCode);
+            Logger.appendLog("HTTP", "sendPost: " + "POST Response Code :: " + responseCode);
 
             if (responseCode == HttpURLConnection.HTTP_OK) { //success
                 BufferedReader in = new BufferedReader(new InputStreamReader(
@@ -251,10 +279,10 @@ public class HttpClient {
                 // print result
                 return response.toString();
             } else {
-                return "POST request not worked";
+                return "Data Error";
             }
         } catch (SocketTimeoutException ex) {
-            return "Timeout";
+            return "Connection Error";
         }
     }
 
@@ -307,12 +335,12 @@ public class HttpClient {
             ex.printStackTrace();
 
         } catch (MalformedURLException ex) {
-            Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
+            //Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
         } catch (UnknownHostException e) {
             e.printStackTrace();
         } catch (IOException ex) {
 
-            Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
+            //Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -408,7 +436,7 @@ public class HttpClient {
         }
         catch (Exception e)
         {
-            Log.e("getRefuelList", e.getMessage());
+            Logger.appendLog("HTTP", "GetModified:" + e.getLocalizedMessage());
             return null;
         }
         return lst;
@@ -427,7 +455,9 @@ public class HttpClient {
             Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
             String parm = gson.toJson(refuelData);
             String data = sendPOST(url, parm);
-            JSONObject o = new JSONObject(data);
+            //Logger.appendLog("HTTP", "PostRefuel URL: "+ url);
+            //Logger.appendLog("HTTP", "PostRefuel: "+ data);
+            //JSONObject o = new JSONObject(data);
             RefuelItemData newItem = gson.fromJson(data, RefuelItemData.class);
             if (newItem != null && refuelData.getId() == 0)
                 refuelData.setId(newItem.getId());
@@ -435,7 +465,7 @@ public class HttpClient {
         }
         catch (Exception e)
         {
-            Log.e("postRefuel", e.getMessage());
+            Logger.appendLog("HTTP", "PostRefuel: "+  e.getLocalizedMessage());
 
         }
         return  null;
@@ -503,7 +533,7 @@ public class HttpClient {
 
         String url = API_BASE_URL+"api/trucks?truckNo="+truckNo;
         try {
-            Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
+
 
             String data = sendGET(url);
 
@@ -617,8 +647,77 @@ public class HttpClient {
     }
 
 
-    public void sendLog() {
-        String url = API_BASE_URL + "api/parking";
+    public boolean sendLog(String url,String filePath) throws IOException {
+
+        String twoHyphens = "--";
+        String truckNo = FMSApplication.getApplication().getTruckNo();
+        String boundary = "*****" + System.currentTimeMillis() + "*****";
+        String CRLF = "\r\n";
+        String charset = "UTF-8";
+        File textFile = new File(filePath);
+
+        HttpURLConnection con = createConnection(url,"POST", "multipart/form-data; boundary=" + boundary);
+        try (
+                OutputStream output = con.getOutputStream();
+                PrintWriter writer = new PrintWriter(new OutputStreamWriter(output, charset), true)
+        ) {
+            // Send text file.
+            writer.append("--" + boundary).append(CRLF);
+            writer.append("Content-Disposition: form-data; name=\"textFile\"; filename=\"" + truckNo + ".fms.log\"").append(CRLF);
+            writer.append("Content-Type: text/plain; charset=" + charset).append(CRLF); // Text file itself must be saved in this charset!
+            writer.append(CRLF).flush();
+            Files.copy(textFile.toPath(), output);
+            output.flush(); // Important before continuing with writer!
+            writer.append(CRLF).flush(); // CRLF is important! It indicates end of boundary.
+            writer.append("--" + boundary + "--").append(CRLF).flush();
+        }
+        catch (Exception ex)
+        {
+            return false;
+        }
+
+        int responseCode = con.getResponseCode();
+        con.disconnect();
+        return responseCode == 200;
+    }
+
+    private HttpURLConnection createConnection(String url, String method, String contentType) {
+        try {
+            URL obj = new URL(url);
+            HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+            con.setConnectTimeout(1000);
+
+            con.setRequestMethod(method);
+            con.setRequestProperty("Connection", "Keep-Alive");
+
+            con.setRequestProperty("Content-Type", contentType);
+            con.setRequestProperty("Accept", "*/*");
+            con.setRequestProperty("User-Agent", USER_AGENT);
+            con.setRequestProperty("Tablet-Id", setting.getTabletSerial());
+            con.setRequestProperty("App-Version", setting.getAppVersion());
+            this.token = FMSApplication.getApplication().getUser().getToken();
+            if (this.token != null)
+                con.setRequestProperty("Authorization", "bearer " + this.token);
+            return con;
+        }
+        catch(Exception ex)
+        {
+            return null;
+        }
+    }
+
+
+    public InvoiceFormModel[] getInvoiceForms()
+    {
+        String url = API_BASE_URL+"api/invoiceform";
+        try{
+            String data = sendGET(url);
+            return gson.fromJson(data,  InvoiceFormModel[].class);
+        }
+        catch (Exception ex)
+        {
+            return  null;
+        }
     }
 }
 

@@ -5,13 +5,16 @@ import android.util.Log;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.nio.CharBuffer;
 import java.util.Observable;
 
 public class TcpClient extends Observable {
@@ -25,6 +28,10 @@ public class TcpClient extends Observable {
 
     PrintWriter bufferOut;
     BufferedReader bufferIn;
+
+    InputStream inputStream;
+
+    OutputStream writer;
 
     private Socket socket;
 
@@ -63,6 +70,19 @@ public class TcpClient extends Observable {
             throw new RuntimeException("This client is not connected, and cannot send any message");
         }
     }
+
+    public void sendMessage(char[] bytes) {
+        if(state == TcpClientState.CONNECTED) {
+            new SendMessageThread(bytes).start();
+        } else {
+            throw new RuntimeException("This client is not connected, and cannot send any message");
+        }
+    }
+
+    public  boolean isConnected()
+    {
+        return state == TcpClientState.CONNECTED;
+    }
     public void disconnect() {
         new DisconnectThread().run();
     }
@@ -79,9 +99,17 @@ public class TcpClient extends Observable {
 
     private class SendMessageThread extends Thread {
         private String messageLine;
+        private char[] messageChar;
 
         public SendMessageThread(String message) {
-            this.messageLine = message + (message.charAt(message.length() - 1) == '\n' ? "\n" : "");
+            this.messageLine = message ;
+
+            this.messageChar = message.toCharArray();
+        }
+
+        public SendMessageThread(char[] bytes) {
+            //this.messageLine = message ;
+            this.messageChar = bytes;
         }
 
         @Override
@@ -96,9 +124,19 @@ public class TcpClient extends Observable {
                     Log.e(TAG, "Error sending this message: " + e);
                 }
             } else {
-                bufferOut.print(messageLine);
-                bufferOut.flush();
-                fireEvent(new TcpEvent(TcpEventType.MESSAGE_SENT, messageLine.toString()));
+
+                //bufferOut.print(messageChar);
+                //bufferOut.flush();
+                byte[] bytes = new byte[messageChar.length];
+                try {
+                    for (int i=0; i<messageChar.length; i++)
+                        bytes[i] = (byte)messageChar[i];
+                    writer.write(bytes);
+                    writer.flush();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                fireEvent(new TcpEvent(TcpEventType.MESSAGE_SENT,messageChar));
             }
         }
     }
@@ -113,8 +151,10 @@ public class TcpClient extends Observable {
                 socket.connect(new InetSocketAddress(InetAddress.getByName(address), port), timeout);
 
                 bufferOut = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())), true);
-                bufferIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                inputStream =socket.getInputStream();
+                bufferIn = new BufferedReader(new InputStreamReader(inputStream));
 
+                writer = socket.getOutputStream();
                 state = TcpClientState.CONNECTED;
                 fireEvent(new TcpEvent(TcpEventType.CONNECTION_ESTABLISHED, null));
 
@@ -139,9 +179,19 @@ public class TcpClient extends Observable {
         public void run() {
             while(state == TcpClientState.CONNECTED) {
                 try {
-                    String message = bufferIn.readLine();
-                    if(message != null) {
-                        fireEvent(new TcpEvent(TcpEventType.MESSAGE_RECEIVED, message));
+                    StringBuilder message = new StringBuilder();
+
+                    //char[] buff = new char[1024];
+                    int i=0;
+                    while (inputStream.available()>0) {
+                        message.append( (char)inputStream.read());
+                        i++;
+                    }
+
+
+
+                    if(i>0) {
+                        fireEvent(new TcpEvent(TcpEventType.MESSAGE_RECEIVED, message.toString().toCharArray()));
                     }
                 } catch(IOException e) {
                     fireEvent(new TcpEvent(TcpEventType.CONNECTION_LOST, null));
@@ -152,7 +202,7 @@ public class TcpClient extends Observable {
 
                         bufferIn.close();
                         if (socket != null)
-                        socket.close();
+                            socket.close();
                     } catch (IOException er) {
                         Log.e(TAG, "Error clearing connection: " + er);
                     }
@@ -172,6 +222,7 @@ public class TcpClient extends Observable {
                 bufferIn.close();
 
                 socket.close();
+                state = TcpClientState.DISCONNECTED;
             } catch(IOException e) {
                 Log.e(TAG, "Error disconnecting this client: " + e);
             }

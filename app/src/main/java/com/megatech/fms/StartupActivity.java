@@ -11,6 +11,8 @@ import androidx.annotation.Nullable;
 
 import com.megatech.fms.helpers.Logger;
 
+import java.util.concurrent.Callable;
+
 public class StartupActivity extends BaseActivity {
     protected int SETTING_CODE = 2;
     protected int MAGICAL_NUMBER = 1;
@@ -37,6 +39,8 @@ public class StartupActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
         //setContentView(R.layout.activity_startup);
         checkStoragePermission();
         if (currentApp.isLoggedin()) {
@@ -59,7 +63,7 @@ public class StartupActivity extends BaseActivity {
         startActivity(intent);
         finish();
 
-        // check incomplete refuel
+       /* // check incomplete refuel
         // if incomplete refuel exists, open it
         if (currentApp.getCurrentRefuel(true) > 0) {
             Logger.appendLog("STRT", "continue refuel local" + currentApp.getCurrentRefuel(true));
@@ -68,21 +72,18 @@ public class StartupActivity extends BaseActivity {
             Logger.appendLog("STRT", "continue refuel remote" + currentApp.getCurrentRefuel(false));
 
             continueRefuel(currentApp.getCurrentRefuel(false), 0);
-        }
+        }*/
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (requestCode == LOGIN_CODE)
-        {
-            if (resultCode == 0 && ! currentApp.isFirstUse()){
+        if (requestCode == LOGIN_CODE) {
+            if (resultCode == 0 && !currentApp.isFirstUse()) {
                 showMain();
-            }
-            else
+            } else
                 setting();
-        }
-        else
-        super.onActivityResult(requestCode, resultCode, data);
+        } else
+            super.onActivityResult(requestCode, resultCode, data);
     }
 
     private void setting() {
@@ -91,8 +92,19 @@ public class StartupActivity extends BaseActivity {
         finish();
     }
 
-    private void continueRefuel(int id, int localId) {
+    /*private void continueRefuel(int id, int localId) {
+        showConfirmMessage(R.string.incomplete_continue, new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
 
+                openIncompleteRefuel(id, localId);
+                return null;
+            }
+        });
+
+    }
+
+    private void openIncompleteRefuel(int id, int localId) {
         Intent intent = new Intent(this, RefuelDetailActivity.class);
         intent.putExtra("REFUEL_ID", id);
         intent.putExtra("REFUEL_LOCAL_ID", localId);
@@ -100,7 +112,7 @@ public class StartupActivity extends BaseActivity {
         startActivity(intent);
 
         currentApp.clearCurrentRefuel();
-    }
+    }*/
 
     protected boolean checkStoragePermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -120,4 +132,6 @@ public class StartupActivity extends BaseActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
     }
+
+
 }

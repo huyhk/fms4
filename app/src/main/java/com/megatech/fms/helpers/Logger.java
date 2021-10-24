@@ -3,7 +3,9 @@ package com.megatech.fms.helpers;
 import android.content.Context;
 import android.os.Environment;
 
+import com.megatech.fms.BuildConfig;
 import com.megatech.fms.FMSApplication;
+import com.megatech.fms.data.AppDatabase;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -11,14 +13,19 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class Logger {
+
+    private static Timer timer;
+
     public static void appendLog(String logText) {
         appendLog(null, logText);
     }
 
     public static void appendLog(String tag, String logText) {
-        Context ctx = FMSApplication.getApplication();
+        //Context ctx = FMSApplication.getApplication();
         //String logFolder = Environment.getExternalStorageDirectory() + "/logs";
 
         String fileName = Environment.getExternalStorageDirectory() + "/fms.log";
@@ -26,7 +33,7 @@ public class Logger {
 
         if (tag != null)
             logText = "[" + tag + "] " + logText;
-        if (logFile.exists() && logFile.length() > 1024 * 1024) {
+        if (logFile.exists() && logFile.length() > 1024 * 1024 * 8) {
             Date d = new Date();
 
             logFile.delete();
@@ -53,7 +60,67 @@ public class Logger {
             e.printStackTrace();
         }
 
+        if (timer == null) {
+            timer = new Timer();
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    sendLog();
+                }
+            }, 1000 * 60 * 6, 1000 * 60 * 60);
+        }
     }
 
+    public static boolean sendLog() {
+        try {
 
+            HttpClient client = new HttpClient();
+            String fileName = Environment.getExternalStorageDirectory() + "/fms.log";
+            String url = BuildConfig.API_BASE_URL + "api/log";
+            return client.sendLog(url, fileName);
+
+
+        } catch (Exception ex) {
+            return false;
+        }
+
+    }
+
+    public static void writePrintLog(String log)
+    {
+        String fileName = Environment.getExternalStorageDirectory() + "/data.log";
+        File logFile = new File(fileName);
+        try {
+            //BufferedWriter for performance, true to set append to file flag
+            BufferedWriter buf = new BufferedWriter(new FileWriter(logFile, true));
+            //buf.append(log);
+            //buf.newLine();
+            buf.close();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+    public static void writeCharArray(String log) {
+        String fileName = Environment.getExternalStorageDirectory() + "/data.log";
+        File logFile = new File(fileName);
+        try {
+            //BufferedWriter for performance, true to set append to file flag
+            BufferedWriter buf = new BufferedWriter(new FileWriter(logFile, true));
+
+            //SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+            for (char ch : log.toCharArray()) {
+
+                buf.append(String.format("%d ", (int) ch));
+
+
+
+            }
+            buf.newLine();
+            buf.close();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
 }

@@ -21,17 +21,31 @@ import com.megatech.fms.model.RefuelItemData;
 import java.util.ArrayList;
 
 public class TruckArrayAdapter extends ArrayAdapter<RefuelItemData> {
-    public TruckArrayAdapter(Context context, ArrayList<RefuelItemData> items)
-    {
-        super(context,0, items );
+    public TruckArrayAdapter(Context context, ArrayList<RefuelItemData> items) {
+
+        super(context, 0, items);
+        allItems = items;
+        checked = new boolean[items.size()] ;
     }
 
-    private  int selectedIndex = -1;
-    public void setSelected(int valor)
-    {
+    private int selectedIndex = -1;
+
+    public void setSelected(int valor) {
         selectedIndex = valor;
-
+        notifyDataSetChanged();
     }
+
+    public void setSelectedObject(RefuelItemData obj) {
+
+        selectedIndex = allItems.indexOf(obj);
+        notifyDataSetChanged();
+    }
+
+    boolean[] checked;
+    ArrayList<RefuelItemData> allItems;
+    ArrayList<RefuelItemData> checkedItems = new ArrayList<>();
+
+
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
@@ -48,16 +62,52 @@ public class TruckArrayAdapter extends ArrayAdapter<RefuelItemData> {
         binding.setTruckItem(itemData);
         binding.executePendingBindings();
 
-        if(position == selectedIndex)
+        if (position == selectedIndex)
             convertView.setBackgroundColor(Color.LTGRAY);
         else
             convertView.setBackgroundColor(Color.TRANSPARENT);
         //convertView.setBackgroundColor(Color.LTGRAY);
 
+        CheckBox cb = convertView.findViewById(R.id.truck_item_chk);
 
+        if (cb != null) {
+            cb.setChecked(checked[position]);
 
-
+            cb.setOnClickListener(v -> {
+                checked[position] = cb.isChecked();
+                if (cb.isChecked())
+                    checkedItems.add(itemData);
+                else
+                    checkedItems.remove(itemData);
+            });
+        }
         return binding.getRoot();
     }
 
+    public ArrayList<RefuelItemData> getCheckedItems() {
+        try {
+            checkedItems.clear();
+            for (int i = 0; i < allItems.size(); i++)
+                if (checked[i])
+                    checkedItems.add(allItems.get(i));
+        }catch (Exception ex)
+        {}
+        return  checkedItems;
+    }
+
+    public void selectAll() {
+        selectAll(true);
+        notifyDataSetChanged();
+    }
+
+    public void selectNone() {
+        selectAll(false);
+        notifyDataSetChanged();
+    }
+
+    void selectAll(boolean selected) {
+        for (int i = 0; i < checked.length; i++) {
+            checked[i] = selected;
+        }
+    }
 }

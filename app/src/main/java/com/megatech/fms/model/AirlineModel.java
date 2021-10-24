@@ -87,6 +87,16 @@ public class AirlineModel extends BaseModel {
         this.price = price;
     }
 
+    private double price01;
+
+    public double getPrice01() {
+        return price01;
+    }
+
+    public void setPrice01(double price01) {
+        this.price01 = price01;
+    }
+
     public CURRENCY getCurrency() {
         return currency;
     }

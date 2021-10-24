@@ -26,7 +26,7 @@ public class LCRTest extends AppCompatActivity  {
             }
         });
 
-        ((Button)findViewById(R.id.lcr_test_exit)).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.lcr_test_exit).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 finish();

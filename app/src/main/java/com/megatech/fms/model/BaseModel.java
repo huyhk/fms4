@@ -3,6 +3,7 @@ package com.megatech.fms.model;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.megatech.fms.FMSApplication;
 
 import java.util.Date;
 
@@ -37,6 +38,18 @@ public class BaseModel {
 
     public void setDateUpdated(Date dateUpdated) {
         this.dateUpdated = dateUpdated;
+    }
+
+    private String tabletSerial;
+
+    public String getTabletSerial() {
+
+
+        return tabletSerial;
+    }
+
+    public void setTabletSerial(String tabletSerial) {
+        this.tabletSerial = tabletSerial;
     }
 
     public String toJson() {

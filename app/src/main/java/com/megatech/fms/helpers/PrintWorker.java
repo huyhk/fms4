@@ -11,6 +11,9 @@ import com.megatech.fms.model.InvoiceModel;
 import com.megatech.tcpclient.TcpClient;
 import com.megatech.tcpclient.TcpEvent;
 
+import java.nio.CharBuffer;
+import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Queue;
@@ -25,6 +28,7 @@ public class PrintWorker implements Observer {
     }
 
     public interface PrintStateListener{
+        void onConnectionError();
         void onError();
         void onSuccess();
     }
@@ -44,7 +48,11 @@ public class PrintWorker implements Observer {
         if (printStateListener !=null)
             printStateListener.onError();
     }
-
+    private void onConnectionError()
+    {
+        if (printStateListener !=null)
+            printStateListener.onConnectionError();
+    }
     private Queue<String> dataToPrint;
 
     private TcpClient mTcpClient;
@@ -52,6 +60,7 @@ public class PrintWorker implements Observer {
 
     private void onSuccess()
     {
+
         if (printStateListener !=null)
             printStateListener.onSuccess();
         new Runnable() {
@@ -63,16 +72,61 @@ public class PrintWorker implements Observer {
     }
     //RefuelItemData itemToPrint;
 
+
+    private char[] prepareText(String text)
+    {
+        //CharBuffer charBuffer =  CharBuffer.allocate(2048);
+        String v="";
+        for (char ch: text.toCharArray()) {
+            if (UnicodeMap.getHashtable().containsKey(ch)) {
+                UnicodeMap m = UnicodeMap.getHashtable().get(ch);
+                if (m != null) {
+                    v += new String(new char[]{0x1b, 0x26, 0x2, m.getReplaceChar(), m.getReplaceChar(), 9});
+                    v += new String(m.getDefinedArray(),0,18);
+                    v += new String(new char[]{0x1b, 0x25, 0x1});
+                    v += m.getReplaceChar();
+                    v += new String(new char[]{0x1B, 0x3f, m.getReplaceChar()});
+
+                    //charBuffer.append(new char[]{0x1b, 0x26, 0x2, m.getReplaceChar(), m.getReplaceChar(), 9});
+                }
+            }
+            else
+                v+=ch;
+
+        }
+        return v.toCharArray();
+    }
+
     private int printData() {
-        //send the first data line and then remove from array
-        if (dataToPrint.size()>0) {
-            String line = dataToPrint.poll();
-            //dataToPrint.remove(0);
-            if (line != null)
-                mTcpClient.sendMessage(line);
+        try {
+            //send the first data line and then remove from array
+            if (dataToPrint.size() > 0) {
+                String line = dataToPrint.poll();
+                //dataToPrint.remove(0);
+                if (line != null) {
+                    line += (line.charAt(line.length() - 1) == '\n' ? "\n" : "");
+                    //Logger.writePrintLog(String.format("queue %d :%s",dataToPrint.size(),line));
+                    char[] charToWrite = prepareText(line);
+                    //Logger.writeCharArray(line);
+                    mTcpClient.sendMessage(charToWrite);
+
+
+                }
+            }
+        }catch (Exception ex) {
+            Logger.appendLog("PRINTER", ex.getMessage());
+            //return -1;
         }
         return  dataToPrint.size();
     }
+
+
+    private void printReset() {
+
+
+        mTcpClient.sendMessage(RESET_CODE);
+    }
+
 
     public  boolean printBill(InvoiceModel invoiceModel) {
         return printBill(invoiceModel, false);
@@ -120,40 +174,46 @@ public class PrintWorker implements Observer {
         return true;
     }
 
+    private boolean onlineStatus = false;
+    private boolean checking = false;
     @Override
     public void update(Observable o, Object arg) {
         TcpEvent event = (TcpEvent)arg;
+
+        char[] payload = null;
+        if (event.getPayload() !=null && event.getPayload() instanceof char[])
+            payload = (char[])event.getPayload();
         switch (event.getTcpEventType()) {
             case CONNECTION_FAILED:
-                activity.runOnUiThread(new Runnable() {
-                       public void run() {
-                            new AlertDialog.Builder(activity)
-                                .setTitle("FMS Delivery")
-                                .setMessage(activity.getString(R.string.printer_error))
-                                .setIcon(R.drawable.ic_error)
-                                .show();
 
-                    }
-                });
-                //itemToPrint.setPrintStatus(RefuelItemData.ITEM_PRINT_STATUS.ERROR);
-                onError();
+                onConnectionError();
                 break;
             case MESSAGE_RECEIVED:
+                if (payload!=null) {
+                    Logger.appendLog("PRNT", "printer response: " + payload.toString());
+                    if (checking && payload[0] == (char) 0x16) {
+                        checking = false;
+                        onlineStatus = true;
+                        printReset();
+                    } else if (checking)
+                        onConnectionError();
+                }
                 break;
             case CONNECTION_ESTABLISHED:
                 // printer connected, start sending data line to print;
-                printData();
+                checkPrinter();
                 break;
+
             case MESSAGE_SENT:
+
                 // data line sent to printer, send next line, if ZERO, no more data to send
-                if (dataToPrint.size() ==0){
-                    activity.runOnUiThread(new Runnable() {
-                        public void run() {
-                            Toast.makeText(activity, activity.getString(R.string.print_completed), Toast.LENGTH_LONG).show();
-                        }
-                    });
-                    //itemToPrint.setPrintStatus(RefuelItemData.ITEM_PRINT_STATUS.SUCCESS);
+                if (payload.equals(CHECK_CODE))
+                    checking = true;
+                else if (payload.equals(RELEASE_CODE))
                     onSuccess();
+                else if (dataToPrint.size() ==0){
+
+                    releasePaper();
                 }
                 else
                     printData() ;
@@ -162,7 +222,17 @@ public class PrintWorker implements Observer {
         }
     }
 
+    private void checkPrinter() {
 
+        mTcpClient.sendMessage(CHECK_CODE);
+    }
+    private void releasePaper() {
+
+        mTcpClient.sendMessage(RELEASE_CODE);
+    }
+    private char[] RESET_CODE =  new char[]{27, 64};
+    private char[] RELEASE_CODE = new char[]{27,101,60};
+    private char[] CHECK_CODE = new char[]{16,4,1};
     public enum PRINT_MODE
     {
         ONE_ITEM,

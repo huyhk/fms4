@@ -32,10 +32,15 @@ public class VersionUpdateActivity extends BaseActivity implements View.OnClickL
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        if (BuildConfig.DEBUG)
+        {
+            throw new RuntimeException("Test Crash"); // Force a crash
+        }
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_version_update);
         TextView txt = findViewById(R.id.info_dialog_version);
-        txt.setText(String.format("%d", BuildConfig.VERSION_CODE));
+        txt.setText(String.format("%s",BuildConfig.VERSION_NAME));
+
         new CheckVersionAsyncTask().execute(API_BASE_URL + "files/version.txt");
     }
 
@@ -46,6 +51,7 @@ public class VersionUpdateActivity extends BaseActivity implements View.OnClickL
         int id = v.getId();
         switch (id) {
             case R.id.btnUpdate:
+
                 findViewById(R.id.btnUpdate).setEnabled(false);
                 ((Button) findViewById(R.id.btnUpdate)).setText(R.string.version_updating);
                 if (checkStoragePermission())
@@ -65,7 +71,7 @@ public class VersionUpdateActivity extends BaseActivity implements View.OnClickL
             String data = client.getContent(url);
             if (data != null) {
                 String[] info = data.split("\\-");
-                String version = info[0];
+
                 return data;
             }
             return null;
@@ -76,8 +82,10 @@ public class VersionUpdateActivity extends BaseActivity implements View.OnClickL
             try {
                 String[] info = versionInfo.split("-");
                 String version = info[0];
+                String build = info[1];
                 long newVersion = Long.parseLong(version);
                 long currentVersion = BuildConfig.VERSION_CODE;
+                String currentVersionName = BuildConfig.VERSION_NAME;
 
                 if (newVersion > currentVersion) {
                     ((TextView) findViewById(R.id.version_check_message)).setText(getString(R.string.new_version_available));
@@ -92,7 +100,7 @@ public class VersionUpdateActivity extends BaseActivity implements View.OnClickL
             }
             catch (Exception ex)
             {
-                Toast.makeText(getBaseContext(), R.string.file_update_error,Toast.LENGTH_LONG).show();
+                showErrorMessage(R.string.file_update_error);
             }
             //super.onPostExecute(aLong);
         }
@@ -152,7 +160,8 @@ public class VersionUpdateActivity extends BaseActivity implements View.OnClickL
                     //i.setDataAndType(Uri.fromFile(new File(filePath)), "application/vnd.android.package-archive");
                     intent.setData(Uri.fromFile(new File(filePath)));
                     intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    //intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
                     getApplicationContext().startActivity(intent);
                 }
@@ -160,7 +169,7 @@ public class VersionUpdateActivity extends BaseActivity implements View.OnClickL
                 Toast.makeText(getApplicationContext(), ex.getMessage(), Toast.LENGTH_LONG).show();
             }
             finally {
-                currentApp.clearSetting();
+                //currentApp.clearSetting();
             }
         }
     }

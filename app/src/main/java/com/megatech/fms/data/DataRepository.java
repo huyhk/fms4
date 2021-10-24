@@ -81,7 +81,7 @@ public class DataRepository {
     public List<RefuelItemData> getRefuelList(String truckNo, int truckId, boolean self, int type, long start, long end) {
         List<RefuelItem> localList;
         if (self)
-            localList = db.refuelItemDao().getByTruckNo(truckNo, start, end);
+            localList = db.refuelItemDao().getByTruckNo(truckNo, start, end, type);
         else
             localList = db.refuelItemDao().getOthers(truckNo, start, end);
 
@@ -216,5 +216,20 @@ public class DataRepository {
 
         return db.refuelItemDao().getOthers(localId);
 
+    }
+
+    public void deleteOldRefuels(int numDays) {
+
+        Date d= new Date();
+        d = new Date(d.getTime() - 24*60*60*1000 *numDays);
+
+        db.refuelItemDao().deleteByDate(d.getTime());
+    }
+
+    public RefuelItemData getIncomplete(String truckNo) {
+        RefuelItem item =  db.refuelItemDao().getIncomplete(truckNo);
+        if (item!=null)
+            return item.toRefuelItemData();
+        else return  null;
     }
 }

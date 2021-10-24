@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.AlarmManager;
 import android.app.Dialog;
 import android.app.PendingIntent;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -169,7 +170,8 @@ public class UserBaseActivity extends BaseActivity {
     {
         Intent intent = new Intent(this, SettingActivity.class);
         //intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivityForResult(intent, SETTING_CODE);
+        startActivity(intent);
+
     }
 
     @Override
@@ -193,9 +195,22 @@ public class UserBaseActivity extends BaseActivity {
             case R.id.action_info:
                 showUpdate();
                 break;
+            case R.id.action_settings:
+                setting();
+                break;
 
             case R.id.action_restart:
                 showRestart();
+                break;
+            case R.id.action_send_log:
+                if (Logger.sendLog())
+                {
+                    new AlertDialog.Builder(this)
+                            .setTitle(R.string.app_name)
+                            .setMessage(R.string.send_log_completed)
+                            .create()
+                            .show();
+                }
                 break;
 
             default:
@@ -241,14 +256,20 @@ public class UserBaseActivity extends BaseActivity {
         //Intent intent = new Intent(this, StartupActivity.class);
         Intent intent = getBaseContext().getPackageManager().
                 getLaunchIntentForPackage(getBaseContext().getPackageName());
+        if (intent!=null) {
+/*            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_NEW_TASK);
+            int mPendingIntentId = 123456;
+            PendingIntent mPendingIntent = PendingIntent.getActivity(UserBaseActivity.this, mPendingIntentId, intent,
+                    PendingIntent.FLAG_CANCEL_CURRENT);
 
-        int mPendingIntentId = 123456;
-        PendingIntent mPendingIntent = PendingIntent.getActivity(UserBaseActivity.this, mPendingIntentId, intent,
-                PendingIntent.FLAG_CANCEL_CURRENT);
-
-        AlarmManager mgr = (AlarmManager) UserBaseActivity.this.getSystemService(Context.ALARM_SERVICE);
-        mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 500, mPendingIntent);
-        System.exit(0);
+            AlarmManager mgr = (AlarmManager) UserBaseActivity.this.getSystemService(Context.ALARM_SERVICE);
+            mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 500, mPendingIntent);*/
+            //System.exit(0);
+            ComponentName componentName = intent.getComponent();
+            Intent mainIntent = Intent.makeRestartActivityTask(componentName);
+            startActivity(mainIntent);
+            Runtime.getRuntime().exit(0);
+        }
 /*
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivityForResult(intent, RESTART_CODE);

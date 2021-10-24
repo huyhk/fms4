@@ -6,6 +6,7 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -23,13 +24,22 @@ import com.google.android.material.tabs.TabLayout;
 import com.liquidcontrols.lcr.iq.sdk.lc.api.constants.LCR.LCR_COMMAND;
 import com.liquidcontrols.lcr.iq.sdk.lc.api.constants.LCR.LCR_DEVICE_CONNECTION_STATE;
 import com.megatech.fms.databinding.DialogShiftBinding;
+import com.megatech.fms.helpers.DataHelper;
 import com.megatech.fms.helpers.HttpClient;
 import com.megatech.fms.helpers.LCRReader;
+import com.megatech.fms.helpers.Logger;
+import com.megatech.fms.model.RefuelItemData;
 import com.megatech.fms.model.ShiftModel;
 import com.megatech.fms.model.UserInfo;
 import com.megatech.fms.view.PageAdapter;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.Callable;
 
 public class MainActivity extends UserBaseActivity implements RefuelListFragment.OnFragmentInteractionListener {
     private boolean mTwoPane;
@@ -72,7 +82,6 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
         updateCurrentAmount();
         setToolbar();
 
@@ -83,6 +92,7 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
         //toolbarRefuelButton.setVisibility(View.GONE);
 
         btnUpdate = findViewById(R.id.btnUpdate2);
+        if (btnUpdate!=null)
         btnUpdate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -92,25 +102,29 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
         });
 
         Button btnRefuel = findViewById(R.id.btnNewRefuel);
+        if (btnRefuel!=null) {
+            btnRefuel.setVisibility(View.INVISIBLE);
+            ((Runnable) () -> {
+                //HttpClient client = new HttpClient();
+                //PermissionModel model = client.getPermission();
+                //if (model == null || model.isAllowNewRefuel())
+                //    btnRefuel.setVisibility(View.VISIBLE);
 
-        btnRefuel.setVisibility(View.INVISIBLE);
-        ((Runnable) () -> {
-            //HttpClient client = new HttpClient();
-            //PermissionModel model = client.getPermission();
-            //if (model == null || model.isAllowNewRefuel())
-            //    btnRefuel.setVisibility(View.VISIBLE);
+                if ((currentUser.getPermission() & UserInfo.USER_PERMISSION.CREATE_REFUEL.getValue()) > 0)
+                    btnRefuel.setVisibility(View.VISIBLE);
 
-            if ((currentUser.getPermission() & UserInfo.USER_PERMISSION.CREATE_REFUEL.getValue()) > 0)
-                btnRefuel.setVisibility(View.VISIBLE);
+            }).run();
+            btnRefuel.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    new_refuel();
+                }
+            });
 
-        }).run();
-        btnRefuel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new_refuel();
-            }
-        });
+            checkInternet();
 
+
+        }
 
         if (!currentApp.isFirstUse())
         reader = LCRReader.create(this, currentApp.getDeviceIP(), 10001, true);
@@ -151,6 +165,13 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
         });
 
         setTabData();
+        prepareSearchBox();
+
+        checkIncompleteItem();
+    }
+
+    private void prepareSearchBox() {
+
 
         ((SearchView) findViewById(R.id.search_bar)).setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -176,8 +197,42 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
                 return false;
             }
         });
+    }
 
+    private void checkIncompleteItem() {
 
+        new AsyncTask<Void, Void, RefuelItemData>() {
+            @Override
+            protected RefuelItemData doInBackground(Void... voids) {
+                Logger.appendLog("MAIN", "Check incomplete item");
+                RefuelItemData postRefuel = DataHelper.getImcomplete();
+                return postRefuel;
+            }
+
+            @Override
+            protected void onPostExecute(RefuelItemData itemData) {
+                if (itemData!=null)
+                {
+                    showConfirmMessage(R.string.incomplete_continue, new Callable<Void>() {
+                        @Override
+                        public Void call() throws Exception {
+                            openIncompleItem(itemData);
+                            return null;
+                        }
+                    });
+                }
+
+                super.onPostExecute(itemData);
+
+            }
+        }.execute();
+    }
+
+    private void openIncompleItem(RefuelItemData itemData) {
+
+        Intent intent = new Intent(this, RefuelDetailActivity.class);
+        intent.putExtra("REFUEL", itemData.toJson());
+        startActivity(intent);
     }
 
     private void showShiftInfo() {
@@ -187,15 +242,19 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
             Date d = new Date();
             if (model == null || d.compareTo(model.getStartTime()) < 0 || d.compareTo(model.getEndTime()) > 0) {
                 model = new HttpClient().getShift();
-
-                currentApp.saveShift(model);
+                if (model != null)
+                    currentApp.saveShift(model);
             }
             if (model != null) {
                 ShiftModel cModel = model.isSelected() ? model : model.getPrevShift().isSelected() ? model.getPrevShift() : model.getNextShift();
+                if (cModel.getStartTime() ==null  || cModel.getName() == null) {
+                    model.setSelected(true);
+                    cModel = model;
+                }
+
                 lblShift.setText(String.format("%s: %s ", getString(model.isSelected() ? R.string.current_shift : model.getPrevShift().isSelected() ? R.string.prev_shift : R.string.next_shift), cModel.toString()));
             }
         }
-
 
         Button btnShift = findViewById(R.id.btn_shift);
         btnShift.setOnClickListener(new View.OnClickListener() {
@@ -215,27 +274,11 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
 
         shiftBinding.setShift(model);
 
-        builder.setPositiveButton(R.string.confirm, new DialogInterface.OnClickListener() {
+        builder.setPositiveButton(R.string.accept, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 ShiftModel model = shiftBinding.getShift();
-                Dialog dlg = (Dialog) dialog;
-            /*    if (((RadioButton)dlg.findViewById(R.id.radPrev)).isChecked()){
-                    model.setSelected(false);
-                    model.getPrevShift().setSelected(true);
-                    model.getNextShift().setSelected(false);
-                } 
-                else if (((RadioButton)dlg.findViewById(R.id.radCurrent)).isChecked()){
-                    model.setSelected(true);
-                    model.getPrevShift().setSelected(false);
-                    model.getNextShift().setSelected(false);
-                }else
-                { 
-                    model.setSelected(false);
-                    model.getPrevShift().setSelected(false);
-                    model.getNextShift().setSelected(true);
-                }
-             */
+
 
                 currentApp.saveShift(model);
                 updateRefuelList();
@@ -352,5 +395,37 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
     @Override
     public void onFragmentInteraction(Uri uri) {
 
+    }
+
+    private void checkInternet()
+    {
+        Timer tmr = new Timer();
+        tmr.schedule(new TimerTask() {
+            @Override
+            public void run() {
+
+                showInternetIcon(!hostAvailable("skypec.com.vn",80));
+
+            }
+        },10,5*1000);
+
+    }
+
+    public boolean hostAvailable(String host, int port) {
+        try (Socket socket = new Socket()) {
+            socket.connect(new InetSocketAddress(host, port), 2000);
+            return true;
+        } catch (IOException e) {
+            // Either we have a timeout or unreachable host or failed DNS lookup
+            System.out.println(e);
+            return false;
+        }
+    }
+
+    private void showInternetIcon(boolean show)
+    {
+        View v = findViewById(R.id.action_status);
+        if (v!=null)
+            v.setVisibility(show?View.VISIBLE: View.INVISIBLE);
     }
 }

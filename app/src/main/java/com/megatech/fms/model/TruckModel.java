@@ -32,7 +32,6 @@ public class TruckModel extends BaseModel {
     private float currentAmount;
 
     private String deviceSerial;
-    private String tabletSerial;
 
 
     private String deviceIP = "192.168.1.1";
@@ -110,14 +109,6 @@ public class TruckModel extends BaseModel {
         this.deviceSerial = deviceSerial;
     }
 
-    public String getTabletSerial() {
-        return tabletSerial;
-    }
-
-    public void setTabletSerial(String tabletSerial) {
-        this.tabletSerial = tabletSerial;
-    }
-
     public String getTruckNo() {
         return truckNo;
     }
@@ -177,6 +168,17 @@ public class TruckModel extends BaseModel {
 
     public void setId(int id) {
         this.truckId = this.id = id;
+    }
+
+
+    private String appVersion;
+
+    public String getAppVersion() {
+        return appVersion;
+    }
+
+    public void setAppVersion(String appVersion) {
+        this.appVersion = appVersion;
     }
 
     @NonNull

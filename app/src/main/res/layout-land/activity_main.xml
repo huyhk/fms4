@@ -55,7 +55,7 @@
             android:layout_height="match_parent"
             android:layout_weight="0"
             android:inputType="textCapCharacters|textVisiblePassword"
-            android:visibility="gone" />
+            android:visibility="visible" />
 
     </LinearLayout>
 

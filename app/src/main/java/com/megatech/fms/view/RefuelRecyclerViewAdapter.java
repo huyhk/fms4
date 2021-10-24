@@ -1,6 +1,8 @@
 package com.megatech.fms.view;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,10 +14,12 @@ import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.megatech.fms.FMSApplication;
 import com.megatech.fms.R;
 import com.megatech.fms.RefuelDetailActivity;
 import com.megatech.fms.RefuelPreviewActivity;
@@ -79,6 +83,7 @@ public class RefuelRecyclerViewAdapter extends RecyclerView.Adapter<RefuelRecycl
     }
 
     int REQUEST_CODE = 5546;
+    int dlgResult =0;
     private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -86,20 +91,59 @@ public class RefuelRecyclerViewAdapter extends RecyclerView.Adapter<RefuelRecycl
             Bundle arguments = new Bundle();
             RefuelItemData item = (RefuelItemData)v.getTag();
             Context context = v.getContext();
-            Intent intent;
-            if (item.getStatus() == REFUEL_ITEM_STATUS.DONE)
-                intent = new Intent(mContext, RefuelPreviewActivity.class);
-            else
-                intent = new Intent(mContext, RefuelDetailActivity.class);
-            //Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
+            if (item.getFlightStatus() == RefuelItemData.FLIGHT_STATUS.CANCELLED)
+            {
+                Toast.makeText(mContext,R.string.cancelled_alert,Toast.LENGTH_LONG).show();
+                return;
+            }
+            if (item.getStatus() != REFUEL_ITEM_STATUS.DONE)
+            {
+                if (!item.getTruckNo().equals( FMSApplication.getApplication().getTruckNo()))
+                {
 
-            intent.putExtra("REFUEL_ID", item.getId());
-            intent.putExtra("REFUEL_LOCAL_ID", item.getLocalId());
-            //intent.putExtra("REFUEL", gson.toJson(item));
+                    AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                    builder.setTitle(R.string.app_name)
+                            .setMessage(R.string.assigned_to_another_truck)
+                            .setPositiveButton(R.string.refuel, (dialog, which) -> {
+                                dialog.dismiss();
+                                showRefuel(item);
+                            })
+                            .setNegativeButton(R.string.back, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dlgResult = -1;
+                                    dialog.dismiss();
+                                }
+                            });
+                    builder.create().show();
 
-            mContext.startActivityForResult(intent, REQUEST_CODE);
+                    if (dlgResult != 0)
+                        return;
+                }
+                else
+                    showRefuel(item);
+            }
+            else if (item.getStatus() == REFUEL_ITEM_STATUS.DONE)
+                showPreview(item);
+
+
         }
     };
+    private void showRefuel(RefuelItemData item)
+    {
+        Intent intent = new Intent(mContext, RefuelDetailActivity.class);
+        intent.putExtra("REFUEL_ID", item.getId());
+        intent.putExtra("REFUEL_LOCAL_ID", item.getLocalId());
+        mContext.startActivityForResult(intent, REQUEST_CODE);
+    }
+
+    private void showPreview(RefuelItemData item)
+    {
+        Intent intent = new Intent(mContext, RefuelPreviewActivity.class);
+        intent.putExtra("REFUEL_ID", item.getId());
+        intent.putExtra("REFUEL_LOCAL_ID", item.getLocalId());
+        mContext.startActivityForResult(intent, REQUEST_CODE);
+    }
 
     private final View.OnClickListener subClick = new View.OnClickListener() {
         @Override

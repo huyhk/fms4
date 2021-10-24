@@ -84,14 +84,16 @@ public class NumberConvert
 
         NumberText Dic = english ? NumberText.English : NumberText.VietNamese;
 
+        number = Math.round(number*100)/100;
+
         String tmp = String.format("%,.2f",number);
 
         int lnAt = tmp.indexOf(".");
 
-      String _ChLe = String.format("%2d",(int)Math.round(100*( number % 1.0))).replace(' ','0'); // RIGHT(allt(str(number%1,3,2)),2); //&&Iif(AT(".",tmp)#0,Substr(tmp,lnAt+1,2),"00")
+        String _ChLe = String.format("%2d",(int)Math.round(100*( number % 1.0))).replace(' ','0'); // RIGHT(allt(str(number%1,3,2)),2); //&&Iif(AT(".",tmp)#0,Substr(tmp,lnAt+1,2),"00")
         String _ChChan = String.format("%d",(int)Math.floor(number)).trim(); //&&Left(tmp,Iif(lnAt#0,lnAt-1,Len(tmp)))
 
-        int socap3 = (int)(_ChChan.length() / 3);
+        int socap3 = _ChChan.length() / 3;
         int numberdu = _ChChan.length() % 3;
 
         String chuoi = "";

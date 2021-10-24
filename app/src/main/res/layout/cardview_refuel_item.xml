@@ -7,6 +7,7 @@
         <import type="android.graphics.Color" />
 
         <import type="com.megatech.fms.model.REFUEL_ITEM_STATUS" />
+        <import type="com.megatech.fms.model.RefuelItemData.FLIGHT_STATUS" />
 
         <import type="com.megatech.fms.model.RefuelItemData.ITEM_PRINT_STATUS" />
 
@@ -42,20 +43,37 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@{mItem.status == REFUEL_ITEM_STATUS.DONE ? Color.rgb(  200,200,200): mItem.status == REFUEL_ITEM_STATUS.PROCESSING? Color.rgb(240,255,240): Color.rgb(  240,240,240)}"
+                android:background="@{mItem.flightStatus == FLIGHT_STATUS.CANCELLED ? Color.rgb(  211,211,211) : mItem.status == REFUEL_ITEM_STATUS.DONE ? Color.rgb(  200,200,200): mItem.status == REFUEL_ITEM_STATUS.PROCESSING? Color.rgb(240,255,240): Color.rgb(  240,240,240)}"
                 android:orientation="horizontal"
                 android:paddingTop="5dp"
                 android:paddingBottom="5dp">
 
-                <CheckedTextView
-                    android:id="@+id/refuel_item_chk"
+                <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight=".05"
-                    android:checkMark="@{mItem.status == REFUEL_ITEM_STATUS.DONE ? @drawable/ic_check: (mItem.status == REFUEL_ITEM_STATUS.PROCESSING? @drawable/ic_fuel_truck: null)}"
-                    android:checked="@{mItem.status== REFUEL_ITEM_STATUS.DONE}"
-                    android:gravity="center"
-                    android:padding="5dp" />
+                    android:orientation="vertical">
+
+                    <CheckedTextView
+                        android:id="@+id/refuel_item_chk"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight=".05"
+                        android:checkMark="@{mItem.status == REFUEL_ITEM_STATUS.DONE ? (mItem.printed? @drawable/ic_printed: @drawable/ic_check): (mItem.status == REFUEL_ITEM_STATUS.PROCESSING? @drawable/ic_fuel_truck: null)}"
+                        android:checked="@{mItem.status== REFUEL_ITEM_STATUS.DONE}"
+                        android:gravity="center"
+                        android:padding="3dp" />
+
+                    <CheckedTextView
+                        android:id="@+id/refuel_item_sync"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:checkMark="@{mItem.isLocalModified?@drawable/ic_not_sync :null }"
+                        android:checked="@{mItem.isLocalModified}"
+                        android:gravity="center"
+                        android:padding="3dp" />
+                </LinearLayout>
+
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -158,47 +176,49 @@
 
                 <LinearLayout
                     android:layout_width="0dp"
+                    android:layout_height="match_parent"
                     android:layout_weight="0.3"
-                    android:orientation="vertical"
-                    android:layout_height="match_parent">
+                    android:orientation="vertical">
+
                     <LinearLayout
-                        android:orientation="horizontal"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content">
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
                         <ImageView
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
                             android:layout_weight="0.05"
                             android:src="@drawable/driver" />
+
                         <TextView
 
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:gravity="start"
                             android:text="@{mItem.driverName}"
-                            android:textSize="@dimen/medium_text"
-                             />
+                            android:textSize="@dimen/medium_text" />
                     </LinearLayout>
+
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal">
+
                         <ImageView
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
                             android:layout_weight="0.05"
                             android:src="@drawable/operator" />
+
                         <TextView
 
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:gravity="start"
                             android:text="@{mItem.operatorName}"
-                            android:textSize="@dimen/medium_text"
-                             />
+                            android:textSize="@dimen/medium_text" />
                     </LinearLayout>
-
-
 
 
                 </LinearLayout>
@@ -209,13 +229,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:paddingVertical="5dp"
+                android:paddingVertical="3dp"
                 android:visibility="visible">
 
 
                 <ImageView
                     android:layout_width="0dp"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_weight="0.05"
                     android:src="@drawable/ic_clock" />
 
@@ -231,10 +251,10 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="0.3"
-                    android:textColor="@color/colorPrimaryDark"
-                    android:textStyle="bold"
                     android:text='@{String.format("%-12s%-12s", mItem.refuelItemType == REFUEL_ITEM_TYPE.EXTRACT?"Hút": "Tra nạp", DateUtils.formatDatePlus(mItem.refuelTime,"HH:mm"))}'
-                    android:textSize="@dimen/medium_text"></TextView>
+                    android:textColor="@color/colorPrimaryDark"
+                    android:textSize="@dimen/medium_text"
+                    android:textStyle="bold"></TextView>
 
                 <TextView
                     android:layout_width="0dp"
@@ -245,6 +265,20 @@
 
             </LinearLayout>
 
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/card_overlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#90E2D789"
+            android:visibility="@{mItem.flightStatus == FLIGHT_STATUS.CANCELLED? View.VISIBLE: View.GONE}">
+
+            <ImageView  android:src="@drawable/ic_cancelled"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:layout_gravity="center"
+                />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 </layout>

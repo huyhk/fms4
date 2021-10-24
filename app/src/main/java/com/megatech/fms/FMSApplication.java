@@ -8,14 +8,22 @@ import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.OnLifecycleEvent;
 
+import com.google.gson.FieldNamingPolicy;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.megatech.fms.data.AppDatabase;
 import com.megatech.fms.data.DataRepository;
 import com.megatech.fms.helpers.HttpClient;
+import com.megatech.fms.helpers.Logger;
+import com.megatech.fms.model.InvoiceFormModel;
+import com.megatech.fms.model.InvoiceModel;
 import com.megatech.fms.model.ShiftModel;
 import com.megatech.fms.model.TruckModel;
 import com.megatech.fms.model.UserInfo;
 
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 public class FMSApplication extends Application implements LifecycleObserver {
 
@@ -25,7 +33,6 @@ public class FMSApplication extends Application implements LifecycleObserver {
         super.onCreate();
         cApp = this;
     }
-
 
     public AppDatabase getDatabase() {
         return AppDatabase.getInstance(this);
@@ -43,12 +50,12 @@ public class FMSApplication extends Application implements LifecycleObserver {
     ///////////////////////////////////////////////
     @OnLifecycleEvent(Lifecycle.Event.ON_START)
     public void onEnterForeground() {
-        Log.d("AppController", "Foreground");
+        //Logger.appendLog("FMS", "Foreground");
 
     }
     @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
     public void onEnterBackground() {
-        Log.d("AppController", "Background");
+        //Logger.appendLog("FMS", "Background");
 
     }
 ///////////////////////////////////////////////
@@ -86,9 +93,11 @@ public class FMSApplication extends Application implements LifecycleObserver {
         final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
         String token = preferences.getString("TOKEN",null);
         long loginTime = preferences.getLong("LOGIN_TIME", 0);
+        int build12 = preferences.getInt("BUILD", 0);
         long currentTime = new Date().getTime();
 
-        return token != null && (currentTime - loginTime) / 1000 / 60 < 60*12;
+
+        return token != null && build12>=12  && (currentTime - loginTime) / 1000 / 60 < 60*12;
 
     }
     private String printerAddress;
@@ -145,6 +154,7 @@ public class FMSApplication extends Application implements LifecycleObserver {
     }
     public void saveSetting(TruckModel settingModel, boolean post)
     {
+        settingModel.setAppVersion(getAppVer());
         if (post) {
             HttpClient client = new HttpClient();
             TruckModel newModel = client.postTruck(settingModel);
@@ -173,6 +183,11 @@ public class FMSApplication extends Application implements LifecycleObserver {
     }
     public int getTruckId() {
         return getSetting().getTruckId();
+    }
+
+    public String getAppVer()
+    {
+        return BuildConfig.VERSION_NAME;
     }
     public float getCurrentAmount() {
 //        final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
@@ -258,6 +273,41 @@ public class FMSApplication extends Application implements LifecycleObserver {
     public int getCurrentRefuel(boolean local) {
         final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
         return preferences.getInt(local ? "REFUEL_LOCAL_ID" : "REFUEL_ID", 0);
+    }
+
+    private static final Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
+
+    public InvoiceFormModel[] getInvoiceForms() {
+        final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
+        int default_form_invoice = preferences.getInt("DEFAULT_FORM_INVOICE",0);
+        int default_form_bill = preferences.getInt("DEFAULT_FORM_BILL",0);
+        String json = preferences.getString("INVOICE_FORM_DATA","");
+        if (json!=null)
+        {
+            InvoiceFormModel[] forms = gson.fromJson(json,InvoiceFormModel[].class);
+            for(InvoiceFormModel item: forms)
+            {
+                if (item.getId() == default_form_invoice && item.getPrintTemplate() == InvoiceModel.INVOICE_TYPE.INVOICE)
+                    item.setLocalDefault(true);
+
+                if (item.getId() == default_form_bill && item.getPrintTemplate() == InvoiceModel.INVOICE_TYPE.BILL)
+                    item.setLocalDefault(true);
+
+
+            }
+            return  forms;
+        }
+
+        return null;
+    }
+
+    public void saveInvoiceForms(InvoiceFormModel[] invoiceFormModels) {
+        final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        String json = gson.toJson(invoiceFormModels);
+
+        editor.putString("INVOICE_FORM_DATA", json);
+        editor.commit();
     }
 }
 

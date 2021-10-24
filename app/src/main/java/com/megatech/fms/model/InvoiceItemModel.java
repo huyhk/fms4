@@ -8,6 +8,16 @@ public class InvoiceItemModel {
     private double endNumber;
     private double realAmount;
     private double volume;
+    private double weight;
+
+    public double getWeight() {
+        return weight;
+    }
+
+    public void setWeight(double weight) {
+        this.weight = weight;
+    }
+
     private boolean isReturn;
 
     public double getStartNumber() {
