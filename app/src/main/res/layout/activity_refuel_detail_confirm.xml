@@ -11,7 +11,7 @@
 
         <import type="com.megatech.fms.model.RefuelItemData.FLIGHT_STATUS" />
 
-        <import type="com.megatech.fms.model.InvoiceModel.INVOICE_TYPE" />
+        <import type="com.megatech.fms.enums.INVOICE_TYPE" />
 
         <import type="com.megatech.fms.model.RefuelItemData.REFUEL_ITEM_TYPE" />
 
@@ -45,24 +45,25 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <Button
-                    android:id="@+id/btnConfirm"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="right"
-                    android:onClick="onClick"
-                    android:text="@string/confirm" />
-
 
                 <TextView
 
                     android:layout_gravity="center"
+                    android:layout_weight="1"
                     android:gravity="center"
                     android:text="@string/comfirm_refuel_data"
                     android:textColor="#fff"
                     android:textSize="24sp"
                     android:textStyle="bold" ></TextView>
 
+
+                <Button
+                    android:id="@+id/btnConfirm"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:onClick="onClick"
+                    android:layout_gravity="end"
+                    android:text="@string/confirm" />
 
 
             </TableRow>
@@ -91,7 +92,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="0.25"
                     android:padding="3dp"
-                    android:text="Giờ bắt đầu tra nạp" />
+                    android:text="@string/startTime" />
 
                 <TextView
                     android:id="@+id/refuel_confirm_start_time"
@@ -195,51 +196,50 @@
 
 
                 <TextView
-                    style="?android:attr/textAppearanceMedium"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="0.25"
                     android:padding="3dp"
-                    android:text="@string/start_meter" />
+                    android:text="@string/start_meter"
+                    android:textSize="@dimen/large_text" />
 
                 <TextView
                     android:id="@+id/refuel_confirm_start_meter"
-                    style="?android:attr/textAppearanceMedium"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="0.25"
-                    android:drawableStart="@drawable/ic_edit"
-                    android:focusable="false"
-                    android:hint="@string/touch_to_edit"
-                    android:onClick="onClick"
+
                     android:padding="3dp"
                     android:text='@{String.format("%,.0f",mItem.startNumber)}'
-                    android:textIsSelectable="true" />
+                    android:textIsSelectable="true"
+                    android:textSize="@dimen/larger_text"
+                    android:textStyle="bold" />
 
 
                 <TextView
-                    style="?android:attr/textAppearanceMedium"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight=".25"
                     android:padding="3dp"
-                    android:text="@string/end_meter" />
+                    android:text="@string/end_meter"
+                    android:textSize="@dimen/large_text" />
 
                 <TextView
                     android:id="@+id/refuel_confirm_end_meter"
-                    style="?android:attr/textAppearanceMedium"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight=".25"
-
                     android:drawableStart="@drawable/ic_edit"
+
                     android:ems="10"
                     android:focusable="false"
                     android:hint="@string/touch_to_edit"
                     android:onClick="onClick"
                     android:padding="3dp"
                     android:text='@{String.format("%,.0f",mItem.endNumber)}'
-                    android:textIsSelectable="true" />
+                    android:textIsSelectable="true"
+                    android:textSize="@dimen/larger_text"
+                    android:textStyle="bold" />
 
 
             </TableRow>
@@ -277,28 +277,29 @@
 
                 <TextView
                     android:id="@+id/textView4"
-                    style="?android:attr/textAppearanceMedium"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight=".25"
                     android:padding="3dp"
-                    android:text="Sản lượng thực tế" />
+                    android:text="Sản lượng thực tế"
+                    android:textSize="@dimen/large_text" />
 
                 <TextView
                     android:id="@+id/refuel_confirm_real_amount"
-                    style="?android:attr/textAppearanceMedium"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight=".25"
-
                     android:drawableStart="@drawable/ic_edit"
+
                     android:ems="10"
                     android:focusable="false"
                     android:hint="@string/touch_to_edit"
                     android:onClick="onClick"
                     android:padding="3dp"
                     android:text='@{String.format("%,.0f",mItem.realAmount)}'
-                    android:textIsSelectable="true" />
+                    android:textIsSelectable="true"
+                    android:textSize="@dimen/larger_text"
+                    android:textStyle="bold" />
 
 
             </TableRow>

@@ -1,6 +1,5 @@
 package com.megatech.fms;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -40,7 +39,6 @@ import com.megatech.fms.databinding.SelectUserBinding;
 import com.megatech.fms.helpers.DataHelper;
 import com.megatech.fms.helpers.DateUtils;
 import com.megatech.fms.helpers.LCRReader;
-import com.megatech.fms.helpers.LCRWorker;
 import com.megatech.fms.helpers.Logger;
 import com.megatech.fms.model.AirlineModel;
 import com.megatech.fms.model.LCRDataModel;
@@ -71,7 +69,7 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
     AlertDialog inputDlg;
     private Button btnBack;
     private String TAG = "REFUEL_SCREEN";
-
+    private String LOG_TAG = "RFW";
     private enum CONNECTION_STATUS {
         OK,
         ERROR,
@@ -245,7 +243,7 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
             }
             if (mItem!=null && (mItem.getQualityNo() == null || mItem.getQualityNo() .isEmpty()))
                 mItem.setQualityNo(currentApp.getQCNo());
-            Logger.appendLog("RFW", "Flight Code: " + mItem.getFlightCode());
+            Logger.appendLog(LOG_TAG, "Flight Code: " + mItem.getFlightCode());
             runOnUiThread(() -> {
                 initReader();
                 if (!isFinishing())
@@ -258,7 +256,7 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
     }
 
     private void initReader() {
-
+        Logger.appendLog(LOG_TAG,"Init LCR Reader");
         reader = LCRReader.create(this, storedIP, 10001, false);
         if (reader.isLCR600())
             btnStart.setVisibility(View.VISIBLE);
@@ -277,14 +275,16 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
         model.setUserId(currentUser.getUserId());
 
 
-        if (reader.isStarted())
+        if (reader.isAlreadyStarted())
             onStarted();
     }
 
     private void clearListeners() {
-        reader.setConnectionListener(null);
-        reader.setStateListener(null);
-        reader.setFieldDataListener(null);
+        if (reader != null) {
+            reader.setConnectionListener(null);
+            reader.setStateListener(null);
+            reader.setFieldDataListener(null);
+        }
     }
 
     private void showData() {
@@ -510,7 +510,7 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
                         showErrorMessage(R.string.error_data, R.string.invalid_density, R.drawable.ic_error);
 
                         return false;
-                    }
+                    }else
                     mItem.setDensity(d);
                     break;
                 case R.id.refuelitem_detail_Temperature:
@@ -545,6 +545,7 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
         new Thread(new Runnable() {
             @Override
             public void run() {
+                Logger.appendLog("RFW", "Data changed - post item");
                 DataHelper.postRefuel(mItem,false);
             }
         }).start();
@@ -862,19 +863,19 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
         reader.setConnectionListener(new LCRReader.LCRConnectionListener() {
             @Override
             public void onConnected() {
-                Logger.appendLog("RFW", "onConnected");
+                Logger.appendLog(LOG_TAG, "onConnected");
                 deviceIsReady = true;
                 deviceIsError = false;
                 setConnectionCheckmark(CONNECTION_STATUS.OK);
                 setEnableButton(started || (deviceIsReady && conditionIsReady && inventoryIsReady));
                 reader.requestSerial();
-                if (reader.isStarted())
+                if (reader.isAlreadyStarted())
                     onStarted();
             }
 
             @Override
             public void onError() {
-                Logger.appendLog("RFW", " onConnectionError ");
+                Logger.appendLog(LOG_TAG, " onConnectionError ");
 
                 deviceIsReady = false;
                 deviceIsError = true;
@@ -1294,7 +1295,7 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
             if (mItem != null) {
 
                 mItem.setEndTime(new Date());
-                if (Math.abs(mItem.getEndTime().getTime() - mItem.getStartTime().getTime()) > 1000*60*60*24)
+                if (Math.abs(mItem.getEndTime().getTime() - mItem.getStartTime().getTime()) > 1000 * 60 * 60 * 24)
                     mItem.setStartTime(mItem.getEndTime());
 
                 if (mItem.getDeviceEndTime() != null && mItem.getDeviceStartTime() != null && !mItem.isCompleted()) {
@@ -1306,10 +1307,11 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
                 if (mItem.getManualTemperature() == 0)
                     mItem.setManualTemperature(model.getTemperature());
                 boolean isExtract = mItem.getRefuelItemType() == RefuelItemData.REFUEL_ITEM_TYPE.EXTRACT;
-                currentApp.setCurrentAmount(currentApp.getCurrentAmount() + (isExtract ? model.getGrossQty() : -model.getGrossQty()));
+                currentApp.setCurrentAmount(currentApp.getCurrentAmount() + (float) (isExtract ? mItem.getRealAmount() : -mItem.getRealAmount()));
                 mItem.setStatus(REFUEL_ITEM_STATUS.DONE);
                 mItem.setTruckId(currentApp.getTruckId());
                 mItem.setTruckNo(currentApp.getTruckNo());
+                mItem.setStartNumber(mItem.getEndNumber() - mItem.getRealAmount());
             }
 
             Logger.appendLog("RFW", "end doStop");
@@ -1339,7 +1341,7 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
             intent.putExtra("REFUEL", mItem.toJson());
             //intent.putExtra("REFUEL_LOCAL_ID", mItem.getLocalId());
             int PREVIEW_OPEN = 1;
-            startActivityForResult(intent, PREVIEW_OPEN);
+            startActivity(intent);
         }
         else
         {
@@ -1347,7 +1349,7 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
             intent.putExtra("REFUEL_ID", mItem.getId());
             intent.putExtra("REFUEL_LOCAL_ID", mItem.getLocalId());
             int PREVIEW_OPEN = 1;
-            startActivityForResult(intent, PREVIEW_OPEN);
+            startActivity(intent);
         }
 
         finish();
@@ -1436,8 +1438,13 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
     @Override
     protected void onDestroy() {
         Logger.appendLog("RFW", "Power on destroy");
+
         super.onDestroy();
         isActive = false;
+        clearListeners();
+        //reader.doDisconnectDevice();
+        mItem = null;
+        Runtime.getRuntime().gc();
     }
 
 

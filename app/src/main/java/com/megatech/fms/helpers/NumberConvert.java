@@ -84,7 +84,7 @@ public class NumberConvert
 
         NumberText Dic = english ? NumberText.English : NumberText.VietNamese;
 
-        number = Math.round(number*100)/100;
+        number = (double)Math.round(number*100)/100;
 
         String tmp = String.format("%,.2f",number);
 

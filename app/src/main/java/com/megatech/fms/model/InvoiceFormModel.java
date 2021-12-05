@@ -9,13 +9,14 @@ import androidx.annotation.NonNull;
 import com.google.gson.annotations.SerializedName;
 import com.megatech.fms.FMSApplication;
 import com.megatech.fms.R;
+import com.megatech.fms.enums.INVOICE_TYPE;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class InvoiceFormModel {
 
-    private InvoiceModel.INVOICE_TYPE invoiceType;
+    private INVOICE_TYPE invoiceType;
     private String sign;
     private String formNo;
     private boolean isDefault;
@@ -30,11 +31,11 @@ public class InvoiceFormModel {
         this.id = id;
     }
 
-    public InvoiceModel.INVOICE_TYPE getPrintTemplate() {
+    public INVOICE_TYPE getPrintTemplate() {
         return invoiceType;
     }
 
-    public void setPrintTemplate(InvoiceModel.INVOICE_TYPE invoiceType) {
+    public void setPrintTemplate(INVOICE_TYPE invoiceType) {
         this.invoiceType = invoiceType;
     }
 
@@ -89,7 +90,7 @@ public class InvoiceFormModel {
         return app.getString( R.string.form_no) + ": " + formNo + "\t\t" + app.getString( R.string.sign) +": "+ sign;
     }
 
-    public static List<InvoiceFormModel> getInvoiceForms(InvoiceModel.INVOICE_TYPE invoice_type)
+    public static List<InvoiceFormModel> getInvoiceForms(INVOICE_TYPE invoice_type)
     {
         InvoiceFormModel[] savedForms = FMSApplication.getApplication().getInvoiceForms();
         List<InvoiceFormModel> forms = new ArrayList<>();

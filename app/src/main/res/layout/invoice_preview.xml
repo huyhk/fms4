@@ -8,7 +8,7 @@
         <import type="com.megatech.fms.model.REFUEL_ITEM_STATUS" />
         <import type="com.megatech.fms.model.RefuelItemData.CURRENCY" />
 
-        <import type="com.megatech.fms.model.InvoiceModel.INVOICE_TYPE" />
+        <import type="com.megatech.fms.enums.INVOICE_TYPE" />
 
         <import type="android.view.View"></import>
         <variable

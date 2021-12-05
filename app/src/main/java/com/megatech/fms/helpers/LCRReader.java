@@ -359,7 +359,7 @@ public class LCRReader {
                         || oldValue == LCR_SWITCH_STATE.SWITCH_SHIFT_PRINT
                         || old_switch == LCR_SWITCH_STATE.SWITCH_PRINT
                         || old_switch == LCR_SWITCH_STATE.SWITCH_SHIFT_PRINT)
-                    if (!isStarted && isRefuel)
+                    if (!alreadyStarted && isRefuel)
                         sendCommand(LCR_COMMAND.RUN);
             }
             if (newValue != LCR_SWITCH_STATE.SWITCH_STOP)
@@ -897,8 +897,8 @@ public class LCRReader {
 
             //State change to STATE_END_DELIVERY
             if (newValue == LCR_DEVICE_STATE.STATE_END_DELIVERY                   ) {
-                isStopped = isStarted;
-                if (isStarted)
+                isStopped = alreadyStarted;
+                if (alreadyStarted)
                     onStopped();
             }
 
@@ -984,6 +984,7 @@ public class LCRReader {
 
     private void reset() {
         //initLCR();
+        alreadyStarted = false;
         model = new LCRDataModel();
     }
 
@@ -1177,7 +1178,7 @@ public class LCRReader {
 
     // command methods
     public void start() {
-        isStarted = false;
+        alreadyStarted = false;
         isStopped = false;
 
         sendCommand(LCR_COMMAND.RUN);
@@ -1185,8 +1186,7 @@ public class LCRReader {
 
     private void onConnected() {
         //lcrSdk.addListener(deviceStatusListener);
-        if (!isLCR600 && fieldAvail)
-        {
+        if (!isLCR600 && fieldAvail) {
             lcrSdk.fieldToolsFindField(getDeviceId(), "DBMNODE", new AsyncCallback() {
                 @Override
                 public void onAsyncReturn(@Nullable Throwable throwable) {
@@ -1198,9 +1198,9 @@ public class LCRReader {
         raiseError("onConnected");
         if (connectionListener != null)
             connectionListener.onConnected();
-//        if (isStarted()) {
-//            onStarted();
-//        }
+        if (current_device_state == LCR_DEVICE_STATE.STATE_RUN) {
+            onStarted();
+        }
 
         processFieldQueue();
         isError = false;
@@ -1432,7 +1432,7 @@ public class LCRReader {
     {
         raiseError("onStarted");
         //requestData();
-        isStarted = true;
+        alreadyStarted = true;
         lastData = null;
         if (stateListener !=null ){
                 stateListener.onStart();
@@ -1574,7 +1574,7 @@ public class LCRReader {
     private void onStopped() {
         raiseError("onStopped");
         isStopped = false;
-        isStarted = false;
+        alreadyStarted = false;
         stopRequestData();
         if (stateListener != null) {
             stateListener.onStop();
@@ -1661,12 +1661,14 @@ public class LCRReader {
             dataListener.onDataChanged(model, field_change);
     }
 
-    private boolean isStarted = false;
+    private boolean alreadyStarted = false;
 
-    public boolean isStarted() {
-        return isStarted;
+    public boolean isAlreadyStarted() {
+        return alreadyStarted;
     }
-
+    public boolean isRunning() {
+        return current_device_state == LCR_DEVICE_STATE.STATE_RUN;
+    }
     public void setRefuel(boolean refuel)
     {
         isRefuel = refuel;

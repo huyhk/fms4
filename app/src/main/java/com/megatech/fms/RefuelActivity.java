@@ -271,7 +271,7 @@ public class RefuelActivity extends UserBaseActivity  implements View.OnClickLis
                 refuelData.setEndTime(model.getEndTime());
                 refuelData.setStartNumber(model.getStartMeterNumber());
                 refuelData.setEndNumber(model.getEndMeterNumber());
-
+                refuelData.setOriginalEndMeter(model.getEndMeterNumber());
                 currentApp.setCurrentAmount(currentApp.getCurrentAmount()-model.getGrossQty());
                 openPreview();
             }

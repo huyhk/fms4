@@ -8,11 +8,13 @@ import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.OnLifecycleEvent;
 
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.megatech.fms.data.AppDatabase;
 import com.megatech.fms.data.DataRepository;
+import com.megatech.fms.enums.INVOICE_TYPE;
 import com.megatech.fms.helpers.HttpClient;
 import com.megatech.fms.helpers.Logger;
 import com.megatech.fms.model.InvoiceFormModel;
@@ -31,7 +33,22 @@ public class FMSApplication extends Application implements LifecycleObserver {
     @Override
     public void onCreate() {
         super.onCreate();
+        checkDatabase();
         cApp = this;
+    }
+
+    private void checkDatabase() {
+        final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
+        int dbVersion = preferences.getInt("DB_VERSION",0);
+
+        if (dbVersion < BuildConfig.DB_VERSION)
+        {
+            deleteDatabase(BuildConfig.DB_FILE);
+            clearSetting();
+        }
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putInt("DB_VERSION",BuildConfig.DB_VERSION);
+        editor.apply();
     }
 
     public AppDatabase getDatabase() {
@@ -96,8 +113,12 @@ public class FMSApplication extends Application implements LifecycleObserver {
         int build12 = preferences.getInt("BUILD", 0);
         long currentTime = new Date().getTime();
 
-
-        return token != null && build12>=12  && (currentTime - loginTime) / 1000 / 60 < 60*12;
+        boolean isLogged = token != null && build12>=12  && (currentTime - loginTime) / 1000 / 60 < 60*12;
+        if (isLogged)
+        {
+            FirebaseCrashlytics.getInstance().setUserId( preferences.getString("USER_NAME",null));
+        }
+        return  isLogged;
 
     }
     private String printerAddress;
@@ -107,21 +128,7 @@ public class FMSApplication extends Application implements LifecycleObserver {
         //return printerAddress;
         return getSetting().getPrinterIP();
     }
-    private boolean fcmSubscribed;
-    public boolean isFCMSubscribed() {
-        final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
-        fcmSubscribed = preferences.getBoolean("FCM_SUBSCRIBED",false);
-        return fcmSubscribed;
-    }
-    public void setFCMSubscribed(boolean val)
-    {
-        final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
 
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putBoolean("FCM_SUBSCRIBED",val);
-        editor.apply();
-
-    }
 
     public boolean isFirstUse() {
 
@@ -139,6 +146,7 @@ public class FMSApplication extends Application implements LifecycleObserver {
         editor.remove("PRINTER_ADDRESS");
         editor.remove("SETTING");
         editor.commit();
+        setting = null;
     }
     public void clearTruckInfo()
     {
@@ -154,6 +162,7 @@ public class FMSApplication extends Application implements LifecycleObserver {
     }
     public void saveSetting(TruckModel settingModel, boolean post)
     {
+        setting = settingModel;
         settingModel.setAppVersion(getAppVer());
         if (post) {
             HttpClient client = new HttpClient();
@@ -170,13 +179,22 @@ public class FMSApplication extends Application implements LifecycleObserver {
         editor.putString("PRINTER_ADDRESS",printerAddress);
         editor.putString("SETTING",settingModel.toJson());
         editor.commit();
-    }
 
+
+
+    }
+    private TruckModel setting;
     public TruckModel getSetting()
     {
-        final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
-        String json = preferences.getString("SETTING","");
-        return TruckModel.fromJson(json);
+        if (setting == null) {
+            final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
+            String json = preferences.getString("SETTING", "");
+            setting = TruckModel.fromJson(json);
+            FirebaseCrashlytics crashlytics = FirebaseCrashlytics.getInstance();
+            crashlytics.setCustomKey("Tablet-Id",setting.getTabletSerial());
+            crashlytics.setCustomKey("Truck-No",setting.getTruckNo());
+        }
+        return  setting;
     }
     public String getTruckNo() {
         return getSetting().getTruckNo();
@@ -197,12 +215,16 @@ public class FMSApplication extends Application implements LifecycleObserver {
 
     //Set Current Amount and post to database
     public void setCurrentAmount(float currentAmount) {
-//        final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
-//        SharedPreferences.Editor editor = preferences.edit();
-//        editor.putFloat("CURRENT_AMOUNT", currentAmount);
-//        editor.apply();
+
         TruckModel setting = getSetting();
         setting.setCurrentAmount(currentAmount);
+        saveSetting(setting, false);
+
+    }
+    public void addCurrentAmount(float newAmount) {
+
+        TruckModel setting = getSetting();
+        setting.setCurrentAmount(setting.getCurrentAmount() + newAmount);
         saveSetting(setting, false);
 
     }
@@ -227,13 +249,6 @@ public class FMSApplication extends Application implements LifecycleObserver {
         editor.putString("QC_NO",qcNo);
         editor.apply();
         setCurrentAmount( currentAmount + addedAmount);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                HttpClient client = new HttpClient();
-                client.postTruckFuel(getTruckId(), addedAmount, qcNo);
-            }
-        }).start();
 
 
     }
@@ -287,10 +302,10 @@ public class FMSApplication extends Application implements LifecycleObserver {
             InvoiceFormModel[] forms = gson.fromJson(json,InvoiceFormModel[].class);
             for(InvoiceFormModel item: forms)
             {
-                if (item.getId() == default_form_invoice && item.getPrintTemplate() == InvoiceModel.INVOICE_TYPE.INVOICE)
+                if (item.getId() == default_form_invoice && item.getPrintTemplate() == INVOICE_TYPE.INVOICE)
                     item.setLocalDefault(true);
 
-                if (item.getId() == default_form_bill && item.getPrintTemplate() == InvoiceModel.INVOICE_TYPE.BILL)
+                if (item.getId() == default_form_bill && item.getPrintTemplate() == INVOICE_TYPE.BILL)
                     item.setLocalDefault(true);
 
 

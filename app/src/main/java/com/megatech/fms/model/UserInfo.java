@@ -10,14 +10,21 @@ import java.util.Date;
 public class UserInfo {
     public UserInfo() {
     }
-
     public UserInfo(int userId, String userName, String token, int permission, String airport) {
+        this(userId,userName, token, permission,airport, "","","");
+    }
+
+    public UserInfo(int userId, String userName, String token, int permission, String airport,String address, String taxcode, String invoiceName) {
         this.userId = userId;
         this.userName = userName;
         this.token = token;
         this.permission = permission;
         this.lastLogin = new Date();
         this.airport = airport;
+        this.address = address;
+        this.taxCode = taxcode;
+        this.invoiceName = invoiceName;
+
     }
 
     private Date lastLogin;
@@ -59,6 +66,8 @@ public class UserInfo {
     }
 
     private String airport;
+    private String address;
+    private String taxCode;
 
     public String getAirport() {
         return airport;
@@ -66,6 +75,39 @@ public class UserInfo {
 
     public void setAirport(String airport) {
         this.airport = airport;
+    }
+
+    public Date getLastLogin() {
+        return lastLogin;
+    }
+
+    public void setLastLogin(Date lastLogin) {
+        this.lastLogin = lastLogin;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getTaxCode() {
+        return taxCode;
+    }
+
+    public void setTaxCode(String taxCode) {
+        this.taxCode = taxCode;
+    }
+    private String invoiceName;
+
+    public String getInvoiceName() {
+        return invoiceName;
+    }
+
+    public void setInvoiceName(String invoiceName) {
+        this.invoiceName = invoiceName;
     }
 
     public void setUserName(String userName) {
@@ -80,6 +122,9 @@ public class UserInfo {
         editor.putInt("USER_ID", this.userId);
         editor.putString("TOKEN", this.token);
         editor.putString("AIRPORT", this.airport);
+        editor.putString("ADDRESS", this.address);
+        editor.putString("TAX_CODE", this.taxCode);
+        editor.putString("INVOICE_NAME", this.invoiceName);
         editor.putLong("LOGIN_TIME", (new Date()).getTime());
         editor.putInt("PERMISSION", this.permission);
         editor.putInt("BUILD", 12);
@@ -104,6 +149,9 @@ public class UserInfo {
         user.token = sharedPreferences.getString("TOKEN", "");
         user.permission = sharedPreferences.getInt("PERMISSION", 0);
         user.airport = sharedPreferences.getString("AIRPORT","");
+        user.address = sharedPreferences.getString("ADDRESS","");
+        user.taxCode =sharedPreferences.getString("TAX_CODE","");
+        user.invoiceName =sharedPreferences.getString("INVOICE_NAME","");
         return user;
     }
     public static void logout(Context ctx){

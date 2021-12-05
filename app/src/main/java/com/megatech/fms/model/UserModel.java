@@ -4,13 +4,11 @@ import androidx.annotation.NonNull;
 
 public class UserModel extends BaseModel {
 
-    private int id;
+
     private  String fullName;
     private String displayName;
     private  String name;
-    public int getId() {
-        return id;
-    }
+
 
     public void setId(int id) {
         this.id = id;

@@ -7,14 +7,24 @@ import com.megatech.fms.FMSApplication;
 import com.megatech.fms.data.AppDatabase;
 import com.megatech.fms.data.DataRepository;
 import com.megatech.fms.data.entity.Airline;
+import com.megatech.fms.data.entity.BM2505;
+import com.megatech.fms.data.entity.Flight;
+import com.megatech.fms.data.entity.Invoice;
+import com.megatech.fms.data.entity.Receipt;
 import com.megatech.fms.data.entity.RefuelItem;
 import com.megatech.fms.data.entity.Truck;
+import com.megatech.fms.data.entity.TruckFuel;
 import com.megatech.fms.data.entity.User;
 import com.megatech.fms.model.AirlineModel;
+import com.megatech.fms.model.BM2505Model;
+import com.megatech.fms.model.FlightModel;
 import com.megatech.fms.model.InvoiceFormModel;
 import com.megatech.fms.model.InvoiceModel;
+import com.megatech.fms.model.REFUEL_ITEM_STATUS;
+import com.megatech.fms.model.ReceiptModel;
 import com.megatech.fms.model.RefuelItemData;
 import com.megatech.fms.model.ShiftModel;
+import com.megatech.fms.model.TruckFuelModel;
 import com.megatech.fms.model.TruckModel;
 import com.megatech.fms.model.UserModel;
 
@@ -34,7 +44,6 @@ public class DataHelper {
     public  static List<TruckModel> getTrucks()
     {
         if (isDebug) {
-
 
             List<TruckModel> lstModel = httpClient.getTrucks();
 
@@ -138,7 +147,7 @@ public class DataHelper {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    //Logger.appendLog("DTH","Start Synchornize");
+
                     List<RefuelItem> modified = repo.getModifiedRefuel();
                     if (modified.size() > 0) {
                         for (RefuelItem item : modified) {
@@ -150,6 +159,8 @@ public class DataHelper {
                                 item.setPostStatus(RefuelItem.ITEM_POST_STATUS.SUCCESS);
                                 item.setJsonData(newData.toJson());
                                 repo.insertRefuel(item);
+
+
                             }
                         }
                     }
@@ -165,6 +176,16 @@ public class DataHelper {
                                 RefuelItem localItem = RefuelItem.fromRefuelItemData(model);
                                 localItem.setPostStatus(RefuelItem.ITEM_POST_STATUS.SUCCESS);
                                 repo.insertRefuel(localItem);
+
+                                //if (model.getStatus() != REFUEL_ITEM_STATUS.DONE) {
+                                    Flight flight = new Flight();
+                                    flight.setId(model.getFlightId());
+                                    flight.setCode(model.getFlightCode());
+                                    flight.setAircraftCode(model.getAircraftCode());
+                                    flight.setRefuelScheduledTime(model.getRefuelTime());
+
+                                    repo.insertFlight(flight);
+                                //}
                             }
                             else if (model.getId() > 0)
                                 ids[i++] = model.getId();
@@ -178,6 +199,87 @@ public class DataHelper {
 
                     //Logger.appendLog("DTH","END Synchornize");
                 }
+            }).start();
+            // synchronize invoices
+             new Thread(()->{
+                 List<Receipt> modified = repo.getModifiedReceipt();
+                 ReceiptAPI client = new ReceiptAPI();
+                 if (modified.size() > 0) {
+                     for (Receipt item : modified) {
+                         ReceiptModel itemData = item.toModel();
+                         ReceiptModel newData = client.post(itemData);
+                         if (newData != null) {
+                             item.setLocalModified(false);
+                             item.setId(newData.getId());
+                             item.setJsonData(newData.toJson());
+                             repo.insertReceipt(item);
+                         }
+                     }
+                 }
+             }).start();
+            // synchronize truck fuels items
+            new Thread(() -> {
+
+                List<TruckFuel> modified = repo.getModifiedTruckFuel();
+                if (modified.size() > 0) {
+                    for (TruckFuel item : modified) {
+                        TruckFuelModel itemData = item.toTruckFuelModel();
+                        TruckFuelModel newData = httpClient.postTruckFuel(itemData);
+                        if (newData != null) {
+                            item.setLocalModified(false);
+                            item.setId(newData.getId());
+                            item.setJsonData(newData.toJson());
+                            repo.insertTruckFuel(item);
+                        }
+                    }
+                }
+                List<TruckFuelModel> lstModel = httpClient.getTruckFuels();
+
+                if (lstModel != null) {
+                    int[] ids = new int[lstModel.size()];
+                    int i = 0;
+                    for (TruckFuelModel model : lstModel) {
+                        repo.insertTruckFuel(TruckFuel.fromTruckFuelModel(model));
+
+                    }
+
+                }
+
+                //Users
+
+
+            }).start();
+
+            //sync BM2505
+            new Thread(() -> {
+
+                List<BM2505> modified = repo.getModifiedBM2505();
+                if (modified.size() > 0) {
+                    for (BM2505 item : modified) {
+                        BM2505Model itemData = item.toModel();
+                        BM2505Model newData = httpClient.postBM2505(itemData);
+                        if (newData != null) {
+                            item.setLocalModified(false);
+                            item.setId(newData.getId());
+                            item.setJsonData(newData.toJson());
+                            repo.insertBM2505(item);
+                        }
+                    }
+                }
+                List<BM2505Model> lstModel = httpClient.getBM2505List();
+
+                if (lstModel != null) {
+                    int[] ids = new int[lstModel.size()];
+                    int i = 0;
+                    for (BM2505Model model : lstModel) {
+                        repo.insertBM2505(BM2505.fromModel(model));
+
+                    }
+
+                }
+
+
+
             }).start();
 
             //update airlines, users from another thread
@@ -215,6 +317,8 @@ public class DataHelper {
                     FMSApplication.getApplication().saveInvoiceForms(invoiceForms);
 
             }).start();
+
+
         }
         //get new remote items
 
@@ -245,7 +349,7 @@ public class DataHelper {
             } else {
                 if (localItem.getId()>0 && refuelData.getId() ==0)
                     refuelData.setId((localItem.getId()));
-
+                //refuelData.setLocalModified(true);
                 localItem.updateData(refuelData);
                 //refuelData.setLocalId(localItem.getLocalId());
 
@@ -303,5 +407,63 @@ public class DataHelper {
     public static RefuelItemData getImcomplete() {
         RefuelItemData item =  repo.getIncomplete(FMSApplication.getApplication().getTruckNo());
         return item;
+    }
+
+    public static List<TruckFuelModel> getTruckFuels() {
+        return getTruckFuels(new Date());
+    }
+    public static List<TruckFuelModel> getTruckFuels(Date date) {
+        return repo.getTruckFuels(date);
+    }
+
+    public static void postTruckFuel(TruckFuelModel model) {
+        TruckFuel localModel = TruckFuel.fromTruckFuelModel(model);
+        localModel.setLocalModified(true);
+        repo.insertTruckFuel(localModel);
+        // call synchronize to update remote database
+        Synchronize();
+
+    }
+
+    public static void deleteTruckFuels(int[] ids) {
+        repo.deleteTruckFuels(ids);
+        // call synchronize to update remote database
+        Synchronize();
+
+    }
+
+    public static List<BM2505Model> getBM2505List(Date date) {
+        return repo.getBM2505List(date);
+    }
+
+    public static void postBM2505(BM2505Model model) {
+
+        BM2505 localModel = BM2505.fromModel(model);
+        localModel.setLocalModified(true);
+        repo.insertBM2505(localModel);
+        // call synchronize to update remote database
+        Synchronize();
+    }
+
+    public static List<FlightModel> getFlights() {
+        return getFlights(new Date());
+    }
+
+
+    public static List<FlightModel> getFlights(Date date) {
+        return repo.getFlights(date);
+    }
+
+    public static void deleteBM2505(int[] ids) {
+        repo.deleteBM2505(ids);
+    }
+
+    public static void postReceipt(ReceiptModel model) {
+
+        Receipt localModel = Receipt.fromModel(model);
+        localModel.setLocalModified(true);
+        repo.insertReceipt(localModel);
+        // call synchronize to update remote database
+        Synchronize();
     }
 }

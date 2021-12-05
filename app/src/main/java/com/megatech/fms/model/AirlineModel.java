@@ -5,7 +5,7 @@ import androidx.annotation.NonNull;
 import com.megatech.fms.model.RefuelItemData.CURRENCY;
 
 public class AirlineModel extends BaseModel {
-    private int id;
+
     private String name;
     private String taxCode;
     private String address;
@@ -45,9 +45,6 @@ public class AirlineModel extends BaseModel {
         this.code = code;
     }
 
-    public int getId() {
-        return id;
-    }
 
     public void setId(int id) {
         this.id = id;

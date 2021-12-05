@@ -5,6 +5,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
 import com.megatech.fms.FMSApplication;
+import com.megatech.fms.data.entity.BaseEntity;
+import com.megatech.fms.enums.INVOICE_TYPE;
 import com.megatech.fms.helpers.Logger;
 import com.megatech.fms.helpers.NumberConvert;
 import com.megatech.fms.helpers.VNCharacterUtils;
@@ -22,7 +24,7 @@ import java.util.Queue;
 
 import static com.megatech.fms.model.RefuelItemData.GALLON_TO_LITTER;
 
-public class InvoiceModel {
+public class InvoiceModel extends BaseEntity {
 
     private static final Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
     private String productName = "";
@@ -318,16 +320,7 @@ public class InvoiceModel {
         this.printTemplate = printTemplate;
     }
 
-    public enum INVOICE_TYPE {
-        @SerializedName("0")    INVOICE(0),
-        @SerializedName("1") BILL(1);
 
-        private  int value;
-
-        INVOICE_TYPE(int i) {
-            value = i;
-        }
-    }
 
     public Date getInvoiceDate(){
         return endTime;
@@ -619,13 +612,13 @@ public class InvoiceModel {
                     new String(new char[]{27, 51, 16}),
                     //String.format("    %s           %.0f    %.0f                    %.2f\n",mItem.getTruckNo()  ,mItem.getStartNumber(), mItem.getEndNumber(), mItem.getVolume()),
                     truckInfo,
-                    new String(new char[]{27, 51, 8}),
+                    new String(new char[]{27, 51, 4}),
                     "\n",
-                    new String(new char[]{27, 51,(char)(b+3)}),
-                    String.format("                   %s\n", names[0]) + (names[1]!=""?String.format("\n                   %s\n",names[1]):""),
-                    new String(new char[]{27, 51,(char)b}),
+                    new String(new char[]{27, 51,10}),
+                    String.format("                   %s\n", names[0]) + (names[1]!=""?String.format("\n                   %s\n",names[1]):"\n\n"),
+                    //new String(new char[]{27, 51,(char)b}),
                     String.format("                   %s\n", getTaxCode()),
-                    String.format("             %s\n", addresses[0]) + (addresses[1]!=""?String.format("\n             %s\n", addresses[1]):""),
+                    String.format("             %s\n", addresses[0]) + (addresses[1]!=""?String.format("\n             %s\n", addresses[1]):"\n\n"),
                     new String(new char[]{27, 51, 16}),
                     String.format("%30s%34s\n", this.getAircraftType(), this.getAircraftCode()),
                     String.format("%30s%34s\n", this.getFlightCodePrint(), this.getRouteName()),

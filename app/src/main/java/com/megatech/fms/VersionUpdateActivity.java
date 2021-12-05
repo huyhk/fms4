@@ -32,10 +32,7 @@ public class VersionUpdateActivity extends BaseActivity implements View.OnClickL
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        if (BuildConfig.DEBUG)
-        {
-            throw new RuntimeException("Test Crash"); // Force a crash
-        }
+      
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_version_update);
         TextView txt = findViewById(R.id.info_dialog_version);

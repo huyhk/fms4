@@ -1,11 +1,8 @@
 package com.megatech.fms;
 
 import android.Manifest;
-import android.app.AlarmManager;
 import android.app.Dialog;
-import android.app.PendingIntent;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -43,7 +40,7 @@ import static com.megatech.fms.BuildConfig.DEBUG;
 
 public class UserBaseActivity extends BaseActivity {
     @Override
-    protected  void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         if (!checkLogin()) {
@@ -72,17 +69,16 @@ public class UserBaseActivity extends BaseActivity {
 
     protected void setTruckInfo() {
         TextView lblInventory = findViewById(R.id.lbltoolbar_Inventory);
-        if (lblInventory!=null)
+        if (lblInventory != null)
             lblInventory.setText(String.format("%s: %.0f", currentApp.getTruckNo(), currentApp.getCurrentAmount()));
 
 
     }
 
 
-
     protected void setToolbar() {
         Toolbar toolbar = findViewById(R.id.toolbar);
-        if (toolbar!=null) {
+        if (toolbar != null) {
             setSupportActionBar(toolbar);
             getSupportActionBar().setDisplayShowTitleEnabled(false);
             Button btnInvoice = findViewById(R.id.btnInvoice);
@@ -92,13 +88,23 @@ public class UserBaseActivity extends BaseActivity {
                     invoice();
                 }
             });
-            Button btnInventory = findViewById(R.id.btnAddInventory);
+            Button btnInventory = findViewById(R.id.btn_2502);
             btnInventory.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    addInventory();
+                    openBM2502();
                 }
             });
+
+            Button btn_2505 = findViewById(R.id.btn_bm_2505);
+            if (btn_2505 != null)
+                btn_2505.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        openBM2505();
+                    }
+                });
+
             Button btnSetting = findViewById(R.id.btnSetting);
             btnSetting.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -106,7 +112,6 @@ public class UserBaseActivity extends BaseActivity {
                     setting();
                 }
             });
-
 
             Button btnRefuel = findViewById(R.id.btnRefuel);
             btnRefuel.setOnClickListener(new View.OnClickListener() {
@@ -131,6 +136,11 @@ public class UserBaseActivity extends BaseActivity {
 
     }
 
+    private void openBM2505() {
+        Intent intent = new Intent(this, B2505Activity.class);
+        startActivity(intent);
+    }
+
     private void refuel() {
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
@@ -141,13 +151,11 @@ public class UserBaseActivity extends BaseActivity {
         startActivity(intent);
     }
 
-    private void addInventory() {
+    private void openBM2502() {
         try {
-            Intent intent = new Intent(this, InventoryActivity.class);
+            Intent intent = new Intent(this, B2502Activity.class);
             startActivity(intent);
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             Log.e("INVENTORY", ex.getMessage());
         }
 
@@ -165,19 +173,23 @@ public class UserBaseActivity extends BaseActivity {
         return currentApp.isLoggedin();
 
     }
+
     protected int SETTING_CODE = 2;
-    public void setting()
-    {
+
+    public void setting() {
         Intent intent = new Intent(this, SettingActivity.class);
         //intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
 
     }
 
+    protected Menu optionMenu;
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+        optionMenu = menu;
         return true;
     }
 
@@ -189,7 +201,7 @@ public class UserBaseActivity extends BaseActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        switch (id){
+        switch (id) {
 
 
             case R.id.action_info:
@@ -203,8 +215,7 @@ public class UserBaseActivity extends BaseActivity {
                 showRestart();
                 break;
             case R.id.action_send_log:
-                if (Logger.sendLog())
-                {
+                if (Logger.sendLog()) {
                     new AlertDialog.Builder(this)
                             .setTitle(R.string.app_name)
                             .setMessage(R.string.send_log_completed)
@@ -217,7 +228,7 @@ public class UserBaseActivity extends BaseActivity {
                 return super.onOptionsItemSelected(item);
         }
 
-        return  true;
+        return true;
     }
 
     private void showUpdate() {
@@ -251,12 +262,14 @@ public class UserBaseActivity extends BaseActivity {
                 .create()
                 .show();
     }
-    private  final  int RESTART_CODE = 3;
+
+    private final int RESTART_CODE = 3;
+
     private void restartApp() {
         //Intent intent = new Intent(this, StartupActivity.class);
         Intent intent = getBaseContext().getPackageManager().
                 getLaunchIntentForPackage(getBaseContext().getPackageName());
-        if (intent!=null) {
+        if (intent != null) {
 /*            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_NEW_TASK);
             int mPendingIntentId = 123456;
             PendingIntent mPendingIntent = PendingIntent.getActivity(UserBaseActivity.this, mPendingIntentId, intent,
@@ -441,8 +454,7 @@ public class UserBaseActivity extends BaseActivity {
         new UpdateAsyncTask().execute(update_url);
     }
 
-    private  void logout()
-    {
+    private void logout() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setCancelable(false);
         builder.setTitle(R.string.app_name);
@@ -465,6 +477,7 @@ public class UserBaseActivity extends BaseActivity {
         // after calling setter methods
         builder.create().show();
     }
+
     private void doLogout() {
         currentApp.logout();
         finish();

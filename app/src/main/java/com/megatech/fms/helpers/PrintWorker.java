@@ -8,6 +8,7 @@ import android.widget.Toast;
 import com.megatech.fms.FMSApplication;
 import com.megatech.fms.R;
 import com.megatech.fms.model.InvoiceModel;
+import com.megatech.fms.model.ReceiptModel;
 import com.megatech.tcpclient.TcpClient;
 import com.megatech.tcpclient.TcpEvent;
 
@@ -117,6 +118,7 @@ public class PrintWorker implements Observer {
             Logger.appendLog("PRINTER", ex.getMessage());
             //return -1;
         }
+        printed = dataToPrint.size() ==0;
         return  dataToPrint.size();
     }
 
@@ -173,6 +175,26 @@ public class PrintWorker implements Observer {
         }
         return true;
     }
+    String receitpData;
+    boolean printReceipt;
+    public boolean printReceipt(ReceiptModel receiptModel)
+    {
+       receitpData = receiptModel.createPrintText();
+        printReceipt = true;
+        try {
+            String printerAddress = FMSApplication.getApplication().getPrinterAddress();
+            this.mTcpClient = new TcpClient(printerAddress, PRINTER_PORT);
+            this.mTcpClient.addObserver(this);
+            this.mTcpClient.connect();
+
+        }
+        catch (Exception e)
+        {
+            Log.e("ERROR", e.toString());
+            return false;
+        }
+        return  true;
+    }
 
     private boolean onlineStatus = false;
     private boolean checking = false;
@@ -211,17 +233,23 @@ public class PrintWorker implements Observer {
                     checking = true;
                 else if (payload.equals(RELEASE_CODE))
                     onSuccess();
-                else if (dataToPrint.size() ==0){
+                else if (printed){
 
                     releasePaper();
                 }
-                else
-                    printData() ;
+                else {
+                    if (!printReceipt)
+                        printData();
+                    else {
+                        mTcpClient.sendMessage(prepareText(receitpData));
+                        printed = true;
+                    }
+                }
                 break;
 
         }
     }
-
+    boolean printed = false;
     private void checkPrinter() {
 
         mTcpClient.sendMessage(CHECK_CODE);

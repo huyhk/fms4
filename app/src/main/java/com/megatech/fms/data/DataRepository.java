@@ -1,23 +1,33 @@
 package com.megatech.fms.data;
 
 import com.megatech.fms.data.entity.Airline;
+import com.megatech.fms.data.entity.BM2505;
+import com.megatech.fms.data.entity.Flight;
+import com.megatech.fms.data.entity.Invoice;
 import com.megatech.fms.data.entity.ParkingLot;
+import com.megatech.fms.data.entity.Receipt;
 import com.megatech.fms.data.entity.RefuelItem;
 import com.megatech.fms.data.entity.Shift;
 import com.megatech.fms.data.entity.Truck;
+import com.megatech.fms.data.entity.TruckFuel;
 import com.megatech.fms.data.entity.User;
 import com.megatech.fms.helpers.HttpClient;
 import com.megatech.fms.model.AirlineModel;
+import com.megatech.fms.model.BM2505Model;
+import com.megatech.fms.model.FlightModel;
 import com.megatech.fms.model.RefuelItemData;
 import com.megatech.fms.model.ShiftModel;
+import com.megatech.fms.model.TruckFuelModel;
 import com.megatech.fms.model.TruckModel;
 import com.megatech.fms.model.UserModel;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
 public class DataRepository {
+
 
     private AppDatabase db;
     private static DataRepository sInstance;
@@ -231,5 +241,162 @@ public class DataRepository {
         if (item!=null)
             return item.toRefuelItemData();
         else return  null;
+    }
+
+    public List<TruckFuelModel> getTruckFuels(Date date) {
+        Calendar cal =  Calendar.getInstance();
+        cal.setTime(date);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        long start = cal.getTime().getTime();
+        cal.add(Calendar.DATE,1);
+        long end = cal.getTime().getTime();
+        List<TruckFuel> localList = db.truckFuelDao().getAll(start, end);
+        List<TruckFuelModel> returnList = new ArrayList();
+        for (TruckFuel item : localList) {
+            returnList.add(item.toTruckFuelModel());
+        }
+        return returnList;
+    }
+
+    public void insertTruckFuel(TruckFuel model) {
+
+        TruckFuel item = db.truckFuelDao().get(model.getId(), model.getLocalId());
+
+        if (item == null || (item.getId() == 0 &&  item.getLocalId() != model.getLocalId())) {
+            db.truckFuelDao().insert(model);
+        } else {
+            //item.setJsonData(truckModel.getJsonData());
+
+            model.setLocalId(item.getLocalId());
+            db.truckFuelDao().update(model);
+        }
+    }
+
+
+    public List<TruckFuel> getModifiedTruckFuel() {
+
+        List<TruckFuel> modified = db.truckFuelDao().getModified();
+        return modified;
+    }
+
+    public List<Invoice> getModifiedInvoice() {
+
+        List<Invoice> modified = db.invoiceDao().getModified();
+        return modified;
+    }
+
+    public void deleteTruckFuels(int[] ids) {
+        db.truckFuelDao().delete(ids);
+    }
+
+
+    public <T> List<T> getModified()
+    {
+        return null;
+    }
+
+    public void insertInvoice(Invoice model) {
+        Invoice item = db.invoiceDao().get(model.getId(), model.getLocalId());
+
+        if (item == null || (item.getId() == 0 &&  item.getLocalId() != model.getLocalId())) {
+            db.invoiceDao().insert(model);
+        } else {
+
+            model.setLocalId(item.getLocalId());
+            db.invoiceDao().update(model);
+        }
+    }
+
+    public List<BM2505Model> getBM2505List(Date date) {
+
+        Calendar cal =  Calendar.getInstance();
+        cal.setTime(date);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        long start = cal.getTime().getTime();
+        cal.add(Calendar.DATE,1);
+        long end = cal.getTime().getTime();
+        List<BM2505> localList = db.bm2505Dao().getAll(start, end);
+        List<BM2505Model> returnList = new ArrayList();
+        for (BM2505 item : localList) {
+            returnList.add(item.toModel());
+        }
+        return returnList;
+    }
+
+    public void insertFlight(Flight model) {
+        Flight item = db.flightDao().get(model.getId(), model.getLocalId());
+
+        if (item == null || (item.getId() == 0 &&  item.getLocalId() != model.getLocalId())) {
+            db.flightDao().insert(model);
+        } else {
+
+            model.setLocalId(item.getLocalId());
+            db.flightDao().update(model);
+        }
+    }
+
+    public void insertBM2505(BM2505 model) {
+
+        BM2505 item = db.bm2505Dao().get(model.getId(), model.getLocalId());
+
+        if (item == null || (item.getId() == 0 &&  item.getLocalId() != model.getLocalId())) {
+            db.bm2505Dao().insert(model);
+        } else {
+
+
+            model.setLocalId(item.getLocalId());
+            db.bm2505Dao().update(model);
+        }
+    }
+
+    public List<FlightModel> getFlights(Date date) {
+        Calendar cal =  Calendar.getInstance();
+        cal.setTime(date);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        long start = cal.getTime().getTime();
+        cal.add(Calendar.DATE,1);
+        long end = cal.getTime().getTime();
+        List<Flight> localList = db.flightDao().getAll(start, end);
+        List<FlightModel> returnList = new ArrayList();
+        for (Flight item : localList) {
+            returnList.add(item.toModel());
+        }
+        return returnList;
+    }
+
+    public void deleteBM2505(int[] ids) {
+        db.bm2505Dao().delete(ids);
+    }
+
+    public List<BM2505> getModifiedBM2505() {
+        List<BM2505> modified = db.bm2505Dao().getModified();
+        return modified;
+    }
+
+    public void insertReceipt(Receipt model) {
+        Receipt item = db.receiptDao().get(model.getId(), model.getLocalId());
+
+        if (item == null || (item.getId() == 0 &&  item.getLocalId() != model.getLocalId())) {
+            db.receiptDao().insert(model);
+        } else {
+
+            model.setLocalId(item.getLocalId());
+            db.receiptDao().update(model);
+        }
+    }
+
+    public List<Receipt> getModifiedReceipt() {
+
+        List<Receipt> modified = db.receiptDao().getModified();
+        return modified;
     }
 }

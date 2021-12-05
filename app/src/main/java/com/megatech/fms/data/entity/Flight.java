@@ -3,6 +3,10 @@ package com.megatech.fms.data.entity;
 import androidx.room.Embedded;
 import androidx.room.Entity;
 
+import com.megatech.fms.model.FlightModel;
+
+import java.util.Date;
+
 @Entity
 public class Flight extends BaseEntity {
     private String code;
@@ -25,5 +29,31 @@ public class Flight extends BaseEntity {
         this.code = code;
     }
 
+    private String aircraftCode;
 
+    private Date refuelScheduledTime;
+
+    public String getAircraftCode() {
+        return aircraftCode;
+    }
+
+    public void setAircraftCode(String aircraftCode) {
+        this.aircraftCode = aircraftCode;
+    }
+
+    public Date getRefuelScheduledTime() {
+        return refuelScheduledTime;
+    }
+
+    public void setRefuelScheduledTime(Date refuelScheduledTime) {
+        this.refuelScheduledTime = refuelScheduledTime;
+    }
+
+    public FlightModel toModel()
+    {
+        FlightModel model = gson.fromJson(this.toJson(), FlightModel.class);
+        model.setLocalId(this.getLocalId());
+        model.setDeleted(this.isDeleted());
+        return model;
+    }
 }

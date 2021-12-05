@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "artifactType": {
+    "type": "APK",
+    "kind": "Directory"
+  },
+  "applicationId": "com.megatech.fms",
+  "variantName": "debug",
+  "elements": [
+    {
+      "type": "SINGLE",
+      "filters": [],
+      "versionCode": 22,
+      "versionName": "8.5.20211129.22",
+      "outputFile": "fms-debug-22-20211129.apk"
+    }
+  ]
+}

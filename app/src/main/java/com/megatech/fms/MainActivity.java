@@ -3,12 +3,20 @@ package com.megatech.fms;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -17,6 +25,8 @@ import android.widget.SearchView;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.view.menu.ActionMenuItem;
+import androidx.appcompat.view.menu.ActionMenuItemView;
 import androidx.databinding.DataBindingUtil;
 import androidx.viewpager.widget.ViewPager;
 
@@ -28,6 +38,7 @@ import com.megatech.fms.helpers.DataHelper;
 import com.megatech.fms.helpers.HttpClient;
 import com.megatech.fms.helpers.LCRReader;
 import com.megatech.fms.helpers.Logger;
+import com.megatech.fms.model.LCRDataModel;
 import com.megatech.fms.model.RefuelItemData;
 import com.megatech.fms.model.ShiftModel;
 import com.megatech.fms.model.UserInfo;
@@ -127,6 +138,14 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
         }
 
         if (!currentApp.isFirstUse())
+        initReader();
+        setTabData();
+        prepareSearchBox();
+
+        checkIncompleteItem();
+    }
+
+    private void initReader() {
         reader = LCRReader.create(this, currentApp.getDeviceIP(), 10001, true);
         reader.setConnectionListener(new LCRReader.LCRConnectionListener() {
             @Override
@@ -164,10 +183,23 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
             }
         });
 
-        setTabData();
-        prepareSearchBox();
+        reader.setFieldDataListener(new LCRReader.LCRDataListener() {
+            @Override
+            public void onDataChanged(LCRDataModel dataModel, LCRReader.FIELD_CHANGE field_change) {
+                reader.doDisconnectDevice();
 
-        checkIncompleteItem();
+            }
+
+            @Override
+            public void onErrorMessage(String errorMsg) {
+
+            }
+
+            @Override
+            public void onFieldAddSucess(String field_name) {
+
+            }
+        });
     }
 
     private void prepareSearchBox() {
@@ -388,8 +420,7 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (reader!=null)
-            reader.destroy();
+
     }
 
     @Override
@@ -403,8 +434,10 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
         tmr.schedule(new TimerTask() {
             @Override
             public void run() {
+                runOnUiThread(()->{
+                    showInternetIcon(!hostAvailable("skypec.com.vn",80));
+                });
 
-                showInternetIcon(!hostAvailable("skypec.com.vn",80));
 
             }
         },10,5*1000);
@@ -424,8 +457,28 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
 
     private void showInternetIcon(boolean show)
     {
-        View v = findViewById(R.id.action_status);
-        if (v!=null)
-            v.setVisibility(show?View.VISIBLE: View.INVISIBLE);
+        if (optionMenu == null) return;
+        MenuItem v = optionMenu.findItem(R.id.action_status);
+        if (v!=null) {
+            Drawable icon = getDrawable(R.drawable.ic_no_connection);
+
+            //v.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
+
+            if (!show) {
+                WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+                WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+                String ssid = wifiInfo.getSSID();
+                SpannableString s = new SpannableString("WIFI:" + ssid.replace("\"",""));
+                s.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s.length(), 0);
+
+                v.setTitle(s);
+                v.setIcon(null);
+
+            }
+            else {
+                v.setIcon(icon);
+            }
+        }
+
     }
 }

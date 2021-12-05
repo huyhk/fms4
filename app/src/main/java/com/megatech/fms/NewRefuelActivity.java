@@ -35,6 +35,7 @@ import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.megatech.fms.databinding.ActivityNewRefuelBinding;
+import com.megatech.fms.enums.INVOICE_TYPE;
 import com.megatech.fms.helpers.DataHelper;
 import com.megatech.fms.helpers.DateUtils;
 import com.megatech.fms.helpers.HttpClient;
@@ -95,9 +96,10 @@ public class NewRefuelActivity extends UserBaseActivity implements View.OnClickL
             String airport = preferences.getString("AIRPORT","");
             if (airport!="")
                 refuelData.setRouteName(airport +"-");
-            binding = DataBindingUtil.setContentView(this, R.layout.activity_new_refuel);
+            //binding = DataBindingUtil.setContentView(this, R.layout.activity_new_refuel);
+            binding = DataBindingUtil.inflate(getLayoutInflater(), R.layout.activity_new_refuel,null,false);
             binding.setMItem(refuelData);
-
+            setContentView(binding.getRoot());
             loaddata();
         } catch (Exception ex) {
             Logger.appendLog("NEWR", ex.getLocalizedMessage());
@@ -435,7 +437,7 @@ public class NewRefuelActivity extends UserBaseActivity implements View.OnClickL
             new AsyncTask<Void, Void, RefuelItemData>() {
                 @Override
                 protected RefuelItemData doInBackground(Void... voids) {
-                    refuelData.setPrintTemplate(refuelData.isInternational() || refuelData.getAirlineModel().isInternational()? InvoiceModel.INVOICE_TYPE.INVOICE : InvoiceModel.INVOICE_TYPE.BILL);
+                    refuelData.setPrintTemplate(refuelData.isInternational() || refuelData.getAirlineModel().isInternational()? INVOICE_TYPE.INVOICE : INVOICE_TYPE.BILL);
                     RefuelItemData response = DataHelper.postRefuel(refuelData);
                     return response;
                 }

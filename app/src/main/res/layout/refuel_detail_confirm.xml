@@ -8,7 +8,7 @@
 
         <import type="com.megatech.fms.model.RefuelItemData.FLIGHT_STATUS" />
 
-        <import type="com.megatech.fms.model.InvoiceModel.INVOICE_TYPE" />
+        <import type="com.megatech.fms.enums.INVOICE_TYPE" />
 
         <import type="com.megatech.fms.model.RefuelItemData.REFUEL_ITEM_TYPE" />
 

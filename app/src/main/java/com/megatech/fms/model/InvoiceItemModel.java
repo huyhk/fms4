@@ -9,6 +9,8 @@ public class InvoiceItemModel {
     private double realAmount;
     private double volume;
     private double weight;
+    private int driverId;
+    private int operatorId;
 
     public double getWeight() {
         return weight;
@@ -67,5 +69,22 @@ public class InvoiceItemModel {
 
     public void setReturn(boolean aReturn) {
         isReturn = aReturn;
+    }
+
+
+    public int getDriverId() {
+        return driverId;
+    }
+
+    public void setDriverId(int driverId) {
+        this.driverId = driverId;
+    }
+
+    public int getOperatorId() {
+        return operatorId;
+    }
+
+    public void setOperatorId(int operatorId) {
+        this.operatorId = operatorId;
     }
 }

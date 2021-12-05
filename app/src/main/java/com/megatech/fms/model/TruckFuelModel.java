@@ -17,6 +17,7 @@ public class TruckFuelModel extends BaseModel {
     private String qcNo;
     private Date time;
     private int operatorId;
+    private String operatorName;
     private double amount; //litter
     private double accumulatedRefuelAmount;//litter
     private double truckCapacity;
@@ -25,6 +26,7 @@ public class TruckFuelModel extends BaseModel {
         TruckModel setting = FMSApplication.getApplication().getSetting();
         this.truckId = setting.getTruckId();
         this.truckNo = setting.getTruckNo();
+        this.qcNo = FMSApplication.getApplication().getQCNo();
         this.time = new Date();
     }
 
@@ -58,6 +60,14 @@ public class TruckFuelModel extends BaseModel {
 
     public void setTankNo(String tankNo) {
         this.tankNo = tankNo;
+    }
+
+    public String getOperatorName() {
+        return operatorName;
+    }
+
+    public void setOperatorName(String operatorName) {
+        this.operatorName = operatorName;
     }
 
     public String getMaintenanceStaff() {

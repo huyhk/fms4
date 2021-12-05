@@ -149,10 +149,13 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
     }
     ActivityRefuelDetailConfirmBinding binding;
     private void bindData() {
-        binding = DataBindingUtil.setContentView(this, R.layout.activity_refuel_detail_confirm);
-        if (binding !=null && mItem!=null)
+        //binding = DataBindingUtil.setContentView(this, R.layout.activity_refuel_detail_confirm);
+        binding = DataBindingUtil.inflate(getLayoutInflater(), R.layout.activity_refuel_detail_confirm,null,false);
+        if (binding !=null && mItem!=null) {
             binding.setMItem(mItem);
-        binding.invalidateAll();
+            setContentView(binding.getRoot());
+            binding.invalidateAll();
+        }
         closeProgressDialog();
     }
 
@@ -252,7 +255,7 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
                         this.showErrorMessage(R.string.error_data, R.string.invalid_density, R.drawable.ic_error);
 
                         return false;
-                    }
+                    }else
                     mItem.setDensity(d);
                     break;
                 case R.id.refuel_confirm_Temperature:
@@ -262,13 +265,15 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
                     mItem.setQualityNo(m_Text);
                     break;
                 case R.id.refuel_confirm_start_meter:
-                    mItem.setStartNumber(numberFormat.parse(m_Text).doubleValue());
+                    //mItem.setStartNumber(numberFormat.parse(m_Text).doubleValue());
                     break;
                 case R.id.refuel_confirm_end_meter:
                     mItem.setEndNumber(numberFormat.parse(m_Text).doubleValue());
+                    mItem.setStartNumber(mItem.getEndNumber() - mItem.getRealAmount());
                     break;
                 case R.id.refuel_confirm_real_amount:
                     mItem.setRealAmount(numberFormat.parse(m_Text).doubleValue());
+                    mItem.setStartNumber(mItem.getEndNumber() - mItem.getRealAmount());
                     break;
                 case R.id.refuel_confirm_return:
                     calculateReturnAmount(numberFormat.parse(m_Text).doubleValue());
@@ -372,8 +377,8 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
             showErrorMessage(R.string.invalid_temperature);
         else if(mItem.getRealAmount()<=0)
             showErrorMessage(R.string.invalid_real_amount);
-        else if(mItem.getStartNumber()> mItem.getEndNumber() || mItem.getStartNumber() + mItem.getRealAmount() != mItem.getEndNumber() )
-            showErrorMessage(R.string.invalid_start_end_meter);
+//        else if(mItem.getStartNumber()> mItem.getEndNumber() || mItem.getStartNumber() + mItem.getRealAmount() != mItem.getEndNumber() )
+//            showErrorMessage(R.string.invalid_start_end_meter);
         else if(mItem.getStartTime().after( mItem.getEndTime() ))
             showErrorMessage(R.string.invalid_start_end_time);
         else if (mItem.getQualityNo().trim().isEmpty())
@@ -463,11 +468,17 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
                 Intent intent = new Intent(this, RefuelPreviewActivity.class);
                 intent.putExtra("REFUEL_ID", mItem.getId());
                 intent.putExtra("REFUEL_LOCAL_ID", mItem.getLocalId());
-                int confirm_OPEN = 1;
-                startActivityForResult(intent, confirm_OPEN);
+                //int confirm_OPEN = 1;
+                startActivity(intent);
             }
 
             finish();
 
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Runtime.getRuntime().gc();
     }
 }

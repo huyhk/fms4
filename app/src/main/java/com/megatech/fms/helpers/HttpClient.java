@@ -8,7 +8,9 @@ import com.google.gson.GsonBuilder;
 import com.megatech.fms.BuildConfig;
 import com.megatech.fms.FMSApplication;
 import com.megatech.fms.data.entity.ParkingLot;
+import com.megatech.fms.data.entity.TruckFuel;
 import com.megatech.fms.model.AirlineModel;
+import com.megatech.fms.model.BM2505Model;
 import com.megatech.fms.model.FlightData;
 import com.megatech.fms.model.InvoiceFormModel;
 import com.megatech.fms.model.InvoiceModel;
@@ -16,6 +18,7 @@ import com.megatech.fms.model.LCRDataModel;
 import com.megatech.fms.model.PermissionModel;
 import com.megatech.fms.model.RefuelItemData;
 import com.megatech.fms.model.ShiftModel;
+import com.megatech.fms.model.TruckFuelModel;
 import com.megatech.fms.model.TruckModel;
 import com.megatech.fms.model.UserModel;
 
@@ -75,15 +78,19 @@ public class HttpClient {
         String loginUrl = API_BASE_URL + "/token";
         String contentType = "application/x-www-form-urlencoded";
         try {
-            String data = sendPOST(loginUrl, "grant_type=password&username=" + username + "&password=" + password,contentType);// executeUrl(loginUrl,contentType,"POST", "grant_type=password&username="+username+"&password="+password);
-            if (data.contains("Data Error"))
-                data = "{'ResponseCode':'400'}";
-            try {
-                JSONObject obj = new JSONObject(data);
-                return obj;
-            } catch (JSONException e) {
+            String param = "grant_type=password&username=" + username + "&password=" + password;
+            HttpResponse response = sendPOST(loginUrl, param,contentType);// executeUrl(loginUrl,contentType,"POST", "grant_type=password&username="+username+"&password="+password);
+            if (response.responseCode == HttpURLConnection.HTTP_OK)
+            {
+                try {
+                    JSONObject obj = new JSONObject(response.data);
+                    return obj;
+                } catch (JSONException e) {
 
+                }
             }
+
+
         } catch (IOException e) {
             Log.e("ERROR", e.getMessage());
         }
@@ -186,17 +193,9 @@ public class HttpClient {
     }
     private final String USER_AGENT = "Mozilla/5.0";
 
-    private String sendGET(String url) throws IOException {
+    public String sendGET(String url) throws IOException {
         try {
-            /*
-            URL obj = new URL(url);
-            HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-            con.setConnectTimeout(1000);
-            con.setRequestMethod("GET");
-            con.setRequestProperty("User-Agent", USER_AGENT);
-            this.token =  FMSApplication.getApplication().getUser().getToken();
-            if (this.token != null)
-                con.setRequestProperty("Authorization", "bearer " + this.token);*/
+
 
             HttpURLConnection con = createConnection(url, "GET", "*/*");
             if (con ==null)
@@ -230,24 +229,12 @@ public class HttpClient {
             return "IO error";
         }
     }
-    private String sendPOST(String url,String params ) throws IOException
+    public HttpResponse sendPOST(String url,String params ) throws IOException
     {
         return  sendPOST(url,params,"application/json; utf-8");
     }
-    private String sendPOST(String url,String params, String contentType ) throws IOException {
+    public HttpResponse sendPOST(String url,String params, String contentType ) throws IOException {
         try {
-            /*
-            URL obj = new URL(url);
-            HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-            con.setConnectTimeout(1000);
-            con.setRequestMethod("POST");
-            con.setRequestProperty("Content-Type", "application/json; utf-8");
-            con.setRequestProperty("Accept", "application/json");
-            con.setRequestProperty("User-Agent", USER_AGENT);
-            this.token =  FMSApplication.getApplication().getUser().getToken();
-            if (this.token != null)
-                con.setRequestProperty("Authorization", "bearer " + this.token);
-            */
 
             HttpURLConnection con = createConnection(url, "POST",contentType );
             if(con ==null)
@@ -277,12 +264,12 @@ public class HttpClient {
 
                 con.disconnect();
                 // print result
-                return response.toString();
+                return new HttpResponse(responseCode, response.toString());
             } else {
-                return "Data Error";
+                return new HttpResponse(responseCode, null);
             }
         } catch (SocketTimeoutException ex) {
-            return "Connection Error";
+            return new HttpResponse(HttpURLConnection.HTTP_GATEWAY_TIMEOUT,null);
         }
     }
 
@@ -422,7 +409,7 @@ public class HttpClient {
         try {
             String data = sendGET(url);
             JSONArray arr = new JSONArray(data);
-            Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
+            //Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
             if (arr.length()>0)
             {
                 for (int i=0; i < arr.length(); i++) {
@@ -454,18 +441,17 @@ public class HttpClient {
         try {
             Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
             String parm = gson.toJson(refuelData);
-            String data = sendPOST(url, parm);
-            //Logger.appendLog("HTTP", "PostRefuel URL: "+ url);
-            //Logger.appendLog("HTTP", "PostRefuel: "+ data);
-            //JSONObject o = new JSONObject(data);
-            RefuelItemData newItem = gson.fromJson(data, RefuelItemData.class);
-            if (newItem != null && refuelData.getId() == 0)
-                refuelData.setId(newItem.getId());
-            return newItem;
+            HttpResponse response = sendPOST(url, parm);
+            if (response.responseCode == HttpURLConnection.HTTP_OK) {
+                RefuelItemData newItem = gson.fromJson(response.data, RefuelItemData.class);
+                if (newItem != null && refuelData.getId() == 0)
+                    refuelData.setId(newItem.getId());
+                return newItem;
+            }
         }
         catch (Exception e)
         {
-            Logger.appendLog("HTTP", "PostRefuel: "+  e.getLocalizedMessage());
+
 
         }
         return  null;
@@ -478,7 +464,7 @@ public class HttpClient {
         try {
             Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
             String parm = gson.toJson(new TruckModel(truckNo, currentAmount));
-            String data = sendPOST(url, parm);
+            HttpResponse resp = sendPOST(url, parm);
 
         }
         catch (Exception e)
@@ -487,28 +473,51 @@ public class HttpClient {
         }
     }
 
-    public void postTruckFuel(int truckId, float addedAmount, String qcNo) {
+    public TruckFuelModel postTruckFuel(TruckFuelModel model) {
 
         String url = API_BASE_URL+"api/trucks/fuel";
         try {
-            Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
-            String parm = String.format("{\"truckId\":\"%d\",\"amount\":\"%f\",\"qcNo\":\"%s\"}",truckId, addedAmount, qcNo);
-            String data = sendPOST(url, parm);
-
+            //Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
+            String parm = gson.toJson(model);
+            HttpResponse response = sendPOST(url, parm);
+            if (response.responseCode == HttpURLConnection.HTTP_OK)
+                return gson.fromJson(response.data, TruckFuelModel.class);
         }
         catch (Exception e)
         {
             Log.e("postTruckFuel", e.getMessage());
         }
+        return null;
     }
+
+
+    public InvoiceModel postInvoice(InvoiceModel model) {
+
+        String url = API_BASE_URL+"api/invoices";
+        try {
+            //Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
+            String parm = gson.toJson(model);
+            HttpResponse response = sendPOST(url, parm);
+            if (response.responseCode == HttpURLConnection.HTTP_OK)
+                return gson.fromJson(response.data, InvoiceModel.class);
+        }
+        catch (Exception e)
+        {
+            Log.e("postTruckFuel", e.getMessage());
+        }
+        return null;
+    }
+
     public TruckModel postTruck(TruckModel model) {
         String url = API_BASE_URL + "api/trucks";
         try {
-            Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
+            //Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
             String parm = gson.toJson(model);
-            String data = sendPOST(url, parm);
-            JSONObject o = new JSONObject(data);
-            return gson.fromJson(data, TruckModel.class);
+            HttpResponse response = sendPOST(url, parm);
+            if (response.responseCode == HttpURLConnection.HTTP_OK) {
+
+                return gson.fromJson(response.data, TruckModel.class);
+            }
         } catch (Exception e) {
             Log.e("postRefuel", e.getMessage());
 
@@ -519,14 +528,16 @@ public class HttpClient {
 
     public AirlineModel postAirline(AirlineModel model) {
         String url = API_BASE_URL + "api/airlines";
-        Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
+        //Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
         String parm = gson.toJson(model);
         try {
-            String data = sendPOST(url, parm);
-            return gson.fromJson(data, AirlineModel.class);
+            HttpResponse response = sendPOST(url, parm);
+            if (response.responseCode == HttpURLConnection.HTTP_OK)
+                return gson.fromJson(response.data, AirlineModel.class);
         } catch (Exception ex) {
-            return null;
+
         }
+        return null;
     }
 
     public float getTruckAmount(String truckNo) {
@@ -551,7 +562,7 @@ public class HttpClient {
     public PermissionModel getPermission() {
         String url = API_BASE_URL + "api/account/permission";
         try {
-            Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
+            //Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
 
             String data = sendGET(url);
 
@@ -580,7 +591,7 @@ public class HttpClient {
     public List<AirlineModel> getAirlines() {
         String url = API_BASE_URL+"api/airlines";
         try {
-            Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
+            //Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
 
             String data = sendGET(url);
 
@@ -608,7 +619,7 @@ public class HttpClient {
     public List<ParkingLot> getParking() {
         String url = API_BASE_URL + "api/parking";
         try {
-            Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
+            //Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
 
             String data = sendGET(url);
 
@@ -634,9 +645,9 @@ public class HttpClient {
 
         String url = API_BASE_URL+"api/trucks/check";
         try {
-            Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
+            //Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
             String parm = gson.toJson(new TruckModel(truckNo, truckId));
-            String data = sendPOST(url, parm);
+            String data = sendPOST(url, parm).data;
             boolean val = gson.fromJson(data, boolean.class);
             return  val;
         } catch (Exception e) {
@@ -695,6 +706,7 @@ public class HttpClient {
             con.setRequestProperty("User-Agent", USER_AGENT);
             con.setRequestProperty("Tablet-Id", setting.getTabletSerial());
             con.setRequestProperty("App-Version", setting.getAppVersion());
+            con.setRequestProperty("Truck-Id", String.valueOf(setting.getTruckId()));
             this.token = FMSApplication.getApplication().getUser().getToken();
             if (this.token != null)
                 con.setRequestProperty("Authorization", "bearer " + this.token);
@@ -717,6 +729,97 @@ public class HttpClient {
         catch (Exception ex)
         {
             return  null;
+        }
+    }
+
+    public List<TruckFuelModel> getTruckFuels() {
+
+        String url = API_BASE_URL + "api/trucks/fuels?truckId="+setting.getTruckId();
+        try {
+            String data = sendGET(url);
+
+            JSONArray arr = new JSONArray(data);
+            List<TruckFuelModel> lst = new ArrayList<>();
+            if (arr.length() > 0) {
+
+                for (int i = 0; i < arr.length(); i++) {
+                    JSONObject o = arr.getJSONObject(i);
+
+                    TruckFuelModel item = gson.fromJson(o.toString(), TruckFuelModel.class);
+                    lst.add(item);
+                }
+            }
+            return lst;
+        } catch (Exception e) {
+            Log.e("truckfuel list", e.getMessage());
+        }
+        return null;
+    }
+
+    public BM2505Model postBM2505(BM2505Model model) {
+        String url = API_BASE_URL+"api/bm2505";
+        try {
+            //Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
+            String parm = gson.toJson(model);
+            HttpResponse response = sendPOST(url, parm);
+            if (response.responseCode == HttpURLConnection.HTTP_OK)
+                return gson.fromJson(response.data, BM2505Model.class);
+        }
+        catch (Exception e)
+        {
+            Log.e("postTruckFuel", e.getMessage());
+        }
+        return null;
+    }
+
+    public List<BM2505Model> getBM2505List() {
+
+        String url = API_BASE_URL + "api/bm2505/"+setting.getTruckId();
+        try {
+            String data = sendGET(url);
+
+            JSONArray arr = new JSONArray(data);
+            List<BM2505Model> lst = new ArrayList<>();
+            if (arr.length() > 0) {
+
+                for (int i = 0; i < arr.length(); i++) {
+                    JSONObject o = arr.getJSONObject(i);
+
+                    BM2505Model item = gson.fromJson(o.toString(), BM2505Model.class);
+                    lst.add(item);
+                }
+            }
+            return lst;
+        } catch (Exception e) {
+            Log.e("truckfuel list", e.getMessage());
+        }
+        return null;
+    }
+
+    public class HttpResponse
+    {
+        public  HttpResponse(int responseCode, String data)
+        {
+            this.responseCode = responseCode;
+            this.data = data;
+        }
+        private int responseCode;
+        private String data;
+
+        public int getResponseCode() {
+            return responseCode;
+        }
+
+        public void setResponseCode(int responseCode) {
+            this.responseCode = responseCode;
+        }
+
+        public String getData() {
+            return data;
+        }
+
+        public void setData(String data) {
+            this.data = data;
         }
     }
 }

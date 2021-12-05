@@ -6,25 +6,19 @@ apply plugin: 'com.google.firebase.firebase-perf'
 android {
     signingConfigs {
         release {
-            storeFile file('C:\\Users\\huy\\Documents\\FMS\\fms-release.jks')
+            storeFile file('G:\\Working\\MEgatech\\fms4.jks')
             storePassword 'megatech'
-            keyAlias = 'key1'
+            keyAlias = 'key0'
             keyPassword 'megatech'
         }
 
         debug {
-            storeFile file('C:\\Users\\huy\\Documents\\FMS\\fms-release.jks')
+            storeFile file('G:\\Working\\MEgatech\\fms4.jks')
             storePassword 'megatech'
-            keyAlias = 'key1'
+            keyAlias = 'key0'
             keyPassword 'megatech'
         }
 
-        spc {
-            storeFile file('C:\\Users\\huy\\Documents\\FMS\\fms-release.jks')
-            storePassword 'megatech'
-            keyAlias = 'key1'
-            keyPassword 'megatech'
-        }
     }
     compileSdkVersion 29
     defaultConfig {
@@ -35,9 +29,9 @@ android {
 
         minSdkVersion 26
         targetSdkVersion 29
-        versionCode 14
-        def versionNumber = "8"
-        def buildNumber = "4"
+        versionCode 23
+        def versionNumber = "9"
+        def buildNumber = "1"
         versionName "${versionNumber}.${buildNumber}.${formattedDate}.${versionCode}"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -50,13 +44,18 @@ android {
             }
         }
         resValue "string", "app_name", "FMS Delivery"
+        buildConfigField 'int', 'DB_VERSION', '5'
+        buildConfigField 'boolean', 'PRINT_RECEIPT', 'true'
+        signingConfig signingConfigs.release
+        proguardFiles
+
     }
     buildTypes {
         debug {
             //buildConfigField 'String', 'API_BASE_URL', '"http://10.0.2.2:61013/"'
             //buildConfigField 'String', 'API_BASE_URL', '"http://fmsapi.megatech.com.vn/"'
 
-            buildConfigField 'String', 'API_BASE_URL', '"http://fmsapi.webmienphi.info/"'
+            buildConfigField 'String', 'API_BASE_URL', '"http://116.193.76.111:8080/"'
             //buildConfigField 'String', 'API_BASE_URL', '"http://fmsapi.skypec.com.vn/"'
 
             //buildConfigField 'String', 'IMEI_LIST', '"353700094068846,353700094064027,358240051111110"'
@@ -67,7 +66,7 @@ android {
                     def formattedDate = date.format('yyyyMMdd')
 
                     //outputFileName = new File(outputFileName.replace("-release", "-release-" + formattedDate))
-                    outputFileName = "fms-${variant.name}-${variant.versionName}" + ".apk"
+                    outputFileName = "fms-${variant.name}-${versionCode}-${formattedDate}" + ".apk"
 
 
                 }
@@ -78,6 +77,9 @@ android {
             buildConfigField 'String', 'API_BASE_URL', '"http://fmsapi.skypec.com.vn/"'
             buildConfigField 'String', 'DB_FILE', '"fms_release.db"'
             //buildConfigField 'String', 'IMEI_LIST', '"353700094068846,353700094064027,358240051111110"'
+
+            buildConfigField 'boolean', 'PRINT_RECEIPT', 'false'
+
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             applicationVariants.all { variant ->
@@ -85,14 +87,14 @@ android {
                     def date = new Date()
                     def formattedDate = date.format('yyyyMMdd')
 
-                    outputFileName = "fms-${variant.name}-${variant.versionName}" + ".apk"
+                    outputFileName = "fms-${variant.name}-${versionCode}-${formattedDate}" + ".apk"
 
                 }
             }
         }
 
         demo {
-            buildConfigField 'String', 'API_BASE_URL', '"http://skypecapi.megatech.com.vn/"'
+            buildConfigField 'String', 'API_BASE_URL', '"http://116.193.76.111:8080/"'
             buildConfigField 'String', 'DB_FILE', '"fms_demo.db"'
             //buildConfigField 'String', 'IMEI_LIST', '"353700094068846,353700094064027,358240051111110"'
             minifyEnabled false
@@ -102,11 +104,11 @@ android {
                     def date = new Date()
                     def formattedDate = date.format('yyyyMMdd')
 
-                    outputFileName = "fms-${variant.name}-${variant.versionName}" + ".apk"
+                    outputFileName = "fms-${variant.name}-${versionCode}-${formattedDate}" + ".apk"
 
                 }
             }
-            resValue "string", "app_name", "FMS Delivery DEMO"
+            resValue "string", "app_name", "FMS Delivery TEST"
         }
 
         spc {
@@ -121,7 +123,7 @@ android {
                     def date = new Date()
                     def formattedDate = date.format('yyyyMMdd')
 
-                    outputFileName = "fms-${variant.name}-${variant.versionName}" + ".apk"
+                    outputFileName = "fms-${variant.name}-${versionCode}-${formattedDate}" + ".apk"
 
                 }
             }
@@ -171,5 +173,8 @@ dependencies {
     implementation 'com.google.firebase:firebase-analytics'
 
     implementation 'com.google.firebase:firebase-perf'
+
+    //implementation 'com.toptoche.searchablespinner:searchablespinnerlibrary:1.3.1'
+
 
 }

@@ -160,11 +160,6 @@ public class TruckModel extends BaseModel {
         }
     }
 
-    private int id;
-
-    public int getId() {
-        return id;
-    }
 
     public void setId(int id) {
         this.truckId = this.id = id;
@@ -185,5 +180,20 @@ public class TruckModel extends BaseModel {
     @Override
     public String toString() {
         return truckNo;
+    }
+
+    private double capacity;
+
+    public double getCapacity() {
+        return capacity;
+    }
+
+    public void setCapacity(double capacity) {
+        this.capacity = capacity;
+    }
+
+    public double getCapacityLitter()
+    {
+        return Math.round(capacity * RefuelItemData.GALLON_TO_LITTER);
     }
 }

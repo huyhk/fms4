@@ -11,6 +11,7 @@ import android.widget.EditText;
 
 import androidx.appcompat.app.AlertDialog;
 
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.megatech.fms.helpers.HttpClient;
 import com.megatech.fms.model.TruckModel;
 import com.megatech.fms.model.UserInfo;
@@ -57,9 +58,25 @@ public class LoginActivity extends BaseActivity {
                         } else {
                             if (loginData.has("userName")) {
                                 try {
-                                    currentUser = new UserInfo(0, loginData.getString("userName"), loginData.getString("access_token"), loginData.getInt("permission"), loginData.getString("airport"));
+                                    if (loginData.has("invoiceName"))
+                                    currentUser = new UserInfo(loginData.getInt("userId"),
+                                            loginData.getString("userName"),
+                                            loginData.getString("access_token"),
+                                            loginData.getInt("permission"),
+                                            loginData.getString("airport"),
+                                            loginData.getString("address"),
+                                            loginData.getString("taxcode"),
+                                            loginData.getString("invoiceName"));
+                                    else
+                                        currentUser = new UserInfo(loginData.getInt("userId"),
+                                                loginData.getString("userName"),
+                                                loginData.getString("access_token"),
+                                                loginData.getInt("permission"),
+                                                loginData.getString("airport")
+                                                );
                                     currentUser.addToSharePreferences(currentApp);
 
+                                    FirebaseCrashlytics.getInstance().setUserId(currentUser.getUserName());
 
                                     //check setting to make sure valid truck
                                     if (!currentApp.isFirstUse()) {

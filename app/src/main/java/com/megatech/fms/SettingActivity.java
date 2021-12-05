@@ -308,6 +308,7 @@ public class SettingActivity extends UserBaseActivity {
                 if (model != null) {
                     settingModel.setTruckNo(model.getTruckNo());
                     settingModel.setId(model.getId());
+                    settingModel.setCapacity(model.getCapacity());
                     ((EditText) findViewById(R.id.txtCurrentAmount)).setText(String.format("%.0f", model.getCurrentAmount()));
                 }
             }

@@ -1,5 +1,5 @@
 <resources>
-<!--    <string name="app_name">FMS Delivery</string>-->
+    <!--    <string name="app_name">FMS Delivery</string>-->
     <string name="action_settings">Cài đặt</string>
     <string name="sign_in">Đăng nhập</string>
     <string name="user_name">Tên đăng nhập</string>
@@ -117,7 +117,7 @@
     <string name="logout_message">Bạn có muốn thoát khỏi ứng dụng?</string>
 
     <string name="invoice">Hóa đơn</string>
-    <string name="add_inventory">Nhập thêm hàng</string>
+    <string name="add_inventory">BM 25.02</string>
     <string name="title_refuelitem_list">Items</string>
     <string name="title_refuelitem_detail">RefuelItem Detail</string>
     <string name="extract">Hút nhiên liệu</string>
@@ -338,7 +338,52 @@
     <string name="incomplete_continue">Có mẻ tra nạp chưa hoàn thành, bạn có muốn mở lại?</string>
     <string name="real_amount_kg">Sản lượng thực tế (KG)</string>
     <string name="real_amount_gal">Sản lượng thực tế (GALLON)</string>
-
+    <string name="add_new">Thêm mới</string>
+    <string name="time">Thời gian</string>
+    <string name="maintenance_staff">Nhân viên bảo quản</string>
+    <string name="ticket_no">Số phiếu</string>
+    <string name="tank_no">Số bể</string>
+    <string name="fuel_amount">Lượng nhiên liệu nhập</string>
+    <string name="date">Ngày</string>
+    <string name="update_tank_no">Nhập Số bể</string>
+    <string name="update_ticket_no">Nhập số phiếu</string>
+    <string name="update_fuel_amount">Nhập lượng nhiên liệu (LIT)</string>
+    <string name="update_maintenance_staff">Nhập nhân viên bảo quản</string>
+    <string name="delete_confirm">Bạn chắc chắn muốn xóa các dòng được chọn?</string>
+    <string name="amount_must_less_than_capacity">Lượng nhiên liệu nhập không được nhiều hơn dung tích xe</string>
+    <string name="capacity">Dung tích</string>
+    <string name="bm_2505">BM 25.05</string>
+    <string name="bm2502_checker">Người kiểm tra</string>
+    <string name="bm2505_checker">Nhân viên kiểm tra</string>
+    <string name="rtc_no">Số CNKTCL</string>
+    <string name="density_15">Tỷ trọng 15°C</string>
+    <string name="difference">Chênh lệch</string>
+    <string name="evaluation">Đánh giá</string>
+    <string name="appearance_check">Kiểm tra ngoại quan</string>
+    <string name="water_check">Viên thử nước</string>
+    <string name="pressure_diff">Chênh lệch áp suất bầu tra nạp</string>
+    <string name="hose_pressure">Áp suất đầu vòi tra nạp</string>
+    <string name="update_density15">Cập nhật tỷ trọng 15</string>
+    <string name="update_rtc_no">Cập nhật số CNKTCL</string>
+    <string name="other">Khác</string>
+    <string name="update_appearance_check">Cập  nhật Kiểm tra ngoại quan</string>
+    <string name="update_pressure_diff">Cập nhật chênh lệch bầu áp</string>
+    <string name="update_hose_presure">Cập nhật áp suất đầu vòi tra nạp</string>
+    <string name="product_name">Tên hàng hóa</string>
+    <string name="capture">Chụp hình</string>
+    <string name="litter">Lít</string>
+    <string name="gallon">Gallon</string>
+    <string name="weight">Kg</string>
+    <string name="split_invoice">Tách hóa đơn</string>
+    <string name="split_amount">Số lượng tách</string>
+    <string name="defueling_no">Số phiếu hút</string>
+    <string name="refuel_detail">Chi tiết tra nạp</string>
+    <string name="refueller">Xe tra nạp</string>
+    <string name="buyer">Đơn vị mua hàng</string>
+    <string name="receipt_number">Số phiếu</string>
+    <string name="update_split_amount">Nhập số lượng tách hóa đơn (KG)</string>
+    <string name="error_split_amount_too_large">Số lượng tách hóa đơn quá lớn. Vui lòng kiểm tra lại!</string>
+    <string name="receipt_not_saved">Phiếu chưa được lưu sẽ không đồng bộ về máy chủ. Bạn có muốn thoát?</string>
 
     <string-array name="vat_array">
         <item>0%</item>

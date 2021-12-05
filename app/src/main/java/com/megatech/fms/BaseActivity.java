@@ -53,7 +53,7 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
         currentApp = (FMSApplication) this.getApplication();
         currentUser = currentApp.getUser();
 
-        Logger.appendLog("============================ " + TAG + " ======================== ");
+        //Logger.appendLog("============================ " + TAG + " ======================== ");
     }
 
     FloatingActionButton fab;

@@ -6,8 +6,19 @@ import com.google.gson.GsonBuilder;
 import com.megatech.fms.FMSApplication;
 
 import java.util.Date;
+import java.util.UUID;
 
 public class BaseModel {
+
+    protected int id;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 
     protected static Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
 
@@ -54,5 +65,16 @@ public class BaseModel {
 
     public String toJson() {
         return gson.toJson(this);
+    }
+
+
+    private String uniqueId = UUID.randomUUID().toString();
+
+    public String getUniqueId() {
+        return uniqueId;
+    }
+
+    public void setUniqueId(String uniqueId) {
+        this.uniqueId = uniqueId;
     }
 }
