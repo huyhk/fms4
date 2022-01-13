@@ -20,6 +20,8 @@ public class ReceiptItemModel {
     private double volume;
     private double weight;
 
+    private String qualityNo;
+
     private String refuelItemId;
 
     public String getRefuelItemId() {
@@ -116,5 +118,13 @@ public class ReceiptItemModel {
 
     public void setWeight(double weight) {
         this.weight = weight;
+    }
+
+    public String getQualityNo() {
+        return qualityNo;
+    }
+
+    public void setQualityNo(String qualityNo) {
+        this.qualityNo = qualityNo;
     }
 }

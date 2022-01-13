@@ -25,10 +25,10 @@ public class Logger {
     }
 
     public static void appendLog(String tag, String logText) {
-        //Context ctx = FMSApplication.getApplication();
+        Context ctx = FMSApplication.getApplication();
         //String logFolder = Environment.getExternalStorageDirectory() + "/logs";
 
-        String fileName = Environment.getExternalStorageDirectory() + "/fms.log";
+        String fileName = ctx.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS) + "/fms.log";
         File logFile = new File(fileName);
 
         if (tag != null)
@@ -37,6 +37,7 @@ public class Logger {
             Date d = new Date();
 
             logFile.delete();
+           // logFile = new File(fileName);
         }
         if (!logFile.exists()) {
             try {
@@ -73,9 +74,9 @@ public class Logger {
 
     public static boolean sendLog() {
         try {
-
+            Context ctx = FMSApplication.getApplication();
             HttpClient client = new HttpClient();
-            String fileName = Environment.getExternalStorageDirectory() + "/fms.log";
+            String fileName = ctx.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS) + "/fms.log";
             String url = BuildConfig.API_BASE_URL + "api/log";
             return client.sendLog(url, fileName);
 

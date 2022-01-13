@@ -186,7 +186,7 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
         reader.setFieldDataListener(new LCRReader.LCRDataListener() {
             @Override
             public void onDataChanged(LCRDataModel dataModel, LCRReader.FIELD_CHANGE field_change) {
-                reader.doDisconnectDevice();
+                //reader.doDisconnectDevice();
 
             }
 
@@ -204,31 +204,33 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
 
     private void prepareSearchBox() {
 
+        SearchView sb = (SearchView) findViewById(R.id.search_bar);
+        if (sb!=null) {
+            sb.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                @Override
+                public boolean onQueryTextSubmit(String query) {
+                    ViewPager viewPager = findViewById(R.id.main_viewpager);
+                    ((PageAdapter) viewPager.getAdapter()).filter(query);
+                    return false;
+                }
 
-        ((SearchView) findViewById(R.id.search_bar)).setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                ViewPager viewPager = findViewById(R.id.main_viewpager);
-                ((PageAdapter) viewPager.getAdapter()).filter(query);
-                return false;
-            }
+                @Override
+                public boolean onQueryTextChange(String query) {
+                    ViewPager viewPager = findViewById(R.id.main_viewpager);
+                    ((PageAdapter) viewPager.getAdapter()).filter(query);
+                    return false;
+                }
+            });
 
-            @Override
-            public boolean onQueryTextChange(String query) {
-                ViewPager viewPager = findViewById(R.id.main_viewpager);
-                ((PageAdapter) viewPager.getAdapter()).filter(query);
-                return false;
-            }
-        });
-
-        ((SearchView) findViewById(R.id.search_bar)).setOnCloseListener(new SearchView.OnCloseListener() {
-            @Override
-            public boolean onClose() {
-                ViewPager viewPager = findViewById(R.id.main_viewpager);
-                ((PageAdapter) viewPager.getAdapter()).filter("");
-                return false;
-            }
-        });
+            sb.setOnCloseListener(new SearchView.OnCloseListener() {
+                @Override
+                public boolean onClose() {
+                    ViewPager viewPager = findViewById(R.id.main_viewpager);
+                    ((PageAdapter) viewPager.getAdapter()).filter("");
+                    return false;
+                }
+            });
+        }
     }
 
     private void checkIncompleteItem() {

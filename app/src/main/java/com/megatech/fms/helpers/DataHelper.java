@@ -89,10 +89,10 @@ public class DataHelper {
             if (shiftModel == null)
             {
                 shiftModel = new ShiftModel();
+                shiftModel.setSelected(true);
             }
             ShiftModel selected = shiftModel.isSelected() ? shiftModel : shiftModel.getPrevShift().isSelected() ? shiftModel.getPrevShift() : shiftModel.getNextShift();
             if (selected != null) {
-
 
                 long start = selected.getStartTime().getTime() - 30 * 60 * 1000;
                 long end = selected.getEndTime().getTime() + 30 * 60 * 1000;
@@ -208,8 +208,13 @@ public class DataHelper {
                      for (Receipt item : modified) {
                          ReceiptModel itemData = item.toModel();
                          ReceiptModel newData = client.post(itemData);
+
                          if (newData != null) {
+                             newData.setPdfPath(itemData.getPdfPath());
+                             newData.setPdfImageString(null);
+
                              item.setLocalModified(false);
+
                              item.setId(newData.getId());
                              item.setJsonData(newData.toJson());
                              repo.insertReceipt(item);

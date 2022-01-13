@@ -62,6 +62,7 @@ public class PrintWorker implements Observer {
     private void onSuccess()
     {
 
+        printed = false;
         if (printStateListener !=null)
             printStateListener.onSuccess();
         new Runnable() {
@@ -195,7 +196,24 @@ public class PrintWorker implements Observer {
         }
         return  true;
     }
+    public boolean printReturn(ReceiptModel receiptModel)
+    {
+        receitpData = receiptModel.createReturnText();
+        printReceipt = true;
+        try {
+            String printerAddress = FMSApplication.getApplication().getPrinterAddress();
+            this.mTcpClient = new TcpClient(printerAddress, PRINTER_PORT);
+            this.mTcpClient.addObserver(this);
+            this.mTcpClient.connect();
 
+        }
+        catch (Exception e)
+        {
+            Log.e("ERROR", e.toString());
+            return false;
+        }
+        return  true;
+    }
     private boolean onlineStatus = false;
     private boolean checking = false;
     @Override
@@ -256,6 +274,7 @@ public class PrintWorker implements Observer {
     }
     private void releasePaper() {
 
+        printed = false;
         mTcpClient.sendMessage(RELEASE_CODE);
     }
     private char[] RESET_CODE =  new char[]{27, 64};

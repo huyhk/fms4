@@ -993,6 +993,8 @@ public class LCRReader {
         if (_reader == null || renew)
             _reader = new LCRReader(ctx, ip, port);
 
+        _reader.reset();
+
         if (_reader.getConnected())
             _reader.onConnected();
 
@@ -1001,7 +1003,7 @@ public class LCRReader {
             _reader.doConnectDevice();
         }
 
-        _reader.reset();
+
         return _reader;
 
     }

@@ -384,6 +384,20 @@
     <string name="update_split_amount">Nhập số lượng tách hóa đơn (KG)</string>
     <string name="error_split_amount_too_large">Số lượng tách hóa đơn quá lớn. Vui lòng kiểm tra lại!</string>
     <string name="receipt_not_saved">Phiếu chưa được lưu sẽ không đồng bộ về máy chủ. Bạn có muốn thoát?</string>
+    <string name="update_defueling_no">Nhập số phiếu hút</string>
+    <string name="print_receipt">In Hóa Đơn Điện Tử</string>
+    <string name="not_capture_confirm">Chưa chụp hình phiếu. Bạn muốn chụp hình?</string>
+    <string name="save_receipt_completed">Đã lưu phiếu thành công</string>
+    <string name="no_return_amount">Không có số hoàn trả, vui lòng kiểm tra lại.</string>
+    <string name="real_amount_too_big">Sản lượng thực tế quá lớn. Vui lòng kiểm tra lại.</string>
+    <string name="refueling_method">Phương thức tra nạp</string>
+    <string name="fhs">Tra nạp ngầm</string>
+    <string name="refueler">Xe tra nạp</string>
+    <string name="refuel_company">Đơn vị tra nạp</string>
+    <string name="signature">Chữ ký</string>
+    <string name="clear">Xóa</string>
+    <string name="buyer_signature">Chữ ký người mua</string>
+    <string name="seller_signature">Chữ ký người bán</string>
 
     <string-array name="vat_array">
         <item>0%</item>

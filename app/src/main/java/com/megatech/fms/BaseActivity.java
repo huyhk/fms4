@@ -17,7 +17,9 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
+
 import android.app.AlertDialog;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
@@ -36,7 +38,7 @@ import java.util.concurrent.Callable;
 public class BaseActivity extends AppCompatActivity implements View.OnClickListener {
     protected FMSApplication currentApp;
     protected UserInfo currentUser;
-    protected  final String TAG = this.getClass().getName();
+    protected final String TAG = this.getClass().getName();
 
 
     @SuppressLint("SourceLockedOrientationActivity")
@@ -129,48 +131,72 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void closeProgressDialog() {
-        if (progressDialog != null)
+        if (progressDialog != null && !isFinishing())
             progressDialog.dismiss();
     }
 
-    public  void showConfirmMessage( int messageId, Callable<Void> positiveClick) {
+    public void showConfirmMessage(int messageId, Callable<Void> positiveClick) {
         showMessage(R.string.confirm, messageId, R.drawable.ic_question, positiveClick);
 
     }
 
+    public void showConfirmMessage(int messageId, Callable<Void> positiveClick, Callable<Void> negativeClick) {
+        showMessage(R.string.confirm, messageId, R.drawable.ic_question, positiveClick, negativeClick);
 
-    public void showMessage(int titleId, int messageId, int iconId, Callable<Void> positiveClick)
-    {
-        new AlertDialog.Builder(this)
-                .setTitle(titleId)
+    }
+
+    public void showMessage(int titleId, int messageId, int iconId, Callable<Void> positiveClick) {
+        showMessage(titleId, messageId, iconId, positiveClick, null);
+    }
+
+    public void showMessage(int titleId, int messageId, int iconId, Callable<Void> positiveClick, Callable<Void> negativeClick) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(titleId)
                 .setMessage(messageId)
                 .setIcon(iconId)
-                .setPositiveButton(R.string.accept, (dialog1, which) -> {
+                .setNeutralButton(R.string.back, (dialog1, which) -> {
+
+                    dialog1.dismiss();
+                });
+        if (positiveClick != null)
+            builder.setPositiveButton(R.string.accept, (dialog1, which) -> {
+                try {
+                    positiveClick.call();
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                dialog1.dismiss();
+            });
+        if (negativeClick != null)
+            builder.setNegativeButton(R.string.cancel, (dialog1, which) -> {
+                if (negativeClick != null) {
                     try {
-                        positiveClick.call();
+                        negativeClick.call();
 
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    dialog1.dismiss();
-                })
-                .setNegativeButton(R.string.back, (dialog1, which) -> {
+                }
+                dialog1.dismiss();
+            });
 
-                    dialog1.dismiss();
-                })
-                .create()
-                .show();
+
+        builder.create().show();
 
     }
-    public  void showWarningMessage( String message) {
+
+    public void showWarningMessage(String message) {
         showErrorMessage(R.string.info, message, R.drawable.ic_warning);
 
     }
-    public  void showWarningMessage( int messageId) {
+
+    public void showWarningMessage(int messageId) {
         showErrorMessage(R.string.info, messageId, R.drawable.ic_warning);
 
     }
-    public  void showErrorMessage( int messageId) {
+
+    public void showErrorMessage(int messageId) {
         showErrorMessage(R.string.validate, messageId, R.drawable.ic_error);
 
     }
@@ -186,6 +212,7 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
                 .create()
                 .show();
     }
+
     public void showErrorMessage(int titleId, String message, int iconId) {
         new AlertDialog.Builder(this)
                 .setTitle(titleId)
@@ -197,7 +224,6 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
                 .create()
                 .show();
     }
-
 
 
     @Override

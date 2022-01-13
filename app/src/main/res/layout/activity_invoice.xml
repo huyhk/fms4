@@ -42,7 +42,7 @@
                 android:layout_gravity="right"
                 android:drawableStart="@android:drawable/ic_menu_save"
                 android:onClick="onClick"
-                android:enabled="@{invoiceItem.captured}"
+
 
                 android:text="@string/save" />
 
@@ -64,6 +64,24 @@
                 android:drawableStart="@drawable/ic_printed"
                 android:onClick="onClick"
                 android:text="@string/print" />
+            <Button
+                android:id="@+id/btnSellerSign"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:onClick="onClick"
+
+                android:text="@string/seller_signature" />
+
+            <Button
+                android:id="@+id/btnSign"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:onClick="onClick"
+
+                android:text="@string/buyer_signature" />
+
 
         </androidx.appcompat.widget.Toolbar>
 
@@ -374,10 +392,12 @@
                     android:text="@string/return_amount" />
 
                 <TextView
+
                     style="@android:style/TextAppearance.Medium"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight=".25"
+
                     android:text='@{String.format("%,20.0f",invoiceItem.returnAmount)}' />
 
 
@@ -389,10 +409,13 @@
                     android:text="@string/defueling_no" />
 
                 <TextView
+                    android:id="@+id/receipt_defueling_number"
                     style="@android:style/TextAppearance.Medium"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight=".25"
+                    android:onClick="onClick"
+
                     android:text='@{invoiceItem.defuelingNo}' />
 
 

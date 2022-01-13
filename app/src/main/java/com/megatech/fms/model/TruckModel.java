@@ -45,6 +45,8 @@ public class TruckModel extends BaseModel {
 
     private boolean allowNewRefuel;
 
+    private boolean isFHS;
+
     public boolean isAllowNewRefuel() {
         return allowNewRefuel;
     }
@@ -195,5 +197,13 @@ public class TruckModel extends BaseModel {
     public double getCapacityLitter()
     {
         return Math.round(capacity * RefuelItemData.GALLON_TO_LITTER);
+    }
+
+    public boolean isFHS() {
+        return isFHS;
+    }
+
+    public void setFHS(boolean FHS) {
+        isFHS = FHS;
     }
 }

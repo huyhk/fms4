@@ -3,13 +3,18 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
-        <entry key="..\:/Working/MEgatech/fms4/app/src/main/res/layout-land/activity_refuel_preview.xml" value="0.42564655172413796" />
+        <entry key="..\:/Working/MEgatech/fms4/app/src/main/res/layout-land/activity_refuel_preview.xml" value="0.25430210325047803" />
+        <entry key="..\:/Working/MEgatech/fms4/app/src/main/res/layout-land/activity_setting.xml" value="0.33" />
         <entry key="..\:/Working/MEgatech/fms4/app/src/main/res/layout/activity_invoice.xml" value="0.30564784053156147" />
+        <entry key="..\:/Working/MEgatech/fms4/app/src/main/res/layout/activity_lcrtest.xml" value="0.17604166666666668" />
         <entry key="..\:/Working/MEgatech/fms4/app/src/main/res/layout/activity_receipt.xml" value="0.16" />
+        <entry key="..\:/Working/MEgatech/fms4/app/src/main/res/layout/activity_receipt_sign.xml" value="0.20416666666666666" />
         <entry key="..\:/Working/MEgatech/fms4/app/src/main/res/layout/activity_refuel_detail_confirm.xml" value="0.13489583333333333" />
         <entry key="..\:/Working/MEgatech/fms4/app/src/main/res/layout/activity_version_update.xml" value="0.12864583333333332" />
+        <entry key="..\:/Working/MEgatech/fms4/app/src/main/res/layout/edit_refuel_dialog.xml" value="0.12135416666666667" />
         <entry key="..\:/Working/MEgatech/fms4/app/src/main/res/layout/invoice_item.xml" value="0.2492063492063492" />
         <entry key="..\:/Working/MEgatech/fms4/app/src/main/res/layout/invoice_preview.xml" value="0.20416666666666666" />
+        <entry key="..\:/Working/MEgatech/fms4/app/src/main/res/layout/refuel_preview_item.xml" value="0.1" />
         <entry key="..\:/Working/MEgatech/fms4/app/src/main/res/xml/file_paths.xml" value="0.125" />
       </map>
     </option>

@@ -77,7 +77,29 @@ public class RefuelItemData extends BaseModel implements Cloneable {
     private boolean BM2508FuelingHose;
     private boolean BM2508FuelingCap;
     private boolean BM2508Ladder;
-    private InvoiceModel invoiceModel;
+    //private InvoiceModel invoiceModel;
+
+    private String receiptNumber;
+
+    public String getReceiptNumber() {
+        return receiptNumber;
+    }
+
+
+
+    public void setReceiptNumber(String receiptNumber) {
+        this.receiptNumber = receiptNumber;
+    }
+
+    private int receiptCount = 0;
+
+    public int getReceiptCount() {
+        return receiptCount;
+    }
+
+    public void setReceiptCount(int receiptCount) {
+        this.receiptCount = receiptCount;
+    }
 
     public RefuelItemData() {
         Calendar c = Calendar.getInstance();
@@ -719,13 +741,9 @@ public class RefuelItemData extends BaseModel implements Cloneable {
             bM2508Result ^= 8;
     }
 
-    public InvoiceModel getInvoiceModel() {
-        return invoiceModel;
-    }
 
-    public void setInvoiceModel(InvoiceModel invoiceModel) {
-        this.invoiceModel = invoiceModel;
-    }
+
+
 
     public enum ITEM_POST_STATUS {
         NONE,

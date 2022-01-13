@@ -377,13 +377,17 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
             showErrorMessage(R.string.invalid_temperature);
         else if(mItem.getRealAmount()<=0)
             showErrorMessage(R.string.invalid_real_amount);
-//        else if(mItem.getStartNumber()> mItem.getEndNumber() || mItem.getStartNumber() + mItem.getRealAmount() != mItem.getEndNumber() )
-//            showErrorMessage(R.string.invalid_start_end_meter);
+        else if(mItem.getStartNumber()<=0 || mItem.getEndNumber()<=0 )
+            showErrorMessage(R.string.invalid_start_end_meter);
         else if(mItem.getStartTime().after( mItem.getEndTime() ))
             showErrorMessage(R.string.invalid_start_end_time);
         else if (mItem.getQualityNo().trim().isEmpty())
         {
             showErrorMessage(R.string.invalid_qc_no);
+        }
+        else if (mItem.getRealAmount()>11000)
+        {
+            showErrorMessage(R.string.real_amount_too_big);
         }
         else
             postData();

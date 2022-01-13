@@ -212,7 +212,11 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
 
 
     //validate data before print preview
-    private boolean validate() {
+    private boolean validate()
+    {
+        return validate(false);
+    }
+    private boolean validate(boolean isReturn) {
         if (printItems == null || printItems.size() <= 0) {
             showErrorMessage(R.string.preview_empty_list);
             return false;
@@ -237,12 +241,14 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
 
             boolean valid = true;
             boolean validQC = true;
+            boolean hasReturn = false;
             for (int i = 0; i < printItems.size(); i++) {
                 RefuelItemData item = printItems.get(i);
                 valid = (item.getManualTemperature() > 0 && item.getDensity() > 0);
 
                 validQC = item.getQualityNo() != null && !item.getQualityNo().isEmpty();
 
+                hasReturn |= item.getReturnAmount()>0;
 
                 if (!valid || !validQC) {
                     truckArrayAdapter.setSelectedObject(item);
@@ -264,6 +270,10 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
                 showErrorMessage(!valid ? R.string.invalid_density_temperature : R.string.invalid_qc_no);
             }
 
+            if (isReturn && !hasReturn) {
+                showErrorMessage(R.string.no_return_amount);
+                return false;
+            }
             return valid && validQC;
         }
 
@@ -378,16 +388,33 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
     //List<InvoiceFormModel> invoiceForms;
     //List<InvoiceFormModel> billForms;
     InvoiceFormModel defaultModel = null;
-
     private void openReceipt()
     {
+        openReceipt(false);
+    }
+    private void openReceipt(boolean isReturn)
+    {
+
         ListView lv = findViewById(R.id.refuel_preview_truck_list);
         printItems = ((TruckArrayAdapter) lv.getAdapter()).getCheckedItems();
-        if (validate()) {
-            ReceiptModel model = ReceiptModel.createReceipt(printItems);
-            Intent intent = new Intent(this, InvoiceActivity.class);
-            intent.putExtra("RECEIPT", model.toJson());
-            startActivityForResult(intent, RECEIPT_WINDOW);
+        if (!isReturn) {
+
+            if (validate()) {
+                ReceiptModel model = ReceiptModel.createReceipt(printItems);
+                Intent intent = new Intent(this, InvoiceActivity.class);
+                intent.putExtra("RECEIPT", model.toJson());
+                startActivityForResult(intent, RECEIPT_WINDOW);
+            }
+        }
+        else
+        {
+            if (validate(isReturn)) {
+                ReceiptModel model = ReceiptModel.createReceipt(printItems, true);
+                Intent intent = new Intent(this, InvoiceActivity.class);
+                intent.putExtra("RECEIPT", model.toJson());
+                //startActivityForResult(intent, RECEIPT_WINDOW);
+                startActivity(intent);
+            }
         }
     }
 
@@ -593,13 +620,14 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
             case R.id.refuel_preview_print_current:
                 printMode = PRINT_MODE.ONE_ITEM;
                 openReceipt();
-
+                break;
+            case R.id.refuel_preview_print_return:
+                printMode = PRINT_MODE.ALL_ITEM;
+                openReceipt(true);
                 break;
             case R.id.refuel_preview_print_all:
                 printMode = PRINT_MODE.ALL_ITEM;
-                if (BuildConfig.PRINT_RECEIPT)
-                    openReceipt();
-                else
+
                     preview();
                 break;
             case R.id.refuel_preview_new_item:
@@ -1415,7 +1443,8 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
         }
 
         for (RefuelItemData item : printItems) {
-            item.setInvoiceNumber(invoiceNumber);
+            item.setReceiptNumber(invoiceNumber);
+            item.setReceiptCount(item.getReceiptCount() + 1);
             item.setPrintStatus(RefuelItemData.ITEM_PRINT_STATUS.SUCCESS);
 
         }
@@ -1446,7 +1475,7 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
             item.setPrintTemplate(invoiceModel.getPrintTemplate());
             item.setInvoiceFormId(invoiceModel.getInvoiceFormId());
 
-            item.setInvoiceModel(invoiceModel);
+            //item.setInvoiceModel(invoiceModel);
 
         }
 

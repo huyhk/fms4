@@ -106,30 +106,19 @@ public class UserBaseActivity extends BaseActivity {
                 });
 
             Button btnSetting = findViewById(R.id.btnSetting);
-            btnSetting.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    setting();
-                }
-            });
+            if (btnSetting!=null)
+            btnSetting.setOnClickListener(v -> setting());
 
             Button btnRefuel = findViewById(R.id.btnRefuel);
-            btnRefuel.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    refuel();
-                }
-            });
+            if (btnRefuel != null)
+                btnRefuel.setOnClickListener(v -> refuel());
 
             Button btnExtract = findViewById(R.id.btnExtract);
-            btnExtract.setOnClickListener(v -> extract());
+            if (btnExtract != null)
+                btnExtract.setOnClickListener(v -> extract());
             Button btnLogout = findViewById(R.id.btnLogout);
-            btnLogout.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    logout();
-                }
-            });
+            if (btnLogout != null)
+                btnLogout.setOnClickListener(v -> logout());
 
             setTruckInfo();
         }

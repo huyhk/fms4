@@ -10,9 +10,9 @@
     {
       "type": "SINGLE",
       "filters": [],
-      "versionCode": 22,
-      "versionName": "8.5.20211129.22",
-      "outputFile": "fms-debug-22-20211129.apk"
+      "versionCode": 29,
+      "versionName": "9.4.20220112.29",
+      "outputFile": "fms-debug-29-20220112.apk"
     }
   ]
 }

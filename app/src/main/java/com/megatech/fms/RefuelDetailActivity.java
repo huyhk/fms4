@@ -863,7 +863,7 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
         reader.setConnectionListener(new LCRReader.LCRConnectionListener() {
             @Override
             public void onConnected() {
-                Logger.appendLog(LOG_TAG, "onConnected");
+                Logger.appendLog(LOG_TAG, "connectionListener onConnected");
                 deviceIsReady = true;
                 deviceIsError = false;
                 setConnectionCheckmark(CONNECTION_STATUS.OK);
@@ -1025,14 +1025,14 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
             public void onStart() {
                 //reader.requestData();
                 //setEnableButton(false);
-                Logger.appendLog("RFW", "  onStart");
+                Logger.appendLog("RFW", "stateListener  onStart");
                 onStarted();
 
             }
 
             @Override
             public void onStop() {
-                Logger.appendLog("RFW", "  onStop");
+                Logger.appendLog("RFW", " stateListener onStop");
                 onStopped();
             }
         });

@@ -1,19 +1,13 @@
 package com.megatech.fms;
 
-import static com.megatech.fms.model.RefuelItemData.GALLON_TO_LITTER;
-
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
 import androidx.databinding.DataBindingUtil;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
 import android.net.Uri;
@@ -27,7 +21,7 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
-import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -35,11 +29,9 @@ import android.widget.Toast;
 
 import com.megatech.fms.databinding.ActivityInvoiceBinding;
 import com.megatech.fms.helpers.DataHelper;
-import com.megatech.fms.helpers.ImageUtil;
 import com.megatech.fms.helpers.PrintWorker;
-import com.megatech.fms.model.ReceiptItemModel;
+import com.megatech.fms.helpers.ZebraWorker;
 import com.megatech.fms.model.ReceiptModel;
-import com.megatech.fms.model.RefuelItemData;
 import com.megatech.fms.view.ReceiptItemAdapter;
 
 import java.io.File;
@@ -57,6 +49,8 @@ public class InvoiceActivity extends UserBaseActivity implements View.OnClickLis
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_invoice);
+
+
         loaddata();
         printWorker = new PrintWorker();
         printWorker.setPrintStateListener(new PrintWorker.PrintStateListener() {
@@ -79,6 +73,37 @@ public class InvoiceActivity extends UserBaseActivity implements View.OnClickLis
                 binding.invalidateAll();
             }
         });
+
+        zebra = new ZebraWorker(this);
+        zebra.setStateListener(new ZebraWorker.ZebraStateListener() {
+            @Override
+            public void onConnectionError() {
+                closeProgressDialog();
+                showErrorMessage(R.string.printer_error);
+            }
+
+            @Override
+            public void onError() {
+                closeProgressDialog();
+                showErrorMessage(R.string.printer_error);
+            }
+
+            @Override
+            public void onSuccess() {
+                model.setPrinted(true);
+                binding.invalidateAll();
+                closeProgressDialog();
+            }
+        });
+        if (BuildConfig.FHS)
+        {
+            findViewById(R.id.btnCapture).setVisibility(View.GONE);
+        }
+        else {
+            findViewById(R.id.btnSign).setVisibility(View.GONE);
+            findViewById(R.id.btnSellerSign).setVisibility(View.GONE);
+        }
+
     }
 
     private void loaddata() {
@@ -123,7 +148,14 @@ public class InvoiceActivity extends UserBaseActivity implements View.OnClickLis
         else
             finish();
     }
+    private final int SELLER_SIGNATURE = 445;
+    private final int BUYER_SIGNATURE = 446;
+    private void openSignature(boolean buyer)
+    {
+        Intent intent = new Intent(this, ReceiptSignActivity.class);
+        startActivityForResult(intent, buyer? BUYER_SIGNATURE: SELLER_SIGNATURE);
 
+    }
     @Override
     public void onClick(View view) {
         int id = view.getId();
@@ -135,10 +167,22 @@ public class InvoiceActivity extends UserBaseActivity implements View.OnClickLis
                 openCapture();
                 break;
             case R.id.btnSave:
-                save();
+                openSave();
                 break;
             case R.id.btnPrint:
                 print();
+                break;
+            case R.id.btnSign:
+            case R.id.btnSellerSign:
+                openSignature(id == R.id.btnSign);
+                break;
+
+            case R.id.receipt_defueling_number:
+                if (model.getReturnAmount()>0)
+                {
+                    m_Title = getString(R.string.update_defueling_no);
+                    showEditDialog(id, InputType.TYPE_CLASS_TEXT, ".*", false);
+                }
                 break;
             case R.id.receipt_split_check:
                 if (model.isInvoiceSplit()) {
@@ -149,17 +193,50 @@ public class InvoiceActivity extends UserBaseActivity implements View.OnClickLis
                     model.setSplitAmount(0);
                     binding.invalidateAll();
                 }
+                break;
         }
     }
 
     PrintWorker printWorker = null;
 
+    ZebraWorker zebra = null;
     private void print() {
-        if (printWorker == null) {
-            printWorker = new PrintWorker();
+        if (BuildConfig.FHS)
+        {
+            if (zebra == null) {
+                zebra = new ZebraWorker(this);
+                zebra.setStateListener(new ZebraWorker.ZebraStateListener() {
+                    @Override
+                    public void onConnectionError() {
+                        showErrorMessage(R.string.printer_error);
+                    }
 
+                    @Override
+                    public void onError() {
+
+                    }
+
+                    @Override
+                    public void onSuccess() {
+                        model.setPrinted(true);
+                        binding.invalidateAll();
+                    }
+                });
+
+            }
+            setProgressDialog();
+            zebra.printReceipt(model);
         }
-        printWorker.printReceipt(model);
+        else {
+            if (printWorker == null) {
+                printWorker = new PrintWorker();
+
+            }
+            if (model.isReturn())
+                printWorker.printReturn(model);
+            else
+                printWorker.printReceipt(model);
+        }
     }
 
     private int REQUEST_IMAGE_CAPTURE = 1;
@@ -204,17 +281,12 @@ public class InvoiceActivity extends UserBaseActivity implements View.OnClickLis
             }
         }
     }
-
+    boolean exitAfterCapture = false;
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            //Bundle extras = data.getExtras();
-            //Bitmap imageBitmap = (Bitmap) extras.get("data");
 
-
-            //imageView.setImageBitmap(imageBitmap);
-            //model.setPdfImageString(ImageUtil.convert(imageBitmap));
 
             int targetW = 500;
             int targetH = 600;
@@ -233,17 +305,33 @@ public class InvoiceActivity extends UserBaseActivity implements View.OnClickLis
 
             // Decode the image file into a Bitmap sized to fill the View
             bmOptions.inJustDecodeBounds = false;
-            bmOptions.inSampleSize = 1;//scaleFactor;
+            bmOptions.inSampleSize = 2;//scaleFactor;
 
-            Bitmap bitmap = BitmapFactory.decodeFile(currentPhotoPath, bmOptions);
-            //Bitmap pdfBitmap = Bitmap.createScaledBitmap(bitmap,400,600,true);
-            model.setPdfImageString(ImageUtil.convert(bitmap));
+            //Bitmap bitmap = BitmapFactory.decodeFile(currentPhotoPath, bmOptions);
+            //Bitmap pdfBitmap = Bitmap.createScaledBitmap(bitmap,400,600,true);\
 
-
+            //model.setPdfImageString(ImageUtil.convert(bitmap));
+            model.setPdfPath(currentPhotoPath);
             model.setCaptured(true);
             binding.invalidateAll();
+            if (exitAfterCapture)
+                save();
         }
 
+        if (requestCode == BUYER_SIGNATURE && resultCode == RESULT_OK)
+        {
+            String file = data.getExtras().getString("signature_file");
+            model.setSignaturePath(file);
+            binding.invalidateAll();
+            ((Button)findViewById(R.id.btnSign)).setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_checked, 0, 0, 0);
+        }
+        if (requestCode == SELLER_SIGNATURE && resultCode == RESULT_OK)
+        {
+            String file = data.getExtras().getString("signature_file");
+            model.setSellerSignaturePath(file);
+            binding.invalidateAll();
+            ((Button)findViewById(R.id.btnSellerSign)).setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_checked, 0, 0, 0);
+        }
     }
     String m_Title,m_Text;
     private void showEditDialog(final int id, int inputType, String pattern, boolean required) {
@@ -323,8 +411,7 @@ public class InvoiceActivity extends UserBaseActivity implements View.OnClickLis
 
                         case R.id.receipt_split_check:
                             double d = numberFormat.parse(m_Text).doubleValue();
-                            if (d>model.getWeight())
-                            {
+                            if (d > model.getWeight()) {
                                 showErrorMessage(R.string.error_split_amount_too_large);
                                 return false;
                             }
@@ -332,7 +419,10 @@ public class InvoiceActivity extends UserBaseActivity implements View.OnClickLis
                             binding.invalidateAll();
                             break;
 
-
+                        case R.id.receipt_defueling_number:
+                            model.setDefuelingNo(m_Text);
+                            binding.invalidateAll();
+                            break;
                     }
                 } catch (ParseException ex) {
                     Toast.makeText(getBaseContext(), R.string.invalid_number_format, Toast.LENGTH_LONG).show();
@@ -345,23 +435,45 @@ public class InvoiceActivity extends UserBaseActivity implements View.OnClickLis
         });
     }
 
+    private void openSave()
+    {
+        if (!model.isCaptured() && !BuildConfig.FHS)
+        {
+            showConfirmMessage(R.string.not_capture_confirm, new Callable<Void>() {
+                @Override
+                public Void call() throws Exception {
+                    exitAfterCapture = true;
+                    openCapture();
+                    return null;
+                }
+            }, new Callable<Void>() {
+                @Override
+                public Void call() throws Exception {
+                    save();
+                    return null;
+                }
+            });
+        }
+        else
+            save();
+    }
 
     private void save() {
 
-        setProgressDialog();
-        new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... voids) {
-                DataHelper.postReceipt(model);
-                return null;
-            }
+            setProgressDialog();
+            new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... voids) {
+                    DataHelper.postReceipt(model);
+                    return null;
+                }
 
-            @Override
-            protected void onPostExecute(Void response) {
-                postCompleted();
-                super.onPostExecute(response);
-            }
-        }.execute();
+                @Override
+                protected void onPostExecute(Void response) {
+                    postCompleted();
+                    super.onPostExecute(response);
+                }
+            }.execute();
 
 
     }
@@ -371,7 +483,19 @@ public class InvoiceActivity extends UserBaseActivity implements View.OnClickLis
         Intent returnIntent = new Intent();
         returnIntent.putExtra("result",model.getNumber());
         setResult(Activity.RESULT_OK,returnIntent);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.info)
+        .setMessage(R.string.save_receipt_completed)
+        .setPositiveButton(R.string.accept, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.dismiss();
+                finish();
+            }
+        });
 
-        finish();
+        builder.create().show();
+
+
     }
 }

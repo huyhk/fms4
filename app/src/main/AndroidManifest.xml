@@ -18,10 +18,13 @@
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.BLUETOOTH"/>
+    <uses-permission android:name="android.permission.CAMERA" />
 
-    <uses-feature android:name="android.hardware.camera"
+    <uses-feature
+        android:name="android.hardware.camera"
         android:required="true" />
+
     <application
         android:name=".FMSApplication"
         android:allowBackup="true"
@@ -32,6 +35,11 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme.NoActionBar"
         android:usesCleartextTraffic="true">
+        <activity
+            android:name=".ReceiptSignActivity"
+            android:exported="false"
+            android:screenOrientation="landscape"/>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="com.megatech.fms.fileprovider"
@@ -39,8 +47,9 @@
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths"></meta-data>
+                android:resource="@xml/file_paths" />
         </provider>
+
         <activity
             android:name=".ReceiptActivity"
             android:exported="false" />
@@ -72,12 +81,7 @@
             android:name=".RefuelDetailConfirmActivity"
             android:configChanges="orientation|screenSize"
             android:screenOrientation="landscape" />
-        <activity
-            android:name=".LCRTest"
-            android:screenOrientation="landscape" />
-        <activity
-            android:name=".TestActivity"
-            android:screenOrientation="landscape" />
+
         <activity
             android:name=".RefuelPreviewActivity"
             android:screenOrientation="landscape" />
@@ -106,11 +110,7 @@
             android:screenOrientation="landscape"
             android:theme="@style/AppTheme.NoActionBar" />
 
-        <receiver android:name=".NetworkChangeReceiver">
-            <intent-filter>
-                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
-            </intent-filter>
-        </receiver>
+
     </application>
 
 </manifest>
