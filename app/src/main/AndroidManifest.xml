@@ -18,8 +18,11 @@
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.BLUETOOTH"/>
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.READ_PRIVILEGED_PHONE_STATE " />
 
     <uses-feature
         android:name="android.hardware.camera"
@@ -34,15 +37,20 @@
         android:roundIcon="@drawable/ic_fuel"
         android:supportsRtl="true"
         android:theme="@style/AppTheme.NoActionBar"
+        android:hardwareAccelerated="false"
+        android:largeHeap="true"
         android:usesCleartextTraffic="true">
+        <activity
+            android:name=".PrintInvoiceActivity"
+            android:exported="false" />
         <activity
             android:name=".ReceiptSignActivity"
             android:exported="false"
-            android:screenOrientation="landscape"/>
+            android:screenOrientation="landscape" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="com.megatech.fms.fileprovider"
+            android:authorities="${applicationId}.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
@@ -81,12 +89,11 @@
             android:name=".RefuelDetailConfirmActivity"
             android:configChanges="orientation|screenSize"
             android:screenOrientation="landscape" />
-
         <activity
             android:name=".RefuelPreviewActivity"
             android:screenOrientation="landscape" />
         <activity
-            android:name=".InvoiceActivity"
+            android:name=".PrintReceiptActivity"
             android:screenOrientation="landscape" />
         <activity
             android:name=".InventoryActivity"
@@ -110,7 +117,16 @@
             android:screenOrientation="landscape"
             android:theme="@style/AppTheme.NoActionBar" />
 
+        <receiver
+            android:name=".receivers.WifiReceiver"
+            android:enabled="true">
+            <intent-filter>
+                <action android:name="android.net.wifi.WIFI_STATE_CHANGED" />
+                <action android:name="android.net.wifi.STATE_CHANGE" />
+            </intent-filter>
+        </receiver>
 
+        <service android:name=".receivers.WifiReceiver$WifiActiveService" />
     </application>
 
 </manifest>

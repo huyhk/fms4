@@ -4,9 +4,14 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.net.wifi.ScanResult;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -76,7 +81,7 @@ public class SettingActivity extends UserBaseActivity {
                 btnTest.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
                 String ip = txtIp.getText().toString();
                 reader =  new LCRReader(ctx, ip);
-                reader.doConnectDevice();
+
                 reader.setConnectionListener(new LCRReader.LCRConnectionListener() {
                     @Override
                     public void onConnected() {
@@ -136,6 +141,8 @@ public class SettingActivity extends UserBaseActivity {
 
                     }
                 });
+
+                reader.doConnectDevice();
             }
         });
         ProgressBar loading_bar = findViewById(R.id.loading_bar);
@@ -165,6 +172,45 @@ public class SettingActivity extends UserBaseActivity {
             }
         });
 
+        //getSSID();
+
+    }
+
+    private void getSSID() {
+        WifiManager wifiManager = (WifiManager)
+                this.getSystemService(Context.WIFI_SERVICE);
+
+        BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context c, Intent intent) {
+                boolean success = intent.getBooleanExtra(
+                        WifiManager.EXTRA_RESULTS_UPDATED, false);
+                if (success) {
+                    scanSuccess(wifiManager);
+                } else {
+                    // scan failure handling
+                    scanFailure(wifiManager);
+                }
+            }
+        };
+
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
+        this.registerReceiver(wifiScanReceiver, intentFilter);
+
+        wifiManager.startScan();
+
+
+
+    }
+    private void scanSuccess(WifiManager wifiManager) {
+        List<ScanResult> results = wifiManager.getScanResults();
+    }
+
+    private void scanFailure(WifiManager wifiManager) {
+        // handle failure: new scan did NOT succeed
+        // consider using old scan results: these are the OLD results!
+        List<ScanResult> results = wifiManager.getScanResults();
     }
 
     private void restartApp() {
@@ -223,26 +269,7 @@ public class SettingActivity extends UserBaseActivity {
         {
 
         }
-        //List<String> imeilist = (new HttpClient()).getIMEIList();// Arrays.asList(getString(R.string.imei_list).split(","));
-        //String currentIMEI = settingModel.getTabletSerial();
-        /*if (imeilist !=null &&  !imeilist.contains(currentIMEI))
-        {
-            new AlertDialog.Builder(this).setPositiveButton("QUIT", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    finishAffinity();
-                }
-            }).setMessage(R.string.not_granted_device).setTitle(R.string.not_granted_device_title).show();
 
-        }
-        else if (imeilist == null   ) {
-            new AlertDialog.Builder(this).setPositiveButton("QUIT", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    finishAffinity();
-                }
-            }).setMessage(R.string.not_get_device_list).setTitle(R.string.not_granted_device_title).show();
-        }*/
     }
 
     private void showMessage(String message, boolean error)

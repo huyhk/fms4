@@ -20,7 +20,18 @@ public class Truck extends BaseEntity {
     {
         Truck item = new Truck();
         item.setId(itemData.getId());
+        item.setFHS(itemData.isFHS());
         item.setJsonData(gson.toJson(itemData));
         return  item;
+    }
+
+    private boolean isFHS;
+
+    public boolean isFHS() {
+        return isFHS;
+    }
+
+    public void setFHS(boolean FHS) {
+        isFHS = FHS;
     }
 }

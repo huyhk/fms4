@@ -29,11 +29,11 @@ android {
 
         minSdkVersion 26
         targetSdkVersion 29
-        versionCode 29
-        def versionNumber = "9"
+        versionCode 38
+        def versionNumber = "10"
         def buildNumber = "4"
         // 28 = "change ReceiptNumber rule"
-        // 29 = "print returning receipt"
+        // 36 = "change total formula form traditional invoice"
         versionName "${versionNumber}.${buildNumber}.${formattedDate}.${versionCode}"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -46,44 +46,45 @@ android {
             }
         }
         resValue "string", "app_name", "FMS Delivery"
-        buildConfigField 'int', 'DB_VERSION', '5'
+        buildConfigField 'int', 'DB_VERSION', '6'
         buildConfigField 'boolean', 'PRINT_RECEIPT', 'true'
         buildConfigField 'String', 'PRINTER_IP', '"192.168.1.1"'
         buildConfigField 'boolean','FHS', 'false'
-
-
+        buildConfigField 'double', 'TAX_RATE', '0.1'
+        buildConfigField 'String', 'AUTHORITY','"com.megatech.fms.fileprovider"'
         signingConfig signingConfigs.release
         proguardFiles
+
+        applicationVariants.all { variant ->
+            variant.outputs.all { output ->
+                //def date = new Date()
+                //def formattedDate = date.format('yyyyMMdd')
+
+                outputFileName = "fms-${variant.name}-${versionCode}-${formattedDate}" + ".apk"
+
+
+            }
+        }
 
     }
     buildTypes {
         debug {
             //buildConfigField 'String', 'API_BASE_URL', '"http://10.0.2.2:61013/"'
 
+
             buildConfigField 'String', 'API_BASE_URL', '"http://116.193.76.111:8080/"'
 
-            //buildConfigField 'String', 'API_BASE_URL', '"http://fmsapi.megatech.com.vn/"'
+            //buildConfigField 'String', 'API_BASE_URL', '"http://fmsapi.skypec.com.vn/"'
 
             buildConfigField 'String', 'DB_FILE', '"fms_debug.db"'
             buildConfigField 'String', 'PRINTER_IP', '"10.0.2.2"'
-
-            buildConfigField 'boolean', 'FHS', 'true'
-
-            applicationVariants.all { variant ->
-                variant.outputs.all { output ->
-                    def date = new Date()
-                    def formattedDate = date.format('yyyyMMdd')
-
-                    //outputFileName = new File(outputFileName.replace("-release", "-release-" + formattedDate))
-                    outputFileName = "fms-${variant.name}-${versionCode}-${formattedDate}" + ".apk"
+            buildConfigField 'boolean', 'FHS', 'false'
 
 
-                }
-            }
             resValue "string", "app_name", "FMS Delivery DEBUG"
         }
         release {
-            buildConfigField 'String', 'API_BASE_URL', '"http://fmsapi.megatech.com.vn/"'
+            buildConfigField 'String', 'API_BASE_URL', '"http://fmsapi.skypec.com.vn/"'
             buildConfigField 'String', 'DB_FILE', '"fms_release.db"'
 
             buildConfigField 'boolean', 'PRINT_RECEIPT', 'false'
@@ -102,13 +103,15 @@ android {
         }
 
         fhs {
-            buildConfigField 'String', 'API_BASE_URL', '"http://fmsapi.megatech.com.vn/"'
-            buildConfigField 'String', 'DB_FILE', '"fms_release.db"'
+            initWith release
+            applicationIdSuffix  ".fhs"
+            buildConfigField 'String', 'API_BASE_URL', '"http://fmsapi.skypec.com.vn/"'
+            buildConfigField 'String', 'DB_FILE', '"fms_fhs.db"'
 
             buildConfigField 'boolean', 'PRINT_RECEIPT', 'false'
             buildConfigField 'boolean', 'FHS', 'true'
-
-            minifyEnabled false
+            buildConfigField 'String', 'AUTHORITY','"com.megatech.fms.fhs.fileprovider"'
+            /*minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             applicationVariants.all { variant ->
                 variant.outputs.all { output ->
@@ -118,23 +121,16 @@ android {
                     outputFileName = "fms-${variant.name}-${versionCode}-${formattedDate}" + ".apk"
 
                 }
-            }
+            }*/
+            resValue "string", "app_name", "FMS Delivery FHS"
+
         }
         demo {
+            initWith release
             buildConfigField 'String', 'API_BASE_URL', '"http://116.193.76.111:8080/"'
             buildConfigField 'String', 'DB_FILE', '"fms_demo.db"'
-            //buildConfigField 'String', 'IMEI_LIST', '"353700094068846,353700094064027,358240051111110"'
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            applicationVariants.all { variant ->
-                variant.outputs.all { output ->
-                    def date = new Date()
-                    def formattedDate = date.format('yyyyMMdd')
+            buildConfigField 'boolean', 'FHS', 'true'
 
-                    outputFileName = "fms-${variant.name}-${versionCode}-${formattedDate}" + ".apk"
-
-                }
-            }
             resValue "string", "app_name", "FMS Delivery TEST"
         }
 
@@ -148,6 +144,7 @@ android {
         sourceCompatibility 1.8
         targetCompatibility 1.8
     }
+    flavorDimensions 'fms'
 }
 
 dependencies {

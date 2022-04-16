@@ -30,7 +30,17 @@ public class BaseModel {
         this.localId = localId;
     }
 
-    private boolean isDeleted;
+    protected  boolean isLocalModified;
+
+    public boolean isLocalModified() {
+        return isLocalModified;
+    }
+
+    public void setLocalModified(boolean localModified) {
+        isLocalModified = localModified;
+    }
+
+    protected boolean isDeleted;
 
     public boolean isDeleted() {
         return isDeleted;
@@ -40,8 +50,8 @@ public class BaseModel {
         isDeleted = deleted;
     }
 
-    private int localId = 0;
-    private Date dateUpdated;
+    protected int localId = 0;
+    protected Date dateUpdated;
 
     public Date getDateUpdated() {
         return dateUpdated;
@@ -51,7 +61,7 @@ public class BaseModel {
         this.dateUpdated = dateUpdated;
     }
 
-    private String tabletSerial;
+    protected String tabletSerial;
 
     public String getTabletSerial() {
 
@@ -68,7 +78,7 @@ public class BaseModel {
     }
 
 
-    private String uniqueId = UUID.randomUUID().toString();
+    protected String uniqueId = UUID.randomUUID().toString();
 
     public String getUniqueId() {
         return uniqueId;

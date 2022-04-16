@@ -12,7 +12,7 @@ public class TruckModel extends BaseModel {
     public TruckModel() {
     }
 
-    public TruckModel(String code, float currentAmount) {
+    public TruckModel(String code, double currentAmount) {
         this.truckNo = code;
         this.currentAmount = currentAmount;
 
@@ -29,7 +29,7 @@ public class TruckModel extends BaseModel {
     }
 
     private String truckNo;
-    private float currentAmount;
+    private double currentAmount;
 
     private String deviceSerial;
 
@@ -135,11 +135,11 @@ public class TruckModel extends BaseModel {
         this.code = this.truckNo = code;
     }
 
-    public float getCurrentAmount() {
+    public double getCurrentAmount() {
         return currentAmount;
     }
 
-    public void setCurrentAmount(float currentAmount) {
+    public void setCurrentAmount(double currentAmount) {
         this.currentAmount = currentAmount;
     }
 

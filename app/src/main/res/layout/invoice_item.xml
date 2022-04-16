@@ -39,7 +39,6 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center"
-            android:hint="@string/refuel_end"
             android:text='@{String.format("%,20d",Math.round(truckItem.endNumber))}' />
 
 
@@ -48,7 +47,6 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center"
-            android:hint="@string/refuel_end"
             android:text='@{String.format("%,20.2f",truckItem.temperature)}' />
 
 
@@ -68,7 +66,6 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center"
-            android:hint="@string/refuel_end"
             android:text='@{String.format("%,20.0f", truckItem.gallon)}' />
 
 
@@ -78,7 +75,6 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center"
-            android:hint="@string/refuel_end"
             android:text='@{String.format("%,20.0f", truckItem.volume)}' />
 
 
@@ -88,7 +84,6 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center"
-            android:hint="@string/refuel_end"
             android:text='@{String.format("%,20.0f", truckItem.weight)}' />
 
 

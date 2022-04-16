@@ -27,6 +27,8 @@ public class RefuelItem extends BaseEntity {
 
         itemData.setLocalId(this.getLocalId());
         itemData.setLocalModified(this.isLocalModified());
+        if (getUniqueId()!=null && !getUniqueId().isEmpty())
+            itemData.setUniqueId(this.getUniqueId());
         return  itemData;
     }
 
@@ -43,17 +45,24 @@ public class RefuelItem extends BaseEntity {
         item.setDateUpdated(itemData.getDateUpdated());
         item.setFlightId(itemData.getFlightId());
         item.setRefuelItemType(REFUEL_ITEM_TYPE.getValue(itemData.getRefuelItemType().ordinal()));
+        if (itemData.getUniqueId() !=null)
+            item.setUniqueId(itemData.getUniqueId());
         return  item;
     }
 
     public void updateData(RefuelItemData itemData) {
 
         RefuelItem item = this;
+        RefuelItemData currentData = this.toRefuelItemData();
+        if (currentData.isPrinted() && !itemData.isPrinted())
+            return;
+
         item.setId(itemData.getId());
         item.setTruckNo(itemData.getTruckNo());
         item.setTruckId(itemData.getTruckId());
         item.setRefuelTime(itemData.getRefuelTime());
         item.setStatus(REFUEL_ITEM_STATUS.getStatus(itemData.getStatus().getValue()));
+
         item.setJsonData(gson.toJson(itemData));
 
         item.setDateUpdated(itemData.getDateUpdated());

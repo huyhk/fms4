@@ -1,7 +1,9 @@
 package com.megatech.fms;
 
 import android.app.Application;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.net.wifi.WifiManager;
 import android.util.Log;
 
 import androidx.lifecycle.Lifecycle;
@@ -22,6 +24,7 @@ import com.megatech.fms.model.InvoiceModel;
 import com.megatech.fms.model.ShiftModel;
 import com.megatech.fms.model.TruckModel;
 import com.megatech.fms.model.UserInfo;
+import com.megatech.fms.receivers.WifiReceiver;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -33,6 +36,10 @@ public class FMSApplication extends Application implements LifecycleObserver {
     @Override
     public void onCreate() {
         super.onCreate();
+        /*IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
+        intentFilter.addAction(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION);
+        registerReceiver(new WifiReceiver(), intentFilter);*/
         checkDatabase();
         cApp = this;
     }
@@ -207,31 +214,31 @@ public class FMSApplication extends Application implements LifecycleObserver {
     {
         return BuildConfig.VERSION_NAME;
     }
-    public float getCurrentAmount() {
+    public double getCurrentAmount() {
 //        final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
-//        return preferences.getFloat("CURRENT_AMOUNT",0);
+//        return preferences.getdouble("CURRENT_AMOUNT",0);
         return getSetting().getCurrentAmount();
     }
 
     //Set Current Amount and post to database
-    public void setCurrentAmount(float currentAmount) {
+    public void setCurrentAmount(double currentAmount) {
 
         TruckModel setting = getSetting();
         setting.setCurrentAmount(currentAmount);
         saveSetting(setting, false);
 
     }
-    public void addCurrentAmount(float newAmount) {
+    public void addCurrentAmount(double newAmount) {
 
         TruckModel setting = getSetting();
         setting.setCurrentAmount(setting.getCurrentAmount() + newAmount);
         saveSetting(setting, false);
 
     }
-    public void initCurrentAmount(float currentAmount) {
+    public void initCurrentAmount(double currentAmount) {
 //        final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
 //        SharedPreferences.Editor editor = preferences.edit();
-//        editor.putFloat("CURRENT_AMOUNT", currentAmount);
+//        editor.putdouble("CURRENT_AMOUNT", currentAmount);
 //        editor.commit();
 
 
@@ -241,11 +248,11 @@ public class FMSApplication extends Application implements LifecycleObserver {
         return preferences.getString("QC_NO","");
     }
 
-    public void setInventory(final float addedAmount, String qcNo) {
+    public void setInventory(final double addedAmount, String qcNo) {
         final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
-        float   currentAmount = getSetting().getCurrentAmount();
+        double   currentAmount = getSetting().getCurrentAmount();
         SharedPreferences.Editor editor = preferences.edit();
-        //editor.putFloat("CURRENT_AMOUNT", currentAmount + addedAmount);
+        //editor.putdouble("CURRENT_AMOUNT", currentAmount + addedAmount);
         editor.putString("QC_NO",qcNo);
         editor.apply();
         setCurrentAmount( currentAmount + addedAmount);
@@ -255,9 +262,9 @@ public class FMSApplication extends Application implements LifecycleObserver {
 
     public void saveShift(ShiftModel model) {
         final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
-        float currentAmount = getSetting().getCurrentAmount();
+        double currentAmount = getSetting().getCurrentAmount();
         SharedPreferences.Editor editor = preferences.edit();
-        //editor.putFloat("CURRENT_AMOUNT", currentAmount + addedAmount);
+        //editor.putdouble("CURRENT_AMOUNT", currentAmount + addedAmount);
         editor.putString("SHIFT", model.toJson());
         editor.commit();
     }

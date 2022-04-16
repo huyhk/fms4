@@ -65,31 +65,31 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
 
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == Activity.RESULT_OK) {
-            if (requestCode == SETTING_CODE)
-            {
+            if (requestCode == SETTING_CODE) {
                 TabLayout tbl = findViewById(R.id.main_tablayout);
                 tbl.getTabAt(0).setText(currentApp.getTruckNo());
             }
-            {
-                ViewPager viewPager = findViewById(R.id.main_viewpager);
-                ((PageAdapter) viewPager.getAdapter()).updateLists();
-            }
+
+            ViewPager viewPager = findViewById(R.id.main_viewpager);
+            ((PageAdapter) viewPager.getAdapter()).updateLists();
+
 
         }
     }
 
     @Override
     protected void onResume() {
+
         super.onResume();
         TabLayout tbl = findViewById(R.id.main_tablayout);
         tbl.getTabAt(0).setText(currentApp.getTruckNo());
-
-        btnUpdate.setVisibility(View.VISIBLE);
+        if (btnUpdate != null)
+            btnUpdate.setVisibility(View.VISIBLE);
         showShiftInfo();
     }
 
     @Override
-    protected  void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -103,17 +103,17 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
         //toolbarRefuelButton.setVisibility(View.GONE);
 
         btnUpdate = findViewById(R.id.btnUpdate2);
-        if (btnUpdate!=null)
-        btnUpdate.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        if (btnUpdate != null)
+            btnUpdate.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
 
-                updateRefuelList();
-            }
-        });
+                    updateRefuelList();
+                }
+            });
 
         Button btnRefuel = findViewById(R.id.btnNewRefuel);
-        if (btnRefuel!=null) {
+        if (btnRefuel != null) {
             btnRefuel.setVisibility(View.INVISIBLE);
             ((Runnable) () -> {
                 //HttpClient client = new HttpClient();
@@ -137,12 +137,14 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
 
         }
 
-        if (!currentApp.isFirstUse())
-        initReader();
+
         setTabData();
         prepareSearchBox();
 
         checkIncompleteItem();
+
+        if (!currentApp.isFirstUse())
+            initReader();
     }
 
     private void initReader() {
@@ -187,7 +189,9 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
             @Override
             public void onDataChanged(LCRDataModel dataModel, LCRReader.FIELD_CHANGE field_change) {
                 //reader.doDisconnectDevice();
-
+                //reader.destroy();
+                //reader.doDisconnectDevice();
+                //reader.destroy();
             }
 
             @Override
@@ -205,7 +209,7 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
     private void prepareSearchBox() {
 
         SearchView sb = (SearchView) findViewById(R.id.search_bar);
-        if (sb!=null) {
+        if (sb != null) {
             sb.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
                 @Override
                 public boolean onQueryTextSubmit(String query) {
@@ -245,8 +249,7 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
 
             @Override
             protected void onPostExecute(RefuelItemData itemData) {
-                if (itemData!=null)
-                {
+                if (itemData != null) {
                     showConfirmMessage(R.string.incomplete_continue, new Callable<Void>() {
                         @Override
                         public Void call() throws Exception {
@@ -281,7 +284,7 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
             }
             if (model != null) {
                 ShiftModel cModel = model.isSelected() ? model : model.getPrevShift().isSelected() ? model.getPrevShift() : model.getNextShift();
-                if (cModel.getStartTime() ==null  || cModel.getName() == null) {
+                if (cModel.getStartTime() == null || cModel.getName() == null) {
                     model.setSelected(true);
                     cModel = model;
                 }
@@ -291,12 +294,13 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
         }
 
         Button btnShift = findViewById(R.id.btn_shift);
-        btnShift.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showShiftDialog();
-            }
-        });
+        if (btnShift != null)
+            btnShift.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    showShiftDialog();
+                }
+            });
     }
 
     private void showShiftDialog() {
@@ -410,13 +414,12 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
 
     private void setTabData() {
         ViewPager viewPager = findViewById(R.id.main_viewpager);
-        viewPager.setAdapter( new PageAdapter(getSupportFragmentManager()));
+        viewPager.setAdapter(new PageAdapter(getSupportFragmentManager()));
         TabLayout tabLayout = findViewById(R.id.main_tablayout);
         tabLayout.setupWithViewPager(viewPager);
     }
 
     LCRReader reader;
-
 
 
     @Override
@@ -430,19 +433,18 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
 
     }
 
-    private void checkInternet()
-    {
+    private void checkInternet() {
         Timer tmr = new Timer();
         tmr.schedule(new TimerTask() {
             @Override
             public void run() {
-                runOnUiThread(()->{
-                    showInternetIcon(!hostAvailable("skypec.com.vn",80));
+                runOnUiThread(() -> {
+                    showInternetIcon(!hostAvailable("skypec.com.vn", 80));
                 });
 
 
             }
-        },10,5*1000);
+        }, 10, 5 * 1000);
 
     }
 
@@ -457,11 +459,10 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
         }
     }
 
-    private void showInternetIcon(boolean show)
-    {
+    private void showInternetIcon(boolean show) {
         if (optionMenu == null) return;
         MenuItem v = optionMenu.findItem(R.id.action_status);
-        if (v!=null) {
+        if (v != null) {
             Drawable icon = getDrawable(R.drawable.ic_no_connection);
 
             //v.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
@@ -470,14 +471,13 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
                 WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
                 WifiInfo wifiInfo = wifiManager.getConnectionInfo();
                 String ssid = wifiInfo.getSSID();
-                SpannableString s = new SpannableString("WIFI:" + ssid.replace("\"",""));
+                SpannableString s = new SpannableString("WIFI:" + ssid.replace("\"", ""));
                 s.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s.length(), 0);
 
                 v.setTitle(s);
                 v.setIcon(null);
 
-            }
-            else {
+            } else {
                 v.setIcon(icon);
             }
         }

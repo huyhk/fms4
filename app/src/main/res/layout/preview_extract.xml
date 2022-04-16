@@ -372,7 +372,7 @@
                     android:text="@string/density" />
 
                 <TextView
-                    android:id="@+id/refuel_preview_Density"
+                    android:id="@+id/refuel_preview_density"
                     style="?android:attr/textAppearanceMedium"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"

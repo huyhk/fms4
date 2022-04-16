@@ -8,6 +8,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
 import android.net.Uri;
@@ -29,13 +30,17 @@ import android.widget.Toast;
 
 import com.megatech.fms.databinding.ActivityInvoiceBinding;
 import com.megatech.fms.helpers.DataHelper;
+import com.megatech.fms.helpers.Logger;
 import com.megatech.fms.helpers.PrintWorker;
 import com.megatech.fms.helpers.ZebraWorker;
 import com.megatech.fms.model.ReceiptModel;
 import com.megatech.fms.view.ReceiptItemAdapter;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.Locale;
@@ -43,7 +48,7 @@ import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class InvoiceActivity extends UserBaseActivity implements View.OnClickListener {
+public class PrintReceiptActivity extends UserBaseActivity implements View.OnClickListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,7 +63,7 @@ public class InvoiceActivity extends UserBaseActivity implements View.OnClickLis
             public void onConnectionError() {
 
                 runOnUiThread(() -> {
-                    showErrorMessage(R.string.printer_error);
+                    showErrorMessage(R.string.printer_connection_error);
                 });
             }
 
@@ -79,7 +84,7 @@ public class InvoiceActivity extends UserBaseActivity implements View.OnClickLis
             @Override
             public void onConnectionError() {
                 closeProgressDialog();
-                showErrorMessage(R.string.printer_error);
+                showErrorMessage(R.string.printer_connection_error);
             }
 
             @Override
@@ -135,7 +140,7 @@ public class InvoiceActivity extends UserBaseActivity implements View.OnClickLis
 
     private  void exit()
     {
-        if ( model.isCaptured())
+        if ( model.isCaptured() || model.isPrinted())
         {
             showConfirmMessage(R.string.receipt_not_saved, new Callable<Void>() {
                 @Override
@@ -158,6 +163,7 @@ public class InvoiceActivity extends UserBaseActivity implements View.OnClickLis
     }
     @Override
     public void onClick(View view) {
+        super.onClick(view);
         int id = view.getId();
         switch (id) {
             case R.id.btnBack:
@@ -260,6 +266,7 @@ public class InvoiceActivity extends UserBaseActivity implements View.OnClickLis
     }
 
     private void openCapture() {
+        Logger.appendLog("RECEIPT_WINDOW", "Capture printed receipt");
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         // Ensure that there's a camera activity to handle the intent
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
@@ -274,7 +281,7 @@ public class InvoiceActivity extends UserBaseActivity implements View.OnClickLis
             // Continue only if the File was successfully created
             if (photoFile != null) {
                 Uri photoURI = FileProvider.getUriForFile(this,
-                        "com.megatech.fms.fileprovider",
+                        BuildConfig.APPLICATION_ID +".fileprovider",
                         photoFile);
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                 startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
@@ -287,7 +294,7 @@ public class InvoiceActivity extends UserBaseActivity implements View.OnClickLis
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
 
-
+            Logger.appendLog("RECEIPT_WINDOW", "Capture completed");
             int targetW = 500;
             int targetH = 600;
 
@@ -305,10 +312,15 @@ public class InvoiceActivity extends UserBaseActivity implements View.OnClickLis
 
             // Decode the image file into a Bitmap sized to fill the View
             bmOptions.inJustDecodeBounds = false;
-            bmOptions.inSampleSize = 2;//scaleFactor;
+            bmOptions.inSampleSize = 3;//scaleFactor;
 
-            //Bitmap bitmap = BitmapFactory.decodeFile(currentPhotoPath, bmOptions);
-            //Bitmap pdfBitmap = Bitmap.createScaledBitmap(bitmap,400,600,true);\
+            Bitmap bitmap = BitmapFactory.decodeFile(currentPhotoPath, bmOptions);
+            //Bitmap pdfBitmap = Bitmap.createScaledBitmap(bitmap,600,500,true);
+            try {
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 85, new FileOutputStream(currentPhotoPath));
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
 
             //model.setPdfImageString(ImageUtil.convert(bitmap));
             model.setPdfPath(currentPhotoPath);
@@ -337,7 +349,6 @@ public class InvoiceActivity extends UserBaseActivity implements View.OnClickLis
     private void showEditDialog(final int id, int inputType, String pattern, boolean required) {
 
 
-        Context context = this;
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(m_Title);
         final EditText input = new EditText(this);
@@ -455,37 +466,47 @@ public class InvoiceActivity extends UserBaseActivity implements View.OnClickLis
             });
         }
         else
-            save();
+            showConfirmMessage(R.string.e_invoice_confirm, new Callable<Void>() {
+                @Override
+                public Void call() throws Exception {
+                    save();
+                    return null;
+                }
+            });
+
     }
 
     private void save() {
+        Logger.appendLog("RECEIPT_WINDOW", "save receipt " + model.getNumber());
+        setProgressDialog();
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... voids) {
+                DataHelper.postReceipt(model);
+                return null;
+            }
 
-            setProgressDialog();
-            new AsyncTask<Void, Void, Void>() {
-                @Override
-                protected Void doInBackground(Void... voids) {
-                    DataHelper.postReceipt(model);
-                    return null;
-                }
-
-                @Override
-                protected void onPostExecute(Void response) {
-                    postCompleted();
-                    super.onPostExecute(response);
-                }
-            }.execute();
+            @Override
+            protected void onPostExecute(Void response) {
+                postCompleted();
+                super.onPostExecute(response);
+            }
+        }.execute();
 
 
     }
 
     private void postCompleted()
     {
+        closeProgressDialog();
+        Logger.appendLog("RECEIPT_WINDOW", "save receipt completed " + model.getNumber());
         Intent returnIntent = new Intent();
         returnIntent.putExtra("result",model.getNumber());
         setResult(Activity.RESULT_OK,returnIntent);
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.info)
         .setMessage(R.string.save_receipt_completed)
+        .setCancelable(false)
         .setPositiveButton(R.string.accept, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
@@ -495,7 +516,5 @@ public class InvoiceActivity extends UserBaseActivity implements View.OnClickLis
         });
 
         builder.create().show();
-
-
     }
 }

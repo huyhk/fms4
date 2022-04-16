@@ -62,8 +62,14 @@ public class UserBaseActivity extends BaseActivity {
 
     @Override
     protected void onResume() {
-        super.onResume();
-        setTruckInfo();
+        try {
+            super.onResume();
+            setTruckInfo();
+        }
+        catch (Exception ex)
+        {
+            Logger.appendLog("UserBaseActivity",ex.getMessage());
+        }
 
     }
 
@@ -151,7 +157,7 @@ public class UserBaseActivity extends BaseActivity {
     }
 
     private void invoice() {
-        Intent intent = new Intent(this, InvoiceActivity.class);
+        Intent intent = new Intent(this, PrintReceiptActivity.class);
         startActivity(intent);
 
     }
@@ -205,11 +211,7 @@ public class UserBaseActivity extends BaseActivity {
                 break;
             case R.id.action_send_log:
                 if (Logger.sendLog()) {
-                    new AlertDialog.Builder(this)
-                            .setTitle(R.string.app_name)
-                            .setMessage(R.string.send_log_completed)
-                            .create()
-                            .show();
+                    showMessage(R.string.info, R.string.send_log_completed,R.drawable.ic_checked_circle, null);
                 }
                 break;
 

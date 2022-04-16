@@ -10,7 +10,7 @@ import java.util.Date;
 @Entity
 public class Invoice extends BaseEntity {
 
-    public static Invoice fromInvoiceModel(InvoiceModel model)
+    public static Invoice fromModel(InvoiceModel model)
     {
         Invoice inv = gson.fromJson(gson.toJson(model),Invoice.class);
         inv.setJsonData(gson.toJson(model));
@@ -18,7 +18,7 @@ public class Invoice extends BaseEntity {
         return  inv;
     }
 
-    public InvoiceModel toInvoiceModel() {
+    public InvoiceModel toModel() {
         InvoiceModel model = gson.fromJson(this.getJsonData(), InvoiceModel.class);
         model.setLocalId(this.getId());
         model.setDeleted(this.isDeleted());

@@ -220,7 +220,7 @@
     <string name="address">Địa chỉ</string>
     <string name="taxcode">Mã số thuế</string>
     <string name="price">Đơn giá</string>
-    <string name="printer_error">Lỗi: không kết nối được máy in!</string>
+    <string name="printer_error">Lỗi: không in được dữ liệu! Vui lòng kiểm tra lại</string>
     <string name="print_completed">In thành công</string>
     <string name="force_stop_confirm"><![CDATA[Lỗi kết nối thiết bị LCR, bạn có muốn kết thúc mẻ tra nạp không?  Phải chắc chắn thiết bị LCR đã kết thúc tra nạp. ]]></string>
     <string name="reconnect">Kết nối lại</string>
@@ -229,12 +229,12 @@
     <string name="driver">Nhân viên lái xe</string>
     <string name="select_operator">Chọn nhân viên tra nạp</string>
     <string name="select_driver">Chọn lái xe</string>
-    <string name="return_amount">Hoàn trả (KG)</string>
+    <string name="return_amount">Hoàn trả </string>
     <string name="weight_note">Techlog</string>
     <string name="select">Chọn</string>
-    <string name="update_return_amount">Cập nhật khối lượng hoàn trả (KG)</string>
+    <string name="update_return_amount">Cập nhật khối lượng hoàn trả</string>
     <string name="update_weight_note">Cập nhật Techlog (KG)</string>
-    <string name="edit_not_allow">Không được sửa thông tin tra nạp trên xe khác</string>
+    <string name="edit_not_allow">Không cho phép sửa thông tin tra nạp</string>
     <string name="print_current">In mẻ hiện tại</string>
     <string name="print_bill2">Phiếu đường trường</string>
     <string name="total_amount">Tổng tiền thanh toán</string>
@@ -287,6 +287,8 @@
     <string name="internet_status">Trạng thái 3G</string>
     <string name="flight_type">Bay quốc tế</string>
     <string name="international">Quốc tế</string>
+    <string name="route_type">Loại chặng bay</string>
+    <string name="oversea">Quốc tế</string>
     <string name="domestic">Nội địa</string>
     <string name="update_route_name">Cập nhật đường bay</string>
     <string name="update_price">Cập nhật giá</string>
@@ -383,7 +385,7 @@
     <string name="receipt_number">Số phiếu</string>
     <string name="update_split_amount">Nhập số lượng tách hóa đơn (KG)</string>
     <string name="error_split_amount_too_large">Số lượng tách hóa đơn quá lớn. Vui lòng kiểm tra lại!</string>
-    <string name="receipt_not_saved">Phiếu chưa được lưu sẽ không đồng bộ về máy chủ. Bạn có muốn thoát?</string>
+    <string name="receipt_not_saved">Phiếu chưa được xuất hóa đơn. Bạn có muốn thoát?</string>
     <string name="update_defueling_no">Nhập số phiếu hút</string>
     <string name="print_receipt">In Hóa Đơn Điện Tử</string>
     <string name="not_capture_confirm">Chưa chụp hình phiếu. Bạn muốn chụp hình?</string>
@@ -398,6 +400,31 @@
     <string name="clear">Xóa</string>
     <string name="buyer_signature">Chữ ký người mua</string>
     <string name="seller_signature">Chữ ký người bán</string>
+    <string name="cancel_receipt_info">"Lý do hủy phiếu "</string>
+    <string name="cancel_receipt_message">Mẻ tra nạp đã được in rồi, hủy phiếu đã in? Nhập lý do hủy:</string>
+    <string name="cancel_reason_required">Lý do hủy không được để trống</string>
+    <string name="split_refuel">Tách mẻ</string>
+    <string name="input_split_amount">Nhập số lượng cần tách (KG)</string>
+    <string name="split_amount_too_big">Số lượng tách phải nhỏ hơn khối lượng thực tế</string>
+    <string name="split_confirm">"Bạn chắc chắn muốn tách mẻ tra nạp? "</string>
+    <string name="error_loading_item">Có lỗi khi tải dữ liệu, vui lòng thử lại.</string>
+    <string name="fhs_input_values">Nhập sản lượng</string>
+    <string name="printer_connection_error">Lỗi: không kết nối được máy in</string>
+    <string name="invoice_issue">Xuất hóa đơn</string>
+    <string name="test_print">In thử</string>
+    <string name="invoice_number_input">Nhập số hóa đơn</string>
+    <string name="confirm_invoice_exit">Hóa đơn đã được in, bạn muốn thoát mà không nhập số hóa đơn?</string>
+    <string name="print_completed_message">Đã in thành công, vui lòng nhập số hóa đơn</string>
+    <string name="confirm_receip_cancel">Bạn chắc chắn muốn hủy phiếu đã in và tạo phiếu mới?</string>
+    <string name="refuel_confirm_term">Vui lòng kiểm tra số đồng hồ  và sản lượng trước khi xác nhận.</string>
+    <string name="customer_type">Loại khách hàng</string>
+    <string name="change_route_type_confirm">Bạn thực sự muốn thay đổi kiểu chặng bay?</string>
+    <string name="e_invoice_confirm">Bạn chắc chắn muốn xuất hóa đơn?</string>
+    <string name="sync_error_title">Lỗi đồng bộ </string>
+    <string name="sync_error">Lỗi đồng bộ dữ liệu với hệ thống số hóa</string>
+    <string name="sync_error_message">Dữ liệu tra nạp đã được lưu trên máy tính bảng. Nhưng chưa được đồng bộ với hệ thống số hóa. Vui lòng đồng bộ lại tại giao diện kế hoạch bằng nút  </string>
+    <string name="sync">Đồng bộ dữ liệu</string>
+    <string name="sync_completed_message">Đồng bộ dữ liệu thành công</string>
 
     <string-array name="vat_array">
         <item>0%</item>
@@ -410,5 +437,11 @@
         <item>GAL</item>
     </string-array>
 
+    <string-array name="cancel_reason_array">
 
+        <item>Sai thông tin khách hàng</item>
+        <item>Sai số lượng hàng hóa</item>
+        <item>Sai hành trình</item>
+        <item>Lý do khác</item>
+    </string-array>
 </resources>

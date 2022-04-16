@@ -91,7 +91,7 @@ public class VersionUpdateActivity extends BaseActivity implements View.OnClickL
                 } else {
                     ((TextView) findViewById(R.id.version_check_message)).setText(getString(R.string.newest_version_using));
                 }
-                update_url = API_BASE_URL + "/files/" + "fms-release-" + versionInfo + ".apk";
+                update_url = API_BASE_URL + "/files/" + (BuildConfig.FHS? "fhs-":"fms-release-" )+ versionInfo + ".apk";
                 //if (DEBUG)
                  //   update_url = API_BASE_URL + "/files/" + "fms-debug-" + versionInfo + ".apk";
             }

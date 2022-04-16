@@ -456,11 +456,11 @@ public class LCRReader {
                 // Format setText string
                 if (dataListener != null) {
                     try {
-                        float qty = numberFormat.parse(responseField.getNewValue()).floatValue();
-                        //if (qty>=model.getGrossQty()) {
+                        double qty = numberFormat.parse(responseField.getNewValue()).doubleValue();
+                        if (qty > 0  &&  Math.abs(qty-model.getGrossQty())<10000) {
                             model.setGrossQty(qty);
                             onDataChanged(model, FIELD_CHANGE.GROSSQTY);
-                        //}
+                        }
                     } catch (ParseException e) {
                     }
                 }
@@ -472,16 +472,14 @@ public class LCRReader {
                 // Format setText string
                 if (dataListener != null) {
                     try {
-                        model.setStartMeterNumber(numberFormat.parse(responseField.getNewValue()).floatValue());
+                        model.setStartMeterNumber(numberFormat.parse(responseField.getNewValue()).doubleValue());
                         onDataChanged(model, FIELD_CHANGE.PREVIOUSGROSS);
                     } catch (ParseException e) {
                     }
                 }
             }
             if (responseFieldName.equals(FIELD_CHANGE.STARTTIME.toString())) {
-                // Set logger off for this fiel
-                //showInLog = false;
-                // Format setText string
+
                 if (dataListener != null) {
                     try {
                         model.setStartTime(dateFormat.parse(responseField.getNewValue()));
@@ -510,12 +508,12 @@ public class LCRReader {
                 // Format setText string
                 if (dataListener != null) {
                     try {
-                        float value = numberFormat.parse(responseField.getNewValue()).floatValue();
+                        double value = numberFormat.parse(responseField.getNewValue()).doubleValue();
 
-                        model.setEndMeterNumber(value);
-
-
-                        onDataChanged(model, FIELD_CHANGE.TOTALIZER);
+                        if (Math.abs(value- model.getEndMeterNumber() ) <1000 || model.getEndMeterNumber()==0) {
+                            model.setEndMeterNumber(value);
+                            onDataChanged(model, FIELD_CHANGE.TOTALIZER);
+                        }
                     } catch (ParseException e) {
                     }
 
@@ -527,7 +525,7 @@ public class LCRReader {
                 // Format setText string
                 if (dataListener != null) {
                     try {
-                        model.setTemperature(numberFormat.parse(responseField.getNewValue()).floatValue());
+                        model.setTemperature(numberFormat.parse(responseField.getNewValue()).doubleValue());
                         onDataChanged(model, FIELD_CHANGE.TEMPERATURE);
                     } catch (ParseException e) {
                     }
@@ -1024,8 +1022,7 @@ public class LCRReader {
                         public void onAsyncReturn(@Nullable Throwable throwable) {
                             if (throwable != null) {
                                 Logger.appendLog("LCR", "fieldToolsFindField " + fieldName + " failed: " + throwable.getLocalizedMessage());
-                                requestFields.remove(fieldName);
-                                //processFieldQueue();
+                                requestFieldCompleted(fieldName);
                             }
 
 
@@ -1038,6 +1035,11 @@ public class LCRReader {
                 }
             }
         }
+    }
+
+    private void requestFieldCompleted(String fieldName) {
+        requestFields.remove(fieldName);
+        processFieldQueue();
     }
 
     public boolean isLCR600() {
@@ -1259,7 +1261,7 @@ public class LCRReader {
         addRequestQueue("DELIVERYFINISH");
         addRequestQueue("DELIVERYSTART");
         addRequestQueue("AVGTEMP");
-        addRequestQueue("PREVIOUSGROSS");
+        //addRequestQueue("PREVIOUSGROSS");
 
         if (fieldAvail)
             processFieldQueue();
@@ -1306,7 +1308,7 @@ public class LCRReader {
                     getDeviceId(),
                     new RequestField(
                             field,
-                            new TimeSet(2, TimeUnit.SECONDS)),
+                            new TimeSet(2, TimeUnit.MILLISECONDS)),
                     new AsyncCallback() {
                         @Override
                         public void onAsyncReturn(@Nullable Throwable throwable) {

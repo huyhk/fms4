@@ -117,7 +117,7 @@ public class PrintWorker implements Observer {
             }
         }catch (Exception ex) {
             Logger.appendLog("PRINTER", ex.getMessage());
-            //return -1;
+            //            return -1;
         }
         printed = dataToPrint.size() ==0;
         return  dataToPrint.size();

@@ -19,13 +19,14 @@ import com.megatech.fms.databinding.RefuelPreviewItemBinding;
 import com.megatech.fms.model.RefuelItemData;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class TruckArrayAdapter extends ArrayAdapter<RefuelItemData> {
     public TruckArrayAdapter(Context context, ArrayList<RefuelItemData> items) {
 
         super(context, 0, items);
         allItems = items;
-        checked = new boolean[items.size()] ;
+        checked = new ArrayList<>(Collections.nCopies(items.size(),false)) ;
     }
 
     private int selectedIndex = -1;
@@ -41,7 +42,7 @@ public class TruckArrayAdapter extends ArrayAdapter<RefuelItemData> {
         notifyDataSetChanged();
     }
 
-    boolean[] checked;
+    ArrayList<Boolean> checked;
     ArrayList<RefuelItemData> allItems;
     ArrayList<RefuelItemData> checkedItems = new ArrayList<>();
 
@@ -71,10 +72,10 @@ public class TruckArrayAdapter extends ArrayAdapter<RefuelItemData> {
         CheckBox cb = convertView.findViewById(R.id.truck_item_chk);
 
         if (cb != null) {
-            cb.setChecked(checked[position]);
+            cb.setChecked(checked.get(position));
 
             cb.setOnClickListener(v -> {
-                checked[position] = cb.isChecked();
+                checked.set(position, cb.isChecked());
                 if (cb.isChecked())
                     checkedItems.add(itemData);
                 else
@@ -88,7 +89,7 @@ public class TruckArrayAdapter extends ArrayAdapter<RefuelItemData> {
         try {
             checkedItems.clear();
             for (int i = 0; i < allItems.size(); i++)
-                if (checked[i])
+                if (checked.get(i))
                     checkedItems.add(allItems.get(i));
         }catch (Exception ex)
         {}
@@ -106,8 +107,21 @@ public class TruckArrayAdapter extends ArrayAdapter<RefuelItemData> {
     }
 
     void selectAll(boolean selected) {
-        for (int i = 0; i < checked.length; i++) {
-            checked[i] = selected;
+        for (int i = 0; i < checked.size(); i++) {
+            checked.set(i, selected);
         }
+    }
+
+    @Override
+    public void add(@Nullable RefuelItemData object) {
+        super.add(object);
+        checked.add(false);
+    }
+
+    @Override
+    public void notifyDataSetChanged() {
+        if (checked.size() < allItems.size())
+            checked.add(false);
+        super.notifyDataSetChanged();
     }
 }

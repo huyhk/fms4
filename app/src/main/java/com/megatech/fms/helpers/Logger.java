@@ -26,7 +26,7 @@ public class Logger {
 
     public static void appendLog(String tag, String logText) {
         Context ctx = FMSApplication.getApplication();
-        //String logFolder = Environment.getExternalStorageDirectory() + "/logs";
+
 
         String fileName = ctx.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS) + "/fms.log";
         File logFile = new File(fileName);
@@ -54,6 +54,7 @@ public class Logger {
             logText = "[" + format.format(new Date()) + "] " + logText;
             buf.append(logText);
             buf.newLine();
+            buf.flush();
             buf.close();
 
         } catch (IOException e) {

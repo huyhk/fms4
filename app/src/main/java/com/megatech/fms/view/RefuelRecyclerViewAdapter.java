@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -25,6 +26,7 @@ import com.megatech.fms.RefuelDetailActivity;
 import com.megatech.fms.RefuelPreviewActivity;
 import com.megatech.fms.UserBaseActivity;
 import com.megatech.fms.databinding.CardviewRefuelItemBinding;
+import com.megatech.fms.helpers.DataHelper;
 import com.megatech.fms.model.REFUEL_ITEM_STATUS;
 import com.megatech.fms.model.RefuelItemData;
 
@@ -57,7 +59,7 @@ public class RefuelRecyclerViewAdapter extends RecyclerView.Adapter<RefuelRecycl
         LayoutInflater inflater = LayoutInflater.from(mContext);
         //view = inflater.inflate(R.layout.cardview_refuel_item,parent,false);
         //return new MyViewHolder(view);
-        CardviewRefuelItemBinding itemBinding = CardviewRefuelItemBinding.inflate(inflater,parent,false);
+        CardviewRefuelItemBinding itemBinding = CardviewRefuelItemBinding.inflate(inflater, parent, false);
         return new MyViewHolder(itemBinding);
     }
 
@@ -66,7 +68,7 @@ public class RefuelRecyclerViewAdapter extends RecyclerView.Adapter<RefuelRecycl
         if (mDataFiltered.size() > 0) {
             RefuelItemData model = mDataFiltered.get(position);
 
-            holder.itemView.setOnClickListener(subClick);
+            //holder.itemView.setOnClickListener(subClick);
 
             holder.bind(model);
 
@@ -83,23 +85,20 @@ public class RefuelRecyclerViewAdapter extends RecyclerView.Adapter<RefuelRecycl
     }
 
     int REQUEST_CODE = 5546;
-    int dlgResult =0;
+    int dlgResult = 0;
     private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
 
             Bundle arguments = new Bundle();
-            RefuelItemData item = (RefuelItemData)v.getTag();
+            RefuelItemData item = (RefuelItemData) v.getTag();
             Context context = v.getContext();
-            if (item.getFlightStatus() == RefuelItemData.FLIGHT_STATUS.CANCELLED)
-            {
-                Toast.makeText(mContext,R.string.cancelled_alert,Toast.LENGTH_LONG).show();
+            if (item.getFlightStatus() == RefuelItemData.FLIGHT_STATUS.CANCELLED) {
+                Toast.makeText(mContext, R.string.cancelled_alert, Toast.LENGTH_LONG).show();
                 return;
             }
-            if (item.getStatus() != REFUEL_ITEM_STATUS.DONE)
-            {
-                if (!item.getTruckNo().equals( FMSApplication.getApplication().getTruckNo()))
-                {
+            if (item.getStatus() != REFUEL_ITEM_STATUS.DONE) {
+                if (!item.getTruckNo().equals(FMSApplication.getApplication().getTruckNo())) {
 
                     AlertDialog.Builder builder = new AlertDialog.Builder(context);
                     builder.setTitle(R.string.app_name)
@@ -119,38 +118,31 @@ public class RefuelRecyclerViewAdapter extends RecyclerView.Adapter<RefuelRecycl
 
                     if (dlgResult != 0)
                         return;
-                }
-                else
+                } else
                     showRefuel(item);
-            }
-            else if (item.getStatus() == REFUEL_ITEM_STATUS.DONE)
+            } else if (item.getStatus() == REFUEL_ITEM_STATUS.DONE)
                 showPreview(item);
 
 
         }
     };
-    private void showRefuel(RefuelItemData item)
-    {
+
+    private void showRefuel(RefuelItemData item) {
         Intent intent = new Intent(mContext, RefuelDetailActivity.class);
         intent.putExtra("REFUEL_ID", item.getId());
         intent.putExtra("REFUEL_LOCAL_ID", item.getLocalId());
+        intent.putExtra("REFUEL_UNIQUE_ID", item.getUniqueId());
         mContext.startActivityForResult(intent, REQUEST_CODE);
     }
 
-    private void showPreview(RefuelItemData item)
-    {
+    private void showPreview(RefuelItemData item) {
         Intent intent = new Intent(mContext, RefuelPreviewActivity.class);
         intent.putExtra("REFUEL_ID", item.getId());
         intent.putExtra("REFUEL_LOCAL_ID", item.getLocalId());
+        intent.putExtra("REFUEL_UNIQUE_ID", item.getUniqueId());
         mContext.startActivityForResult(intent, REQUEST_CODE);
     }
 
-    private final View.OnClickListener subClick = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-
-        }
-    };
 
     @Override
     public Filter getFilter() {
@@ -189,24 +181,34 @@ public class RefuelRecyclerViewAdapter extends RecyclerView.Adapter<RefuelRecycl
         };
     }
 
-    public class MyViewHolder extends RecyclerView.ViewHolder
-    {
+    public class MyViewHolder extends RecyclerView.ViewHolder {
         TextView mFlightCode;
         TextView mAircraftCode;
         TextView mParkingLot;
         CheckedTextView mCheck;
-        private   CardviewRefuelItemBinding binding ;
-        LinearLayout expandArea;
+        CheckedTextView mSync;
+        private CardviewRefuelItemBinding binding;
+        UserBaseActivity ctx;
 
-        public MyViewHolder(CardviewRefuelItemBinding binding, @NonNull View itemView)
-        {
+        public MyViewHolder(CardviewRefuelItemBinding binding, @NonNull View itemView) {
             super(itemView);
             this.binding = binding;
         }
 
-        public MyViewHolder(CardviewRefuelItemBinding binding)
-        {
+        public MyViewHolder(CardviewRefuelItemBinding binding) {
             super(binding.getRoot());
+            mSync = binding.getRoot().findViewById(R.id.refuel_item_sync);
+            ctx = (UserBaseActivity)binding.getRoot().getContext();
+            mSync.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    RefuelItemData itemData = binding.getMItem();
+                    if (itemData != null) {
+                        ctx.setProgressDialog();
+                        postData(itemData);
+                    }
+                }
+            });
             this.binding = binding;
         }
 
@@ -214,16 +216,46 @@ public class RefuelRecyclerViewAdapter extends RecyclerView.Adapter<RefuelRecycl
             super(itemView);
 
             mFlightCode = itemView.findViewById(R.id.refuel_item_flightCode);
-            mAircraftCode   = itemView.findViewById(R.id.refuel_item_aircraftCode);
-            mParkingLot   = itemView.findViewById(R.id.refuel_item_parlingLot);
-            mCheck   = itemView.findViewById(R.id.refuel_item_chk);
+            mAircraftCode = itemView.findViewById(R.id.refuel_item_aircraftCode);
+            mParkingLot = itemView.findViewById(R.id.refuel_item_parlingLot);
+            mCheck = itemView.findViewById(R.id.refuel_item_chk);
+            mSync = itemView.findViewById(R.id.refuel_item_sync);
+
         }
 
-        public void bind(RefuelItemData itemData)
-        {
+        public void bind(RefuelItemData itemData) {
             binding.setMItem(itemData);
             binding.executePendingBindings();
 
         }
+
+        private void postData(RefuelItemData itemData) {
+            new AsyncTask<Void, Void, RefuelItemData>() {
+                @Override
+                protected RefuelItemData doInBackground(Void... voids) {
+                    return DataHelper.postRefuel(itemData, true);
+                }
+
+                @Override
+                protected void onPostExecute(RefuelItemData itemData) {
+                    postDataCompleted(itemData);
+                    super.onPostExecute(itemData);
+
+                }
+            }.execute();
+        }
+
+        private void postDataCompleted(RefuelItemData itemData) {
+            ctx.closeProgressDialog();
+            if (itemData == null || itemData.isLocalModified())
+                ctx.showErrorMessage(R.string.sync_error_title, R.string.sync_error);
+            else {
+                ctx.showMessage(R.string.sync, R.string.sync_completed_message, R.drawable.ic_checked_circle, null);
+                binding.getMItem().setLocalModified(false);
+                binding.invalidateAll();
+            }
+        }
     }
+
+
 }

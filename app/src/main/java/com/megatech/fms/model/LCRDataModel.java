@@ -28,14 +28,14 @@ public class LCRDataModel {
         this.userId = userId;
     }
 
-    private float grossQty;
+    private double grossQty;
 
 
-    public float getGrossQty() {
+    public double getGrossQty() {
 
         return grossQty;
     }
-    public void setGrossQty(float qty) {
+    public void setGrossQty(double qty) {
         this.grossQty = qty;
 
         //if ( !(volFlag )){
@@ -45,23 +45,23 @@ public class LCRDataModel {
 
         //volFlag = true;
     }
-    private float netQty;
+    private double netQty;
 
-    public float getNetQty() {
+    public double getNetQty() {
         return netQty;
     }
 
-    public void setNetQty(float netQty) {
+    public void setNetQty(double netQty) {
         this.netQty = netQty;
     }
 
-    private float temperature;
+    private double temperature;
 
-    public float getTemperature() {
+    public double getTemperature() {
         return temperature;
     }
 
-    public void setTemperature(float temperature) {
+    public void setTemperature(double temperature) {
         this.temperature = temperature;
     }
 
@@ -86,31 +86,31 @@ public class LCRDataModel {
         this.endTime = endTime;
     }
 
-    private float meterNumber;
-    private  float startMeterNumber;
-    private  float endMeterNumber;
+    private double meterNumber;
+    private  double startMeterNumber;
+    private  double endMeterNumber;
 
-    public float getMeterNumber() {
+    public double getMeterNumber() {
         return meterNumber;
     }
 
-    public void setMeterNumber(float meterNumber) {
+    public void setMeterNumber(double meterNumber) {
         this.meterNumber = meterNumber;
     }
 
-    public float getStartMeterNumber() {
+    public double getStartMeterNumber() {
         return startMeterNumber;
     }
 
-    public void setStartMeterNumber(float startMeterNumber) {
+    public void setStartMeterNumber(double startMeterNumber) {
         this.startMeterNumber = startMeterNumber;
     }
 
-    public float getEndMeterNumber() {
+    public double getEndMeterNumber() {
         return endMeterNumber;
     }
 
-    public void setEndMeterNumber(float endMeterNumber) {
+    public void setEndMeterNumber(double endMeterNumber) {
         this.endMeterNumber = endMeterNumber;
         //if ( !(totalFlag)){
         Log.e("FMS", endMeterNumber + " - " + this.grossQty);

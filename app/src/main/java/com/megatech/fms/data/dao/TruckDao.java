@@ -17,6 +17,9 @@ public interface TruckDao {
     @Query("Select * from truck")
     List<Truck> getAll();
 
+    @Query("Select * from truck where isFHS")
+    List<Truck> getFHS();
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insert(Truck truck);
 

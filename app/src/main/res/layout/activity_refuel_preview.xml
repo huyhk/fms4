@@ -257,7 +257,7 @@
             app:layout_constraintTop_toTopOf="@id/refuel_preview_Temperature" />
 
         <TextView
-            android:id="@+id/refuel_preview_Density"
+            android:id="@+id/refuel_preview_density"
             style="?android:attr/textAppearanceMedium"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -275,7 +275,7 @@
             android:padding="5dp"
             android:text="@string/density"
             app:layout_constraintStart_toEndOf="@id/guideline_left"
-            app:layout_constraintTop_toTopOf="@id/refuel_preview_Density" />
+            app:layout_constraintTop_toTopOf="@id/refuel_preview_density" />
 
         <TextView
             android:id="@+id/refuel_preview_qc_no"
@@ -286,7 +286,7 @@
             android:textIsSelectable="true"
             android:text='@{mItem.qualityNo}'
             app:layout_constraintStart_toEndOf="@id/guideline_center_left"
-            app:layout_constraintTop_toBottomOf="@id/refuel_preview_Density" />
+            app:layout_constraintTop_toBottomOf="@id/refuel_preview_density" />
 
         <TextView
             android:id="@+id/lblQCNo"
@@ -371,7 +371,7 @@
             android:visibility="invisible"
             android:text='@{String.format("%.4f",mItem.density)}'
             app:layout_constraintStart_toStartOf="@id/refuel_preview_aircraftCode"
-            app:layout_constraintTop_toTopOf="@id/refuel_preview_Density" />
+            app:layout_constraintTop_toTopOf="@id/refuel_preview_density" />
 
         <EditText
             android:id="@+id/edtTemperature"

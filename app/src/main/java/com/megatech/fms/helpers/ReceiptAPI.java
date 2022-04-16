@@ -65,6 +65,21 @@ public class ReceiptAPI extends  BaseAPI{
                     model.setSignImageString(ImageUtil.convert(bitmap));
                 }
             }
+
+            if (model.getSellerSignaturePath() !=null && !model.getSellerSignaturePath().isEmpty()) {
+                File f = new File(model.getSellerSignaturePath());
+                if (f.exists()) {
+                    BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+                    bmOptions.inJustDecodeBounds = true;
+
+                    BitmapFactory.decodeFile(model.getSellerSignaturePath(), bmOptions);
+                    bmOptions.inJustDecodeBounds = false;
+                    bmOptions.inSampleSize = 1;//scaleFactor;
+
+                    Bitmap bitmap = BitmapFactory.decodeFile(model.getSellerSignaturePath(), bmOptions);
+                    model.setSellerImageString(ImageUtil.convert(bitmap));
+                }
+            }
         }
         catch (Exception ex)
         {

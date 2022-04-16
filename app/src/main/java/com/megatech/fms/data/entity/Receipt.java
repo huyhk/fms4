@@ -207,10 +207,32 @@ public class Receipt extends  BaseEntity {
         this.splitAmount = splitAmount;
     }
 
+    private boolean isCancelled;
+
+    private String cancelReason;
+
+    public boolean isCancelled() {
+        return isCancelled;
+    }
+
+    public void setCancelled(boolean cancelled) {
+        isCancelled = cancelled;
+    }
+
+    public String getCancelReason() {
+        return cancelReason;
+    }
+
+    public void setCancelReason(String cancelReason) {
+        this.cancelReason = cancelReason;
+    }
+
     public ReceiptModel toModel()
     {
         ReceiptModel model = gson.fromJson(this.getJsonData(), ReceiptModel.class);
         model.setLocalId(this.getLocalId());
+        model.setCancelled(isCancelled);
+        model.setCancelReason(cancelReason);
         return model;
 
     }

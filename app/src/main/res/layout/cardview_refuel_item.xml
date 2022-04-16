@@ -64,14 +64,7 @@
                         android:gravity="center"
                         android:padding="3dp" />
 
-                    <CheckedTextView
-                        android:id="@+id/refuel_item_sync"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:checkMark="@{mItem.isLocalModified?@drawable/ic_not_sync :null }"
-                        android:checked="@{mItem.isLocalModified}"
-                        android:gravity="center"
-                        android:padding="3dp" />
+
                 </LinearLayout>
 
 
@@ -222,6 +215,24 @@
 
 
                 </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight=".05"
+                    android:orientation="vertical">
+
+
+                    <CheckedTextView
+                        android:id="@+id/refuel_item_sync"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:checkMark="@{mItem.isLocalModified?@drawable/ic_not_sync_large :null }"
+                        android:checked="@{mItem.isLocalModified}"
+                        android:gravity="center"
+                        android:padding="3dp" />
+                </LinearLayout>
+
             </LinearLayout>
 
             <LinearLayout

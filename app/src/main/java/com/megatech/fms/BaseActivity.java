@@ -1,8 +1,11 @@
 package com.megatech.fms;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.view.Gravity;
@@ -11,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
@@ -39,7 +43,7 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
     protected FMSApplication currentApp;
     protected UserInfo currentUser;
     protected final String TAG = this.getClass().getName();
-
+    protected  boolean isActive;
 
     @SuppressLint("SourceLockedOrientationActivity")
     @Override
@@ -58,21 +62,7 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
         //Logger.appendLog("============================ " + TAG + " ======================== ");
     }
 
-    FloatingActionButton fab;
 
-    private void createFAB() {
-        fab = new FloatingActionButton(this);
-        fab.setSize(FloatingActionButton.SIZE_MINI);
-        RelativeLayout.LayoutParams lay = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT);
-        lay.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
-        lay.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
-        lay.setMargins(2, 2, 2, 2);
-        fab.setLayoutParams(lay);
-        fab.setImageDrawable(getResources().getDrawable(R.drawable.ic_no_internet, null));
-
-        ((ViewGroup) this.getWindow().getDecorView()).addView(fab);
-    }
 
 
     @Override
@@ -83,7 +73,8 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
     AlertDialog progressDialog;
 
     public void setProgressDialog() {
-
+        if (!isActive)
+            return;;
         int llPadding = 30;
         LinearLayout ll = new LinearLayout(this);
         ll.setOrientation(LinearLayout.HORIZONTAL);
@@ -131,8 +122,16 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void closeProgressDialog() {
-        if (progressDialog != null && !isFinishing())
-            progressDialog.dismiss();
+        if (!isActive)
+            return;
+        try {
+            if (progressDialog != null && !isFinishing() && !isDestroyed() )
+                progressDialog.dismiss();
+        }
+        catch (Exception ex)
+        {
+
+        }
     }
 
     public void showConfirmMessage(int messageId, Callable<Void> positiveClick) {
@@ -150,7 +149,9 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void showMessage(int titleId, int messageId, int iconId, Callable<Void> positiveClick, Callable<Void> negativeClick) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        if (!isActive)
+return;;
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(titleId)
                 .setMessage(messageId)
                 .setIcon(iconId)
@@ -200,8 +201,12 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
         showErrorMessage(R.string.validate, messageId, R.drawable.ic_error);
 
     }
+    public void showErrorMessage(int titleId, int messageId) {
+        showErrorMessage(titleId, messageId, R.drawable.ic_error);
 
+    }
     public void showErrorMessage(int titleId, int messageId, int iconId) {
+        if (isActive)
         new AlertDialog.Builder(this)
                 .setTitle(titleId)
                 .setMessage(messageId)
@@ -214,7 +219,9 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void showErrorMessage(int titleId, String message, int iconId) {
-        new AlertDialog.Builder(this)
+        if (isActive)
+
+            new AlertDialog.Builder(this)
                 .setTitle(titleId)
                 .setMessage(message)
                 .setIcon(iconId)
@@ -225,10 +232,72 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
                 .show();
     }
 
+    public void showInputData(int titleId,  String defaultText, int inputType, String pattern, boolean required, OnInputCompleted onComplete)
+    {
+        Context context = this;
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(titleId);
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(10,5,10,5);
+        final EditText input = new EditText(this);
+        input.setInputType(inputType);
+        input.setTypeface(Typeface.DEFAULT);
+
+        input.setText(defaultText);
+        layout.addView(input);
+        builder.setView(layout);
+
+        builder.setPositiveButton(R.string.save, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+            }
+        });
+
+        if (!required) {
+            builder.setNegativeButton(R.string.back, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                }
+            });
+        }
+        final AlertDialog dialog = builder.create();// builder.show();
+        dialog.setCancelable(!required);
+        dialog.show();
+        input.requestFocus();
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (onComplete!=null && onComplete.onOK(input.getText().toString()))
+                    dialog.dismiss();
+                onComplete.onCompleted();
+
+            }
+
+        });
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                if (onComplete !=null) {
+                    try {
+                        onComplete.onCancel();
+                    } catch (Exception ex) {
+                    }
+                }
+                dialog.dismiss();
+            }
+        });
+    }
 
     @Override
     public void onClick(View view) {
-        Logger.appendLog("Click: " + view.toString());
+        String log;
+        if (view.getId() == View.NO_ID) log =  "no-id";
+        else log =  view.getResources().getResourceName(view.getId());
+        Logger.appendLog("Click: " + log);
     }
 
     @Override
@@ -241,5 +310,30 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
     public boolean onKeyUp(int keyCode, KeyEvent event) {
 
         return super.onKeyUp(keyCode, event);
+    }
+
+    @Override
+    protected void onStart() {
+        Logger.appendLog("============================ START " + TAG + " ==================== ");
+        super.onStart();
+        isActive = true;
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        isActive = false;
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
+    public interface  OnInputCompleted
+    {
+        boolean onOK(String text);
+        void onCancel();
+        void onCompleted();
     }
 }

@@ -22,6 +22,9 @@ public interface RefuelItemDao {
     @Query("Select * from RefuelItem where id = :id")
     RefuelItem get(int id);
 
+    @Query("Select * from RefuelItem where uniqueId = :uniqueId")
+    RefuelItem get(String uniqueId);
+
     @Query("Select * from RefuelItem where localId != :id AND flightId = (SELECT flightId from RefuelItem where localId= :id)")
     List<RefuelItem> getOthers(int id);
 
@@ -56,7 +59,7 @@ public interface RefuelItemDao {
     @Delete
     void delete(RefuelItem item);
 
-    @Update( onConflict = OnConflictStrategy.REPLACE)
+    @Update
     void update(RefuelItem item);
 
     @Query("Select * from RefuelItem where localId = :id")
@@ -78,6 +81,9 @@ public interface RefuelItemDao {
 
     void deleteByDate(long d);
 
-    @Query("Select * from RefuelItem where status = 1 and  truckNo = :truckNo limit 1")
-    RefuelItem getIncomplete(String truckNo);
+    @Query("Select * from RefuelItem where status = 1 and  truckNo = :truckNo and startTime > :timeLimit limit 1")
+    RefuelItem getIncomplete(String truckNo, long timeLimit);
+
+    @Query("Select * from RefuelItem where uniqueId != :uniqueId AND flightId = (SELECT flightId from RefuelItem where uniqueId= :uniqueId)")
+    List<RefuelItem> getOtherItems(String uniqueId);
 }

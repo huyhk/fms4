@@ -2,6 +2,7 @@
 <layout>
     <data>
 
+        <import type="com.megatech.fms.BuildConfig"/>
         <import type="com.megatech.fms.helpers.DateUtils" />
 
         <import type="com.megatech.fms.model.REFUEL_ITEM_STATUS" />
@@ -37,7 +38,7 @@
             android:layout_weight=".3"
             android:gravity="center"
             android:hint="@string/meter"
-            android:text='@{String.format("%,d - %,d",Math.round(truckItem.startNumber), Math.round(truckItem.startNumber + truckItem.realAmount))}' />
+            android:text='@{String.format("%,d - %,d",Math.round(truckItem.startNumber), Math.round(truckItem.endNumber))}' />
 
 
 
@@ -47,7 +48,7 @@
             android:layout_weight=".15"
             android:gravity="center"
             android:hint="@string/real_amount"
-            android:text='@{String.format("%,.0f",truckItem.realAmount)}' />
+            android:text='@{String.format("%,.0f", BuildConfig.FHS?truckItem.volume: truckItem.realAmount)}' />
 
         <TextView
             android:layout_width="0dp"
@@ -65,7 +66,7 @@
             android:layout_weight=".15"
             android:gravity="center"
 
-            android:text='@{truckItem.invoiceNumber}' />
+            android:text='@{truckItem.invoiceNumber==null?truckItem.receiptNumber:truckItem.invoiceNumber}' />
 
         <CheckedTextView
             android:layout_width="0dp"

@@ -46,17 +46,19 @@ public class RefuelListFragment extends Fragment {
 
     private OnFragmentInteractionListener mListener;
 
-    List<RefuelItemData> lstData ;
+    List<RefuelItemData> lstData;
 
     private boolean _self;
 
     public RefuelListFragment() {
         // Required empty public constructor
     }
+
     public RefuelListFragment(boolean self) {
         // Required empty public constructor
         _self = self;
     }
+
     /**
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
@@ -76,24 +78,25 @@ public class RefuelListFragment extends Fragment {
     }
 
     private Timer timer = new Timer();
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
 
-        timer.scheduleAtFixedRate(new TimerTask() {
+      /*  timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
 
-                        refreshdata(Activity.RESULT_OK);
+                refreshdata(Activity.RESULT_OK);
             }
-        },1000*60*5,1000*60*5);
+        }, 1000 * 60 * 5, 1000 * 60 * 5);*/
 
     }
 
     RefuelRecyclerViewAdapter mAdapter;
-    public  void refresh()
-    {
+
+    public void refresh() {
         refreshdata(Activity.RESULT_OK);
     }
 
@@ -104,7 +107,7 @@ public class RefuelListFragment extends Fragment {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                lstData = DataHelper.getRefuelList(_self,0);
+                lstData = DataHelper.getRefuelList(_self, 0);
                 if (activity != null)
                     activity.runOnUiThread(new Runnable() {
                         @Override
@@ -135,6 +138,7 @@ public class RefuelListFragment extends Fragment {
         if (mAdapter != null)
             mAdapter.getFilter().filter(sequence);
     }
+
     @Override
     public void onResume() {
         super.onResume();
@@ -159,6 +163,7 @@ public class RefuelListFragment extends Fragment {
     }
 
     View rootview;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -182,12 +187,12 @@ public class RefuelListFragment extends Fragment {
             });
 
 
-
-        return  rv;
+        return rv;
     }
 
     protected Activity activity;
     protected RecyclerView rv;
+
     // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {

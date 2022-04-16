@@ -10,9 +10,9 @@
     {
       "type": "SINGLE",
       "filters": [],
-      "versionCode": 29,
-      "versionName": "9.4.20220112.29",
-      "outputFile": "fms-release-29-20220112.apk"
+      "versionCode": 38,
+      "versionName": "10.4.20220415.38",
+      "outputFile": "fms-release-38-20220415.apk"
     }
   ]
 }

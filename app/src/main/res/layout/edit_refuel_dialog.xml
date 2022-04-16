@@ -26,7 +26,13 @@
                     android:layout_height="wrap_content"
                     android:layout_weight=".5"
                     android:text="@string/refueler" />
-                <Spinner android:id="@+id/fhs_fueler_spinner">
+                <Spinner android:id="@+id/fhs_refueler_spinner"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight=".5"
+                    android:spinnerMode="dialog"
+
+                    >
 
                 </Spinner>
             </TableRow>

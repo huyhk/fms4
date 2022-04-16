@@ -18,9 +18,67 @@
             type="com.megatech.fms.model.InvoiceModel" />
     </data>
 
-    <ScrollView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <androidx.appcompat.widget.Toolbar
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/toolbar_height"
+            android:background="@color/colorPrimary">
+
+            <Button
+                android:id="@+id/btnBack"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawableStart="@drawable/ic_exit"
+                android:onClick="onClick"
+                android:text="@string/back" />
+
+            <Button
+                android:id="@+id/btnPrintTest"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="left"
+                android:drawableStart="@android:drawable/ic_menu_edit"
+                android:onClick="onClick"
+
+
+                android:text="@string/test_print" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:text="@string/print_invoice"
+                android:textColor="#fff"
+                android:textSize="24sp"
+                android:textStyle="bold">
+
+            </TextView>
+
+            <Button
+                android:id="@+id/btnComplete"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:drawableStart="@android:drawable/ic_menu_save"
+                android:enabled="false"
+                android:onClick="onClick"
+                android:text="@string/invoice_number_input" />
+
+            <Button
+                android:id="@+id/btnPrint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:drawableStart="@drawable/ic_printed"
+                android:onClick="onClick"
+                android:text="@string/print_invoice" />
+
+
+        </androidx.appcompat.widget.Toolbar>
 
         <TableLayout
             android:layout_width="match_parent"
@@ -516,60 +574,9 @@
                 <!--<Spinner android:id="@+id/preview_spinner_form_no">
 
                 </Spinner>-->
-                <TableLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight=".4">
-
-                    <TableRow
-                        android:id="@+id/row_invoice_number"
-                        android:visibility="invisible">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight=".5"
-                            android:text="@string/invoice_number">
-
-                        </TextView>
-
-                        <TextView
-                            android:id="@+id/preview_invoice_number"
-                            android:layout_width="0dp"
-                            android:layout_gravity="center_vertical"
-                            android:layout_weight="0.5"
-                            android:drawableStart="@drawable/ic_edit"
-                            android:onClick="onClick"
-                            android:text="@{invoiceItem.invoiceNumber}" />
-                    </TableRow>
-
-                    <TableRow>
-
-                        <Button
-                            android:id="@+id/btnPrintTest"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight=".3"
-                            android:text="@string/test" />
-
-                        <Button
-                            android:id="@+id/btnPrintInvoice"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight=".3"
-                            android:text="@string/print" />
-
-                        <Button
-                            android:id="@+id/btnPrintCancel"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="right"
-                            android:layout_weight=".3"
-                            android:text="@string/back" />
-                    </TableRow>
-                </TableLayout>
 
             </TableRow>
         </TableLayout>
-    </ScrollView>
+    </LinearLayout>
+
 </layout>

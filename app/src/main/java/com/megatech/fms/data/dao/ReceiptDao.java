@@ -15,14 +15,14 @@ public interface ReceiptDao {
     @Query("Select * from  Receipt")
     List< Receipt> getAll();
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insert( Receipt truck);
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    long insert( Receipt truck);
 
-    @Query("Select * from  Receipt where  (id>0 and id = :id) or (id=0 and localId=:localId) ")
-     Receipt get(int id, int localId);
+    @Query("Select * from  Receipt where number = :number ")
+     Receipt get(String number);
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
-    void update( Receipt item);
+    int update( Receipt item);
 
     @Query("DELETE from  Receipt WHERE id= :id")
     void delete(int id);
@@ -35,4 +35,7 @@ public interface ReceiptDao {
 
     @Query("Select *  from  Receipt where not isDeleted and (date between :start  and :end ) order by date desc" )
     List< Receipt> getAll(long start, long end);
+
+    @Query("Update Receipt set isCancelled = 1, cancelReason = :reason, isLocalModified = 1 where number in (:printedItems) ")
+    void cancel(String[] printedItems, String reason);
 }

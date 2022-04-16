@@ -42,6 +42,35 @@
           ]
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:569809508516:android:2c5c8926985c2a7a91ee31",
+        "android_client_info": {
+          "package_name": "com.megatech.fms.fhs"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "569809508516-qcshe7ks1e4bo8mb2fnehch2alq3pece.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCQpVgLRcaWwLnSGv4wAq4djAygBF7oEvg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "569809508516-qcshe7ks1e4bo8mb2fnehch2alq3pece.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
     }
   ],
   "configuration_version": "1"

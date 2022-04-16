@@ -70,7 +70,15 @@ public class DataRepository {
         }
         return lstModel;
     }
-
+    public List<TruckModel> getFHSTrucks() {
+        List<Truck>  lst = db.truckDao().getFHS();
+        List<TruckModel> lstModel = new ArrayList<>();
+        for (Truck item: lst)
+        {
+            lstModel.add(item.toTruckModel());
+        }
+        return lstModel;
+    }
     public void insertTruck(Truck truckModel) {
         Truck item = db.truckDao().get(truckModel.getId());
         if (item == null)
@@ -132,6 +140,13 @@ public class DataRepository {
         }
     }
 
+    public RefuelItem getRefuel(String uniqueId) {
+        RefuelItem item = null;
+
+        if (uniqueId != null && !uniqueId.isEmpty())
+            item = db.refuelItemDao().get(uniqueId);
+        return item;
+    }
     public RefuelItem getRefuel(Integer id, int localId) {
         RefuelItem item = null;
 
@@ -227,7 +242,11 @@ public class DataRepository {
         return db.refuelItemDao().getOthers(localId);
 
     }
+    public List<RefuelItem> getOthers(String uniqueId) {
 
+        return db.refuelItemDao().getOtherItems(uniqueId);
+
+    }
     public void deleteOldRefuels(int numDays) {
 
         Date d= new Date();
@@ -237,7 +256,8 @@ public class DataRepository {
     }
 
     public RefuelItemData getIncomplete(String truckNo) {
-        RefuelItem item =  db.refuelItemDao().getIncomplete(truckNo);
+        Date d = new Date();
+        RefuelItem item =  db.refuelItemDao().getIncomplete(truckNo, d.getTime() - 1000 * 60 * 60 * 24);
         if (item!=null)
             return item.toRefuelItemData();
         else return  null;
@@ -382,15 +402,17 @@ public class DataRepository {
         return modified;
     }
 
-    public void insertReceipt(Receipt model) {
-        Receipt item = db.receiptDao().get(model.getId(), model.getLocalId());
+    public int insertReceipt(Receipt model) {
+        Receipt item = db.receiptDao().get(model.getNumber());
 
-        if (item == null || (item.getId() == 0 &&  item.getLocalId() != model.getLocalId())) {
-            db.receiptDao().insert(model);
+        if (item == null ) {
+            return (int)db.receiptDao().insert(model);
         } else {
 
             model.setLocalId(item.getLocalId());
-            db.receiptDao().update(model);
+            model.setCancelled(item.isCancelled());
+            model.setCancelReason(item.getCancelReason());
+            return db.receiptDao().update(model);
         }
     }
 
@@ -398,5 +420,9 @@ public class DataRepository {
 
         List<Receipt> modified = db.receiptDao().getModified();
         return modified;
+    }
+
+    public void cancelReceipts(String[] printedItems, String reason ) {
+        db.receiptDao().cancel(printedItems, reason);
     }
 }

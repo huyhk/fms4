@@ -92,6 +92,7 @@ public class NewRefuelActivity extends UserBaseActivity implements View.OnClickL
             refuelData.setTruckId(currentApp.getSetting().getTruckId());
             refuelData.setTruckNo(currentApp.getTruckNo());
             refuelData.setRefuelItemType(isExtract ? RefuelItemData.REFUEL_ITEM_TYPE.EXTRACT : RefuelItemData.REFUEL_ITEM_TYPE.REFUEL);
+            refuelData.setInternational(BuildConfig.FHS);
             SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
             String airport = preferences.getString("AIRPORT","");
             if (airport!="")
@@ -182,7 +183,7 @@ public class NewRefuelActivity extends UserBaseActivity implements View.OnClickL
         item.setUnit(selected.getUnit());
         item.setProductName(selected.getProductName());
         //if (selected.getId() != item.getAirlineId())
-        item.setTaxRate(!refuelData.isInternational() && selected.isInternational() ? 0.1 : 0);
+        item.setTaxRate(!refuelData.isInternational() && selected.isInternational() ? BuildConfig.TAX_RATE : 0);
 
         item.setAirlineModel(selected);
 

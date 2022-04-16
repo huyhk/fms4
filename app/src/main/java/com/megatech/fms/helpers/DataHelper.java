@@ -4,6 +4,7 @@ import android.content.Context;
 
 import com.megatech.fms.BuildConfig;
 import com.megatech.fms.FMSApplication;
+import com.megatech.fms.UserBaseActivity;
 import com.megatech.fms.data.AppDatabase;
 import com.megatech.fms.data.DataRepository;
 import com.megatech.fms.data.entity.Airline;
@@ -55,7 +56,7 @@ public class DataHelper {
 
                     ids[i++] = model.getId();
                 }
-                repo.deleteOudateTrucks(ids);
+                //repo.deleteOudateTrucks(ids);
             }
 
 
@@ -65,14 +66,19 @@ public class DataHelper {
             return  httpClient.getTrucks();
 
     }
+    public  static List<TruckModel> getFHSTrucks()
+    {
 
+            return repo.getFHSTrucks();
+
+
+    }
     public static List<RefuelItemData> getRefuelList(boolean self, int type) {
         if (isDebug) {
 
             new Runnable() {
                 @Override
                 public void run() {
-
                     Synchronize();
                 }
             }.run();
@@ -91,7 +97,14 @@ public class DataHelper {
                 shiftModel = new ShiftModel();
                 shiftModel.setSelected(true);
             }
-            ShiftModel selected = shiftModel.isSelected() ? shiftModel : shiftModel.getPrevShift().isSelected() ? shiftModel.getPrevShift() : shiftModel.getNextShift();
+            ShiftModel selected = shiftModel.isSelected() ? shiftModel : null;
+            if (selected ==null )
+            {
+                if (shiftModel.getPrevShift()!=null && shiftModel.getPrevShift().isSelected())
+                    selected = shiftModel.getPrevShift();
+                else if (shiftModel.getNextShift()!=null && shiftModel.getNextShift().isSelected())
+                    selected = shiftModel.getNextShift();
+            }
             if (selected != null) {
 
                 long start = selected.getStartTime().getTime() - 30 * 60 * 1000;
@@ -104,7 +117,54 @@ public class DataHelper {
         else
             return httpClient.getRefuelList(self);
     }
+    public static RefuelItemData getRefuelItem(String uniqueId)
+    {
+        return getRefuelItem(uniqueId, false);
+    }
+    public static RefuelItemData getRefuelItem(String uniqueId, boolean locked)
+    {
+        RefuelItemData remoteItem = httpClient.getRefuelItem(uniqueId);
+        if (isDebug)
+        {
+            RefuelItem localItem = repo.getRefuel(uniqueId);
 
+            if (localItem == null )
+            { return null;
+            }
+
+            if (localItem.isLocalModified() || remoteItem == null) {
+                remoteItem = localItem.toRefuelItemData();
+                List<RefuelItem> others = repo.getOthers(uniqueId);
+                remoteItem.setOthers(new ArrayList<>());
+                for (RefuelItem item : others) {
+                    remoteItem.getOthers().add(item.toRefuelItemData());
+                }
+            }
+
+            if (remoteItem!=null && localItem == null) {
+
+                localItem = RefuelItem.fromRefuelItemData(remoteItem);
+                repo.insertRefuel(localItem);
+                remoteItem.setLocalId(localItem.getLocalId());
+
+            }
+
+
+            return  remoteItem;
+        }
+
+        return  remoteItem;
+    }
+
+    public static void lockSync()
+    {
+        locked = true;
+    }
+    public static void unlockSync() {
+        locked = false;
+        new Thread(() -> Synchronize()).start();
+    }
+    private static boolean locked = false;
     public static RefuelItemData getRefuelItem(Integer id, Integer localId)
     {
         RefuelItemData remoteItem = null;
@@ -113,11 +173,11 @@ public class DataHelper {
             RefuelItem localItem = repo.getRefuel(id, localId);
             if (id==0 && localItem!=null)
                 id = localItem.getId();
-            Logger.appendLog("DTH","Start remote loading item");
+            Logger.appendLog("DTH","Start remote loading item " + id + " - " + localId);
 
             remoteItem = httpClient.getRefuelItem(id);
-            Logger.appendLog("DTH","End remote loading item");
-            if (localItem.isLocalModified() || remoteItem == null) {
+            Logger.appendLog("DTH","End remote loading item " + id + " - " + localId);
+            if ( (localItem!=null && localItem.isLocalModified()) || remoteItem == null) {
                 remoteItem = localItem.toRefuelItemData();
                 List<RefuelItem> others = repo.getOthers(localId);
                 remoteItem.setOthers(new ArrayList<>());
@@ -141,12 +201,46 @@ public class DataHelper {
     }
 
     public static void Synchronize() {
-        if (!processing) {
+        if (!processing && !locked) {
             processing = true;
             //post local modified data
             new Thread(new Runnable() {
                 @Override
                 public void run() {
+
+
+
+                    Date d = repo.getLastModifiedRefuel();
+                    List<RefuelItemData> remoteList = httpClient.getModifiedRefuels(0, d);
+                    int[] notchanges = repo.getNotChangedRefuels();
+                    if (remoteList != null) {
+                        int[] ids = new int[remoteList.size()];
+                        int i = 0;
+                        for (RefuelItemData model : remoteList) {
+                            if (!model.isDeleted()  ) {
+                                RefuelItem remoteItem = RefuelItem.fromRefuelItemData(model);
+                                RefuelItem localItem = repo.getRefuel(remoteItem.getUniqueId());
+                                if (localItem == null)
+                                {
+                                    localItem = repo.getRefuel(remoteItem.getId(), remoteItem.getLocalId());
+                                }
+                                if (localItem == null || ( !localItem.isLocalModified() ))
+                                    repo.insertRefuel(remoteItem);
+
+                                //if (model.getStatus() != REFUEL_ITEM_STATUS.DONE) {
+                                Flight flight = new Flight();
+                                flight.setId(model.getFlightId());
+                                flight.setCode(model.getFlightCode());
+                                flight.setAircraftCode(model.getAircraftCode());
+                                flight.setRefuelScheduledTime(model.getRefuelTime());
+
+                                repo.insertFlight(flight);
+                                //}
+                            } else if (model.getId() > 0)
+                                ids[i++] = model.getId();
+                        }
+                        repo.removeDeletedRefuels(ids);
+                    }
 
                     List<RefuelItem> modified = repo.getModifiedRefuel();
                     if (modified.size() > 0) {
@@ -156,71 +250,62 @@ public class DataHelper {
                             if (newData != null) {
                                 item.setLocalModified(false);
                                 item.setId(newData.getId());
+                                item.setUniqueId(newData.getUniqueId());
                                 item.setPostStatus(RefuelItem.ITEM_POST_STATUS.SUCCESS);
-                                item.setJsonData(newData.toJson());
+                                //item.setJsonData(newData.toJson());
+
                                 repo.insertRefuel(item);
-
-
                             }
                         }
                     }
-
-                    Date d = repo.getLastModifiedRefuel();
-                    List<RefuelItemData> remoteList = httpClient.getModifiedRefuels(0, d);
-                    int[] notchanges = repo.getNotChangedRefuels();
-                    if (remoteList != null) {
-                        int[] ids = new int[remoteList.size()];
-                        int i = 0;
-                        for (RefuelItemData model : remoteList) {
-                            if (!model.isDeleted()) {
-                                RefuelItem localItem = RefuelItem.fromRefuelItemData(model);
-                                localItem.setPostStatus(RefuelItem.ITEM_POST_STATUS.SUCCESS);
-                                repo.insertRefuel(localItem);
-
-                                //if (model.getStatus() != REFUEL_ITEM_STATUS.DONE) {
-                                    Flight flight = new Flight();
-                                    flight.setId(model.getFlightId());
-                                    flight.setCode(model.getFlightCode());
-                                    flight.setAircraftCode(model.getAircraftCode());
-                                    flight.setRefuelScheduledTime(model.getRefuelTime());
-
-                                    repo.insertFlight(flight);
-                                //}
-                            }
-                            else if (model.getId() > 0)
-                                ids[i++] = model.getId();
-                        }
-                        repo.removeDeletedRefuels(ids);
-                    }
-
                     //Delete old records
                     repo.deleteOldRefuels(10);
                     processing = false;
 
                     //Logger.appendLog("DTH","END Synchornize");
+
+
+                    List<Receipt> modifiedReceipt = repo.getModifiedReceipt();
+                    ReceiptAPI client = new ReceiptAPI();
+                    if (modifiedReceipt.size() > 0) {
+                        for (Receipt item : modifiedReceipt) {
+                            ReceiptModel itemData = item.toModel();
+                            ReceiptModel newData = client.post(itemData);
+
+                            if (newData != null) {
+                                newData.setPdfPath(itemData.getPdfPath());
+                                newData.setSignaturePath(itemData.getSignaturePath());
+                                newData.setSellerSignaturePath(itemData.getSellerSignaturePath());
+                                newData.setSignImageString(null);
+                                newData.setPdfImageString(null);
+
+                                item.setLocalModified(false);
+
+                                item.setId(newData.getId());
+                                item.setJsonData(newData.toJson());
+                                repo.insertReceipt(item);
+                            }
+                        }
+                    }
+                    List<Invoice> modifiedInvoice = repo.getModifiedInvoice();
+                    InvoiceAPI invoiceAPI = new InvoiceAPI();
+                    if (modifiedInvoice.size() > 0) {
+                        for (Invoice item : modifiedInvoice) {
+                            InvoiceModel itemData = item.toModel();
+                            InvoiceModel newData = invoiceAPI.post(itemData);
+
+                            if (newData != null) {
+
+
+                                item.setLocalModified(false);
+
+                                item.setId(newData.getId());
+                                item.setJsonData(newData.toJson());
+                                repo.insertInvoice(item);
+                            }
+                        }
+                    }
                 }
-            }).start();
-            // synchronize invoices
-             new Thread(()->{
-                 List<Receipt> modified = repo.getModifiedReceipt();
-                 ReceiptAPI client = new ReceiptAPI();
-                 if (modified.size() > 0) {
-                     for (Receipt item : modified) {
-                         ReceiptModel itemData = item.toModel();
-                         ReceiptModel newData = client.post(itemData);
-
-                         if (newData != null) {
-                             newData.setPdfPath(itemData.getPdfPath());
-                             newData.setPdfImageString(null);
-
-                             item.setLocalModified(false);
-
-                             item.setId(newData.getId());
-                             item.setJsonData(newData.toJson());
-                             repo.insertReceipt(item);
-                         }
-                     }
-                 }
              }).start();
             // synchronize truck fuels items
             new Thread(() -> {
@@ -321,19 +406,43 @@ public class DataHelper {
                 if (invoiceForms!=null)
                     FMSApplication.getApplication().saveInvoiceForms(invoiceForms);
 
+                List<TruckModel> lstTrucks = httpClient.getTrucks();
+
+                if (lstTrucks != null) {
+                    int[] ids = new int[lstTrucks.size()];
+                    int i = 0;
+                    for (TruckModel model : lstTrucks) {
+                        repo.insertTruck(Truck.fromTruckModel(model));
+
+                        ids[i++] = model.getId();
+                    }
+                    //repo.deleteOudateTrucks(ids);
+                }
+
             }).start();
 
-
+            new Thread(() -> {
+                Logger.sendLog();
+            }).start();
+                    //get n
         }
-        //get new remote items
 
 
     }
     public static void postRefuels(List<RefuelItemData> refuels)
     {
-        for(RefuelItemData item: refuels)
+        postRefuels(refuels, false);
+    }
+    public static void postRefuels(List<RefuelItemData> refuels, boolean remotePost )
+    {
+        try {
+            for (RefuelItemData item : refuels) {
+                postRefuel(item, remotePost);
+            }
+        }
+        catch (Exception ex)
         {
-            postRefuel(item, false);
+            Logger.appendLog("DTH", ex.getMessage());
         }
         Synchronize();
     }
@@ -345,10 +454,12 @@ public class DataHelper {
         return  postedItem;
     }
     public static RefuelItemData postRefuel(RefuelItemData refuelData, boolean remotePost) {
-        if (isDebug  && refuelData !=null) {
+        if (refuelData !=null) {
             Logger.appendLog("DTH", "postRefuel " + refuelData.getId() + " - " + refuelData.getLocalId());
+
             RefuelItem localItem = repo.getRefuel(refuelData.getId(), refuelData.getLocalId());
             if (localItem == null) {
+                /// if item not exists in local database
                 localItem = RefuelItem.fromRefuelItemData(refuelData);
 
             } else {
@@ -363,7 +474,9 @@ public class DataHelper {
                 RefuelItemData postedItem = processing ? null : httpClient.postRefuel(refuelData);
                 if (postedItem != null) {
                     localItem.setId(postedItem.getId());
+                    localItem.setUniqueId(postedItem.getUniqueId());
                     localItem.setJsonData(postedItem.toJson());
+                    localItem.setLocalModified(false);
                 } else
                     localItem.setLocalModified(true);
             }
@@ -372,12 +485,13 @@ public class DataHelper {
 
             repo.insertRefuel(localItem);
             refuelData.setLocalId(localItem.getLocalId());
+            refuelData.setLocalModified(localItem.isLocalModified());
 
-
+            //refuelData = localItem.toRefuelItemData();
             return refuelData;
         }
         else
-            return  httpClient.postRefuel(refuelData);
+            return  null;
     }
 
 
@@ -405,8 +519,17 @@ public class DataHelper {
         return httpClient.getInvoiceForms();
     }
 
-    public static void postInvoice(InvoiceModel invoiceModel) {
-
+    public static void postInvoice(InvoiceModel model) {
+        Invoice localModel = Invoice.fromModel(model);
+        localModel.setLocalModified(true);
+        repo.insertInvoice(localModel);
+        InvoiceModel postInv =  new InvoiceAPI().post(model) ;
+        if (postInv!=null) {
+            localModel.setId(postInv.getId());
+            localModel.setLocalModified(false);
+            repo.insertInvoice(localModel);
+        }
+        Synchronize();
     }
 
     public static RefuelItemData getImcomplete() {
@@ -465,10 +588,25 @@ public class DataHelper {
 
     public static void postReceipt(ReceiptModel model) {
 
+        Logger.appendLog("DTH", "Post receipt :" + model.getNumber());
         Receipt localModel = Receipt.fromModel(model);
         localModel.setLocalModified(true);
-        repo.insertReceipt(localModel);
-        // call synchronize to update remote database
+        if (repo.insertReceipt(localModel)>0) {
+            Logger.appendLog("DTH", "Post receipt success:" + model.getNumber());
+
+            ReceiptModel postedReceipt =  new ReceiptAPI().post(model) ;
+            if (postedReceipt!=null) {
+                localModel.setId(postedReceipt.getId());
+                localModel.setLocalModified(false);
+                repo.insertReceipt(localModel);
+            }
+            // call synchronize to update remote database
+            Synchronize();
+        }
+    }
+
+    public static void cancelReceipts(String[] printedItems, String reason) {
+        repo.cancelReceipts(printedItems, reason);
         Synchronize();
     }
 }

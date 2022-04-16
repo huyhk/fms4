@@ -1,12 +1,16 @@
 package com.megatech.fms.model;
 
 import com.google.gson.annotations.SerializedName;
+import com.megatech.fms.BuildConfig;
+import com.megatech.fms.R;
 import com.megatech.fms.enums.INVOICE_TYPE;
+import com.megatech.fms.enums.RETURN_UNIT;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 public class RefuelItemData extends BaseModel implements Cloneable {
 
@@ -36,7 +40,7 @@ public class RefuelItemData extends BaseModel implements Cloneable {
     private double price;
 
     //private double weight;
-    //private double volume;
+    private double volume;
     private int unit;
     private boolean isInternational;
     private String routeName;
@@ -59,6 +63,8 @@ public class RefuelItemData extends BaseModel implements Cloneable {
     private String invoiceNameCharter;
     private String returnInvoiceNumber;
     private double returnAmount;
+    private RETURN_UNIT returnUnit = RETURN_UNIT.KG;
+
     private String weightNote;
     private CURRENCY currency;
     private int driverId;
@@ -66,7 +72,7 @@ public class RefuelItemData extends BaseModel implements Cloneable {
     private int operatorId;
     private String operatorName;
     private boolean isAlert = false;
-    private boolean isLocalModified;
+
     private INVOICE_TYPE printTemplate;
     private int changeFlag;
     private int invoiceFormId;
@@ -77,6 +83,7 @@ public class RefuelItemData extends BaseModel implements Cloneable {
     private boolean BM2508FuelingHose;
     private boolean BM2508FuelingCap;
     private boolean BM2508Ladder;
+
     //private InvoiceModel invoiceModel;
 
     private String receiptNumber;
@@ -112,12 +119,46 @@ public class RefuelItemData extends BaseModel implements Cloneable {
         c.add(Calendar.MINUTE, -30);
         arrivalTime = c.getTime();
         status = REFUEL_ITEM_STATUS.NONE;
+        uniqueId = UUID.randomUUID().toString();
     }
 
     public static RefuelItemData fromJson(String jsonData) {
-        return gson.fromJson(jsonData, RefuelItemData.class);
+        RefuelItemData item = gson.fromJson(jsonData, RefuelItemData.class);
+        if (item.getUniqueId() == null || item.getUniqueId().isEmpty())
+            item.setUniqueId( UUID.randomUUID().toString());
+        return  item;
     }
 
+    public RefuelItemData copy()
+    {
+        try {
+            RefuelItemData itemData =  (RefuelItemData) clone();
+            itemData.setId(0);
+            itemData.setLocalId(0);
+            itemData.setUniqueId( UUID.randomUUID().toString());
+            itemData.setReceiptCount(0);
+            itemData.setReceiptNumber(null);
+            itemData.setStartNumber(0);
+            itemData.setEndNumber(0);
+            itemData.setStartTime(new Date());
+            itemData.setEndTime(new Date());
+
+            itemData.setPrinted(false);
+            itemData.setPrintStatus(ITEM_PRINT_STATUS.NONE);
+
+            itemData.setLocalModified(false);
+            itemData.setRealAmount(0);
+            itemData.setGallon(0);
+            itemData.setVolume(0);
+
+            return itemData;
+        }
+        catch (Exception ex)
+        {
+            return  null;
+        }
+
+    }
     @Override
     public Object clone() throws CloneNotSupportedException {
         return super.clone();
@@ -140,7 +181,15 @@ public class RefuelItemData extends BaseModel implements Cloneable {
     }
 
     public double getVolume() {
-        return Math.round(Math.round(realAmount) * RefuelItemData.GALLON_TO_LITTER);
+        if (BuildConfig.FHS)
+            return volume;
+        else
+            return Math.round(Math.round(realAmount) * RefuelItemData.GALLON_TO_LITTER);
+    }
+
+    public void setVolume(double val)
+    {
+        volume = Math.round(val);
     }
 
     public double getWeight() {
@@ -293,6 +342,7 @@ public class RefuelItemData extends BaseModel implements Cloneable {
     }
 
     public void setStartTime(Date startTime) {
+
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(startTime);
 
@@ -362,6 +412,11 @@ public class RefuelItemData extends BaseModel implements Cloneable {
 
     public void setRealAmount(double realAmount) {
         this.realAmount = Math.round(realAmount);
+        this.gallon = this.realAmount;
+        if (!BuildConfig.FHS) {
+
+            this.volume = Math.round(this.realAmount * GALLON_TO_LITTER);
+        }
     }
 
     public double getTemperature() {
@@ -553,7 +608,8 @@ public class RefuelItemData extends BaseModel implements Cloneable {
     }
 
     public void setInvoiceNumber(String invoiceNumber) {
-        this.invoiceNumber = invoiceNumber;
+        if (!invoiceNumber.isEmpty())
+            this.invoiceNumber = invoiceNumber;
     }
 
     public double getReturnAmount() {
@@ -562,6 +618,14 @@ public class RefuelItemData extends BaseModel implements Cloneable {
 
     public void setReturnAmount(double returnAmount) {
         this.returnAmount = returnAmount;
+    }
+
+    public RETURN_UNIT getReturnUnit() {
+        return returnUnit;
+    }
+
+    public void setReturnUnit(RETURN_UNIT returnUnit) {
+        this.returnUnit = returnUnit;
     }
 
     public String getWeightNote() {
@@ -628,13 +692,6 @@ public class RefuelItemData extends BaseModel implements Cloneable {
         this.gallon = gallon;
     }
 
-    public boolean isLocalModified() {
-        return isLocalModified;
-    }
-
-    public void setLocalModified(boolean localModified) {
-        isLocalModified = localModified;
-    }
 
     public String toJson() {
         return gson.toJson(this);
@@ -741,8 +798,46 @@ public class RefuelItemData extends BaseModel implements Cloneable {
             bM2508Result ^= 8;
     }
 
+    private boolean exported;
+
+    public boolean isExported() {
+        return exported;
+    }
+
+    public void setExported(boolean exported) {
+        this.exported = exported;
+    }
 
 
+
+    public RefuelItemData split(double splitAmount)
+    {
+        RefuelItemData splitItem = gson.fromJson(this.toJson(), RefuelItemData.class);
+        splitItem.setId(0);
+        splitItem.setLocalId(0);
+        splitItem.setUniqueId(UUID.randomUUID().toString());
+        splitItem.setLocalModified(true);
+
+        double vol = Math.round(splitAmount / getDensity());
+        double gal = Math.round(vol / GALLON_TO_LITTER);
+        //double newAmount = Math.round(Math.round(gal * GALLON_TO_LITTER) * getDensity());
+
+        splitItem.setRealAmount(gal);
+        splitItem.setGallon(gal);
+        splitItem.setVolume(vol);
+        if (BuildConfig.FHS)
+            splitItem.setEndNumber(this.getStartNumber()+vol);
+        else
+            splitItem.setEndNumber(this.getStartNumber()+gal);
+
+        this.setRealAmount(this.getRealAmount() - gal);
+        this.setVolume(Math.round(this.getRealAmount()* GALLON_TO_LITTER));
+        this.setStartNumber(splitItem.getEndNumber());
+        this.setGallon(this.getRealAmount());
+        this.setLocalModified(true);
+
+        return  splitItem;
+    }
 
 
     public enum ITEM_POST_STATUS {

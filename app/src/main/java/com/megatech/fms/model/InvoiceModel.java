@@ -3,10 +3,9 @@ package com.megatech.fms.model;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.annotations.SerializedName;
 import com.megatech.fms.FMSApplication;
-import com.megatech.fms.data.entity.BaseEntity;
 import com.megatech.fms.enums.INVOICE_TYPE;
+import com.megatech.fms.enums.RETURN_UNIT;
 import com.megatech.fms.helpers.Logger;
 import com.megatech.fms.helpers.NumberConvert;
 import com.megatech.fms.helpers.VNCharacterUtils;
@@ -24,7 +23,7 @@ import java.util.Queue;
 
 import static com.megatech.fms.model.RefuelItemData.GALLON_TO_LITTER;
 
-public class InvoiceModel extends BaseEntity {
+public class InvoiceModel extends BaseModel {
 
     private static final Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
     private String productName = "";
@@ -32,18 +31,23 @@ public class InvoiceModel extends BaseEntity {
     private Date date;
     private Date startTime;
     private Date endTime;
+    private int customerId = 0;
     private String customerName = "";
+    private String customerCode = "";
     private String taxCode = "";
-    private String address = "";
-    private INVOICE_TYPE printTemplate;
+    private String customerAddress = "";
+    private INVOICE_TYPE invoiceType;
     private String aircraftType;
     private String aircraftCode;
+    private int flightId = 0;
+    private int flightType = 0;
     private String flightCode;
     private String routeName;
     private double temperature;
     private double density;
     private double volume;
     private double weight;
+    private double gallon;
     private double price;
     private RefuelItemData.CURRENCY currency;
     private int unit;
@@ -54,6 +58,16 @@ public class InvoiceModel extends BaseEntity {
     private String inWords;
     private String invoiceNumber;
     private boolean hasReturn;
+
+    private boolean printed = false;
+
+    public boolean isPrinted() {
+        return printed;
+    }
+
+    public void setPrinted(boolean printed) {
+        this.printed = printed;
+    }
 
     public String getInvoiceNumber() {
         return invoiceNumber;
@@ -93,6 +107,11 @@ public class InvoiceModel extends BaseEntity {
 
     public InvoiceModel() {
 
+    }
+
+    public static InvoiceModel fromJson(String json)
+    {
+        return gson.fromJson(json, InvoiceModel.class);
     }
 
     public Date getDate() {
@@ -153,12 +172,12 @@ public class InvoiceModel extends BaseEntity {
         this.taxCode = taxCode;
     }
 
-    public String getAddress() {
-        return address;
+    public String getCustomerAddress() {
+        return customerAddress;
     }
 
-    public void setAddress(String address) {
-        this.address = address;
+    public void setCustomerAddress(String customerAddress) {
+        this.customerAddress = customerAddress;
     }
 
     public String getAircraftType() {
@@ -175,6 +194,38 @@ public class InvoiceModel extends BaseEntity {
 
     public void setAircraftCode(String aircraftCode) {
         this.aircraftCode = aircraftCode;
+    }
+
+    public int getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(int customerId) {
+        this.customerId = customerId;
+    }
+
+    public String getCustomerCode() {
+        return customerCode;
+    }
+
+    public void setCustomerCode(String customerCode) {
+        this.customerCode = customerCode;
+    }
+
+    public int getFlightId() {
+        return flightId;
+    }
+
+    public void setFlightId(int flightId) {
+        this.flightId = flightId;
+    }
+
+    public int getFlightType() {
+        return flightType;
+    }
+
+    public void setFlightType(int flightType) {
+        this.flightType = flightType;
     }
 
     public String getFlightCode() {
@@ -220,6 +271,14 @@ public class InvoiceModel extends BaseEntity {
 
     public void setVolume(double volume) {
         this.volume = volume;
+    }
+
+    public double getGallon() {
+        return gallon;
+    }
+
+    public void setGallon(double gallon) {
+        this.gallon = gallon;
     }
 
     public double getWeight() {
@@ -279,7 +338,7 @@ public class InvoiceModel extends BaseEntity {
     }
 
     public double getVatAmount() {
-        return getSaleAmount()* getTaxRate();
+        return (double)Math.round(getSaleAmount()* getTaxRate()*100)/100;
     }
 
     public void setVatAmount(double vatAmount) {
@@ -312,12 +371,12 @@ public class InvoiceModel extends BaseEntity {
         this.qualityNo = qualityNo;
     }
 
-    public INVOICE_TYPE getPrintTemplate() {
-        return printTemplate;
+    public INVOICE_TYPE getInvoiceType() {
+        return invoiceType;
     }
 
-    public void setPrintTemplate(INVOICE_TYPE printTemplate) {
-        this.printTemplate = printTemplate;
+    public void setInvoiceType(INVOICE_TYPE invoiceType) {
+        this.invoiceType = invoiceType;
     }
 
 
@@ -370,18 +429,24 @@ public class InvoiceModel extends BaseEntity {
 
         String data = gson.toJson(refuel);
         model = gson.fromJson(data, InvoiceModel.class);
+        model.printed = false;
+        model.customerId = refuel.getAirlineId();
         model.customerName = refuel.getInvoiceNameCharter().trim();
         if (model.customerName.isEmpty())
             model.customerName = refuel.getAirlineModel().getName().trim();
-        model.address = refuel.getAirlineModel().getAddress().trim();
+        model.customerAddress = refuel.getAirlineModel().getAddress().trim();
+        model.customerCode = refuel.getAirlineModel().getCode();
         model.taxCode = refuel.getAirlineModel().getTaxCode().trim();
         model.productName = refuel.getAirlineModel().getProductName();
+        model.flightType = refuel.isInternational()?1:0;
 
         model.temperature = refuel.getManualTemperature();
         model.density = refuel.getDensity();
         //model.amount = refuel.getAmount();
 
-        model.printTemplate = !refuel.isInternational() && !refuel.getAirlineModel().isInternational() ? INVOICE_TYPE.BILL : INVOICE_TYPE.INVOICE;
+        model.date = refuel.getEndTime();
+
+        model.invoiceType = !refuel.isInternational() && !refuel.getAirlineModel().isInternational() ? INVOICE_TYPE.BILL : INVOICE_TYPE.INVOICE;
         model.isVNA = refuel.getAirlineModel().getCode().equals("VN");
         // create invoice item list
         //addInvoiceItem(model, refuel);
@@ -417,17 +482,24 @@ public class InvoiceModel extends BaseEntity {
                     largestAmount = item.getVolume();
                 }
             }
+            /// comment out to change medthod
+            /*
             if (!model.isVNA || !model.hasReturn) {
                 model.totalVolume = Math.round(model.totalGallon * GALLON_TO_LITTER);
                 model.totalWeight = Math.round(model.density * model.totalVolume);
             }
-            model.saleAmount = (model.unit == 0? model.totalGallon: model.totalWeight) * model.price;
+
+             */
+
 
             if (model.currency == RefuelItemData.CURRENCY.VND)
                 model.saleAmount = Math.round(model.saleAmount);
+            else model.saleAmount = (double)Math.round(model.saleAmount * 100)/100;
             model.vatAmount = model.saleAmount * model.taxRate;
             if (model.currency == RefuelItemData.CURRENCY.VND)
                 model.vatAmount = Math.round(model.vatAmount);
+            else model.vatAmount = (double)Math.round(model.vatAmount * 100)/100;
+
 
             if (totalV!= model.totalVolume)
             {
@@ -435,12 +507,16 @@ public class InvoiceModel extends BaseEntity {
             }
 
             //Recalculate weight
-            double totalWeight = totalV * model.density;
+            double totalWeight = Math.round(totalV * model.density);
             if (totalWeight != totalW)
             {
                 model.items.get(largestItemIdx).setWeight(totalWeight-totalW + model.items.get(largestItemIdx).getWeight());
             }
-            //Change calculation by OMEGE Formula
+            model.totalWeight = totalWeight;
+
+
+            model.saleAmount = (model.unit == 0? model.totalGallon: model.totalWeight) * model.price;
+            //Change calculation by OMEGA Formula
             /*if (allItems.size()>1) {
                 model.density = totalW / totalV;
                 model.temperature = totalP / totalV;
@@ -467,18 +543,28 @@ public class InvoiceModel extends BaseEntity {
         String data = gson.toJson(refuel);
         if (refuel.getReturnAmount() > 0) {
 
+            RETURN_UNIT unit = refuel.getReturnUnit();
             double returnAmount = refuel.getReturnAmount();
             double returnVolume = Math.round(refuel.getDensity() > 0 ? (returnAmount / refuel.getDensity()) : 0);
             double returnGallon = Math.round(returnVolume / GALLON_TO_LITTER);
+
+            if (unit == RETURN_UNIT.GALLON)
+            {
+                returnGallon = refuel.getReturnAmount();
+            }
             returnVolume = Math.round(returnGallon * GALLON_TO_LITTER);
+            returnAmount = Math.round(returnVolume * refuel.getDensity());
 
             double endNumber = Math.round(refuel.getStartNumber() + returnGallon);
 
             InvoiceItemModel invItem = gson.fromJson(data, InvoiceItemModel.class);
+            invItem.setRefuelItemId(refuel.getId());
+            invItem.setRefuelUniqueId(refuel.getUniqueId());
             invItem.setEndNumber(endNumber);
             invItem.setVolume(returnVolume);
             invItem.setRealAmount(returnGallon);
             invItem.setWeight(returnAmount);
+            invItem.setTemperature(refuel.getManualTemperature());
             invItem.setReturn(true);
             if (model.isVNA)
                 addItem(model, invItem);
@@ -491,17 +577,23 @@ public class InvoiceModel extends BaseEntity {
             invItem2.setRealAmount(refuel.getRealAmount() - returnGallon);
             invItem2.setVolume(Math.round(invItem2.getRealAmount()*GALLON_TO_LITTER));
             invItem2.setWeight(Math.round(invItem2.getVolume()*model.getDensity()));
+            invItem2.setTemperature(refuel.getManualTemperature());
             invItem2.setReturn(false);
+            invItem2.setRefuelItemId(refuel.getId());
+            invItem2.setRefuelUniqueId(refuel.getUniqueId());
             addItem(model, invItem2);
 
             model.hasReturn = true;
         } else {
             InvoiceItemModel invItem = gson.fromJson(data, InvoiceItemModel.class);
             invItem.setRealAmount(refuel.getRealAmount());
+
             invItem.setVolume(refuel.getVolume());
             invItem.setWeight(refuel.getWeight());
             invItem.setEndNumber(refuel.getStartNumber() + refuel.getRealAmount());
-
+            invItem.setRefuelItemId(refuel.getId());
+            invItem.setRefuelUniqueId(refuel.getUniqueId());
+            invItem.setTemperature(refuel.getManualTemperature());
             addItem(model, invItem);
         }
     }
@@ -583,7 +675,7 @@ public class InvoiceModel extends BaseEntity {
             double totalP = temperature * volume;
             //String[] addresses = split(VNCharacterUtils.removeAccent(this.getAddress()), 50);
             //String[] names = split(VNCharacterUtils.removeAccent(this.getCustomerName()), 45);
-            String[] addresses = split(this.getAddress(), 50);
+            String[] addresses = split(this.getCustomerAddress(), 50);
             String[] names = split(this.getCustomerName(), 45);
             byte b = 16;
 
@@ -679,7 +771,7 @@ public class InvoiceModel extends BaseEntity {
 
 
 
-            String[] addresses = split(this.getAddress(), 50);
+            String[] addresses = split(this.getCustomerAddress(), 50);
             String[] names = split(this.getCustomerName(), 45);
             String[] words = split(inWords, 45);
 
@@ -800,7 +892,7 @@ public class InvoiceModel extends BaseEntity {
             //String customerName = VNCharacterUtils.removeAccent(this.getCustomerName());
             //String address = VNCharacterUtils.removeAccent(this.getAddress());
             String customerName = this.getCustomerName();
-            String address = this.getAddress();
+            String address = this.getCustomerAddress();
             String[] names = split(customerName, 48);
             String[] addresses = split(address, 52);
 
@@ -897,7 +989,7 @@ public class InvoiceModel extends BaseEntity {
             //String inWords = VNCharacterUtils.removeAccent(this.getInWords());
 
             String customerName = this.getCustomerName();
-            String address = this.getAddress();
+            String address = this.getCustomerAddress();
             String inWords = this.getInWords();
 
             String[] names = split(customerName, 48);

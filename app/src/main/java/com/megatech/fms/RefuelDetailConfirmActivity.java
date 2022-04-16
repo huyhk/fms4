@@ -23,7 +23,10 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import android.text.InputType;
+import android.text.Spannable;
+import android.text.SpannableString;
 import android.text.method.DigitsKeyListener;
+import android.text.style.ImageSpan;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -33,6 +36,8 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.CheckedTextView;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -44,13 +49,16 @@ import com.megatech.fms.helpers.LCRWorker;
 import com.megatech.fms.helpers.Logger;
 import com.megatech.fms.model.RefuelItemData;
 
+import java.sql.Ref;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -130,7 +138,7 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
                     mItem.setQualityNo(currentApp.getQCNo());
                 Logger.appendLog(LOG_TAG, "Start confirm Flight Code: " + mItem.getFlightCode());
                 runOnUiThread(() -> {
-                    if (!isFinishing())
+                    //if (!isFinishing())
                         bindData();
                 });
 
@@ -149,12 +157,14 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
     }
     ActivityRefuelDetailConfirmBinding binding;
     private void bindData() {
-        //binding = DataBindingUtil.setContentView(this, R.layout.activity_refuel_detail_confirm);
-        binding = DataBindingUtil.inflate(getLayoutInflater(), R.layout.activity_refuel_detail_confirm,null,false);
-        if (binding !=null && mItem!=null) {
-            binding.setMItem(mItem);
-            setContentView(binding.getRoot());
-            binding.invalidateAll();
+        if (!isFinishing()) {
+            //binding = DataBindingUtil.setContentView(this, R.layout.activity_refuel_detail_confirm);
+            binding = DataBindingUtil.inflate(getLayoutInflater(), R.layout.activity_refuel_detail_confirm, null, false);
+            if (binding != null && mItem != null) {
+                binding.setMItem(mItem);
+                setContentView(binding.getRoot());
+                binding.invalidateAll();
+            }
         }
         closeProgressDialog();
     }
@@ -174,11 +184,12 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
 
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(m_Title);
+        Logger.appendLog("CONFIRM", m_Title);
         final EditText input = new EditText(this);
         input.setInputType(inputType);
         input.setTypeface(Typeface.DEFAULT);
         input.setText(view.getText());
-
+        Logger.appendLog("CONFIRM", "Old value: "+ view.getText().toString());
         input.setImeOptions(EditorInfo.IME_ACTION_DONE);
         input.setGravity(Gravity.CENTER_HORIZONTAL);
         if ((inputType & InputType.TYPE_NUMBER_FLAG_DECIMAL )>0)
@@ -228,6 +239,7 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
             private boolean doUpdateResult() {
                 try {
                     m_Text = input.getText().toString();
+                    Logger.appendLog("CONFIRM", "New value: "+ m_Text);
                     Pattern regex = Pattern.compile(pattern);
                     Matcher matcher = regex.matcher(m_Text);
                     if (!matcher.find()) {
@@ -269,11 +281,19 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
                     break;
                 case R.id.refuel_confirm_end_meter:
                     mItem.setEndNumber(numberFormat.parse(m_Text).doubleValue());
-                    mItem.setStartNumber(mItem.getEndNumber() - mItem.getRealAmount());
+                    mItem.setStartNumber(mItem.getEndNumber() - (BuildConfig.FHS? mItem.getVolume() :mItem.getRealAmount()));
                     break;
                 case R.id.refuel_confirm_real_amount:
-                    mItem.setRealAmount(numberFormat.parse(m_Text).doubleValue());
-                    mItem.setStartNumber(mItem.getEndNumber() - mItem.getRealAmount());
+                    double amount = numberFormat.parse(m_Text).doubleValue();
+                    if (BuildConfig.FHS) {
+                        mItem.setVolume(amount);
+                        double gal = Math.round(amount/ RefuelItemData.GALLON_TO_LITTER);
+                        mItem.setRealAmount(gal);
+                        mItem.setGallon(gal);
+                    }
+                    else
+                        mItem.setRealAmount(amount);
+                    mItem.setStartNumber(mItem.getEndNumber() - amount);
                     break;
                 case R.id.refuel_confirm_return:
                     calculateReturnAmount(numberFormat.parse(m_Text).doubleValue());
@@ -377,7 +397,7 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
             showErrorMessage(R.string.invalid_temperature);
         else if(mItem.getRealAmount()<=0)
             showErrorMessage(R.string.invalid_real_amount);
-        else if(mItem.getStartNumber()<=0 || mItem.getEndNumber()<=0 )
+        else if(mItem.getStartNumber()<=0 || mItem.getEndNumber()<=0 || mItem.getEndNumber() != mItem.getStartNumber() + ( BuildConfig.FHS? mItem.getVolume(): mItem.getRealAmount()))
             showErrorMessage(R.string.invalid_start_end_meter);
         else if(mItem.getStartTime().after( mItem.getEndTime() ))
             showErrorMessage(R.string.invalid_start_end_time);
@@ -385,7 +405,7 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
         {
             showErrorMessage(R.string.invalid_qc_no);
         }
-        else if (mItem.getRealAmount()>11000)
+        else if (mItem.getRealAmount()>11000 & !BuildConfig.FHS)
         {
             showErrorMessage(R.string.real_amount_too_big);
         }
@@ -395,16 +415,20 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
 
 
     private int mHour, mMinute, mYear, mMonth, mDay;
-
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
     private void showTimeDialog(int id) {
         final Date date = new Date();
-        if (id == R.id.refuel_confirm_start_time)
+        if (id == R.id.refuel_confirm_start_time) {
             date.setTime(mItem.getStartTime().getTime());
-        else
+            Logger.appendLog("CONFIRM", "Update start time " );
+        }
+        else {
             date.setTime(mItem.getEndTime().getTime());
-
+            Logger.appendLog("CONFIRM", "Update end time " );
+        }
         final Calendar c = Calendar.getInstance();
         c.setTime(date);
+        Logger.appendLog("CONFIRM", "Old value: " + dateFormat.format(date) );
         mYear = c.get(Calendar.YEAR);
         mMonth = c.get(Calendar.MONTH);
         mDay = c.get(Calendar.DAY_OF_MONTH);
@@ -424,7 +448,7 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
                                 c.set(Calendar.HOUR_OF_DAY, hourOfDay);
                                 updateTime(id,c);
 
-
+                                Logger.appendLog("CONFIRM", "new value: " + dateFormat.format(c.getTime()) );
                             }
                         }, mHour, mMinute, false);
                 timePickerDialog.show();
@@ -446,6 +470,10 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
     private String LOG_TAG = "RFC";
     private void postData()
     {
+        if (!BuildConfig.FHS) {
+            mItem.setTruckId(currentApp.getTruckId());
+            mItem.setTruckNo(currentApp.getTruckNo());
+        }
         setProgressDialog();
         new AsyncTask<Void, Void, RefuelItemData>() {
             @Override
@@ -466,18 +494,53 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
     }
     private void postRefuelCompleted(RefuelItemData mItem) {
         closeProgressDialog();
+        if (mItem.isLocalModified())
+        {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle(R.string.sync_error)
+                    .setIcon(R.drawable.ic_error)
+                    .setCancelable(false)
+                    .setPositiveButton(R.string.accept, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            dialogInterface.dismiss();
+                            openPreview();
+                        }
+                    });
+            LinearLayout layout = new LinearLayout(this);
+            layout.setOrientation(LinearLayout.HORIZONTAL);
+            layout.setPadding(10,10,10,10);
+            TextView txt = new TextView(this);
+            SpannableString ss = new SpannableString(getString(R.string.sync_error_message));
 
-            if (mItem != null) {
+            //txt.setText(R.string.sync_error_message);
+            ImageSpan img = new ImageSpan(this,R.drawable.ic_not_sync);
+            ss.setSpan(img,ss.length()-1,ss.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            txt.setText(ss);
 
-                Intent intent = new Intent(this, RefuelPreviewActivity.class);
-                intent.putExtra("REFUEL_ID", mItem.getId());
-                intent.putExtra("REFUEL_LOCAL_ID", mItem.getLocalId());
-                //int confirm_OPEN = 1;
-                startActivity(intent);
-            }
+            layout.addView(txt);
 
-            finish();
+            builder.setView(layout);
+            builder.create().show();
+        }
 
+        else
+            openPreview();
+
+    }
+
+    private void openPreview() {
+        if (mItem != null) {
+
+            Intent intent = new Intent(this, RefuelPreviewActivity.class);
+            intent.putExtra("REFUEL_ID", mItem.getId());
+            intent.putExtra("REFUEL_LOCAL_ID", mItem.getLocalId());
+            intent.putExtra("REFUEL_UNIQUE_ID", mItem.getUniqueId());
+            //int confirm_OPEN = 1;
+            startActivity(intent);
+        }
+
+        finish();
     }
 
     @Override
