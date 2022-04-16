@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "artifactType": {
+    "type": "APK",
+    "kind": "Directory"
+  },
+  "applicationId": "com.megatech.fms.fhs",
+  "variantName": "fhs",
+  "elements": [
+    {
+      "type": "SINGLE",
+      "filters": [],
+      "versionCode": 38,
+      "versionName": "10.4.20220415.38",
+      "outputFile": "fms-fhs-38-20220415.apk"
+    }
+  ]
+}
