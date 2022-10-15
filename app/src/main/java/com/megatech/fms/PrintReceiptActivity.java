@@ -5,6 +5,7 @@ import androidx.databinding.DataBindingUtil;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -21,9 +22,12 @@ import android.text.method.DigitsKeyListener;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -31,22 +35,28 @@ import android.widget.Toast;
 import com.megatech.fms.databinding.ActivityInvoiceBinding;
 import com.megatech.fms.helpers.DataHelper;
 import com.megatech.fms.helpers.Logger;
+import com.megatech.fms.helpers.NetworkHelper;
 import com.megatech.fms.helpers.PrintWorker;
 import com.megatech.fms.helpers.ZebraWorker;
 import com.megatech.fms.model.ReceiptModel;
+import com.megatech.fms.model.TruckModel;
 import com.megatech.fms.view.ReceiptItemAdapter;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 public class PrintReceiptActivity extends UserBaseActivity implements View.OnClickListener {
 
@@ -100,11 +110,9 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
                 closeProgressDialog();
             }
         });
-        if (BuildConfig.FHS)
-        {
-            findViewById(R.id.btnCapture).setVisibility(View.GONE);
-        }
-        else {
+        if (BuildConfig.FHS) {
+            //findViewById(R.id.btnCapture).setVisibility(View.GONE);
+        } else {
             findViewById(R.id.btnSign).setVisibility(View.GONE);
             findViewById(R.id.btnSellerSign).setVisibility(View.GONE);
         }
@@ -138,29 +146,30 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
         closeProgressDialog();
     }
 
-    private  void exit()
-    {
-        if ( model.isCaptured() || model.isPrinted())
-        {
+    private void exit() {
+        //setResult(Activity.RESULT_CANCELED);
+        if (model.isCaptured() || model.isPrinted()) {
             showConfirmMessage(R.string.receipt_not_saved, new Callable<Void>() {
                 @Override
                 public Void call() throws Exception {
+
                     finish();
                     return null;
                 }
             });
-        }
-        else
+        } else
             finish();
     }
+
     private final int SELLER_SIGNATURE = 445;
     private final int BUYER_SIGNATURE = 446;
-    private void openSignature(boolean buyer)
-    {
+
+    private void openSignature(boolean buyer) {
         Intent intent = new Intent(this, ReceiptSignActivity.class);
-        startActivityForResult(intent, buyer? BUYER_SIGNATURE: SELLER_SIGNATURE);
+        startActivityForResult(intent, buyer ? BUYER_SIGNATURE : SELLER_SIGNATURE);
 
     }
+
     @Override
     public void onClick(View view) {
         super.onClick(view);
@@ -170,7 +179,10 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
                 exit();
                 break;
             case R.id.btnCapture:
-                openCapture();
+                if (!model.isCaptured())
+                    openImagePicker();
+                else
+                    showImage(model.getPdfPath());
                 break;
             case R.id.btnSave:
                 openSave();
@@ -178,14 +190,21 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
             case R.id.btnPrint:
                 print();
                 break;
+            case R.id.btnTechlog:
+                m_Title = getString(R.string.input_techlog);
+                showEditDialog(R.id.receipt_techlog, InputType.TYPE_NUMBER_FLAG_DECIMAL, ".*", false);
+                break;
+            case R.id.receipt_number:
+                m_Title = getString(R.string.input_receipt_number);
+                showEditDialog(R.id.receipt_number, InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS, ".*", false);
+                break;
             case R.id.btnSign:
             case R.id.btnSellerSign:
                 openSignature(id == R.id.btnSign);
                 break;
 
             case R.id.receipt_defueling_number:
-                if (model.getReturnAmount()>0)
-                {
+                if (model.getReturnAmount() > 0) {
                     m_Title = getString(R.string.update_defueling_no);
                     showEditDialog(id, InputType.TYPE_CLASS_TEXT, ".*", false);
                 }
@@ -194,8 +213,7 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
                 if (model.isInvoiceSplit()) {
                     m_Title = getString(R.string.update_split_amount);
                     showEditDialog(id, InputType.TYPE_NUMBER_FLAG_DECIMAL, ".*", true);
-                }
-                else {
+                } else {
                     model.setSplitAmount(0);
                     binding.invalidateAll();
                 }
@@ -206,9 +224,13 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
     PrintWorker printWorker = null;
 
     ZebraWorker zebra = null;
+
     private void print() {
-        if (BuildConfig.FHS)
-        {
+        /*if (!NetworkHelper.isWifi(this)) {
+            showWarningMessage(R.string.wifi_not_connected);
+            return;
+        }*/
+        if (BuildConfig.FHS) {
             if (zebra == null) {
                 zebra = new ZebraWorker(this);
                 zebra.setStateListener(new ZebraWorker.ZebraStateListener() {
@@ -232,8 +254,7 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
             }
             setProgressDialog();
             zebra.printReceipt(model);
-        }
-        else {
+        } else {
             if (printWorker == null) {
                 printWorker = new PrintWorker();
 
@@ -245,7 +266,9 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
         }
     }
 
-    private int REQUEST_IMAGE_CAPTURE = 1;
+    private final int REQUEST_IMAGE_CAPTURE = 1;
+
+    private final int PICK_IMAGE = 2;
 
     String currentPhotoPath;
 
@@ -281,47 +304,122 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
             // Continue only if the File was successfully created
             if (photoFile != null) {
                 Uri photoURI = FileProvider.getUriForFile(this,
-                        BuildConfig.APPLICATION_ID +".fileprovider",
+                        BuildConfig.APPLICATION_ID + ".fileprovider",
                         photoFile);
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                 startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
             }
         }
     }
-    boolean exitAfterCapture = false;
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
 
-            Logger.appendLog("RECEIPT_WINDOW", "Capture completed");
-            int targetW = 500;
-            int targetH = 600;
+    private void openImagePicker() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        // Ensure that there's a camera activity to handle the intent
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            // Create the File where the photo should go
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+                // Error occurred while creating the File
 
-            // Get the dimensions of the bitmap
+            }
+            // Continue only if the File was successfully created
+            if (photoFile != null) {
+                Uri photoURI = FileProvider.getUriForFile(this,
+                        BuildConfig.APPLICATION_ID + ".fileprovider",
+                        photoFile);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                //startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+            }
+        }
+
+        Intent pickIntent = new Intent(Intent.ACTION_GET_CONTENT, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        pickIntent.setType("image/*");
+        pickIntent.putExtra("return-data", true);
+        Intent chooserIntent = Intent.createChooser(takePictureIntent, "Select Image");
+        chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{pickIntent});
+
+        startActivityForResult(chooserIntent, REQUEST_IMAGE_CAPTURE);
+    }
+
+
+    private void saveImage(Uri uri, String outPath) {
+        try {
+
+            InputStream inputStream = getContentResolver().openInputStream(uri);
+            int targetW = 1200;
+            int targetH = 1200;
             BitmapFactory.Options bmOptions = new BitmapFactory.Options();
             bmOptions.inJustDecodeBounds = true;
 
-            BitmapFactory.decodeFile(currentPhotoPath, bmOptions);
+            BitmapFactory.decodeStream(inputStream, null, bmOptions);
 
             int photoW = bmOptions.outWidth;
             int photoH = bmOptions.outHeight;
 
             // Determine how much to scale down the image
-            int scaleFactor = Math.min(1, Math.min(targetW/photoW, targetH/photoH));
+            int scaleFactor = Math.min(photoW / targetW, photoH / targetH) - 1;
+            if (scaleFactor < 1) scaleFactor = 1;
 
             // Decode the image file into a Bitmap sized to fill the View
             bmOptions.inJustDecodeBounds = false;
-            bmOptions.inSampleSize = 3;//scaleFactor;
-
-            Bitmap bitmap = BitmapFactory.decodeFile(currentPhotoPath, bmOptions);
-            //Bitmap pdfBitmap = Bitmap.createScaledBitmap(bitmap,600,500,true);
+            bmOptions.inSampleSize = scaleFactor;//scaleFactor;
+            inputStream = getContentResolver().openInputStream(uri);
+            Bitmap bitmap = BitmapFactory.decodeStream(inputStream, null, bmOptions);
+            Bitmap pdfBitmap = resize(bitmap, targetW, targetH);
             try {
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 85, new FileOutputStream(currentPhotoPath));
+                pdfBitmap.compress(Bitmap.CompressFormat.JPEG, 85, new FileOutputStream(outPath));
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
+        } catch (Exception ex) {
 
+        }
+    }
+
+    boolean exitAfterCapture = false;
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+            if (data != null) {
+                Uri uri = data.getData();
+
+                if (uri != null) {
+                    saveImage(uri, currentPhotoPath);
+                }
+            } else {
+                Logger.appendLog("RECEIPT_WINDOW", "Capture completed");
+                int targetW = 1200;
+                int targetH = 1200;
+
+                // Get the dimensions of the bitmap
+                BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+                bmOptions.inJustDecodeBounds = true;
+
+                BitmapFactory.decodeFile(currentPhotoPath, bmOptions);
+
+                int photoW = bmOptions.outWidth;
+                int photoH = bmOptions.outHeight;
+
+                // Determine how much to scale down the image
+                int scaleFactor = Math.min(photoW / targetW, photoH / targetH) - 1;
+                if (scaleFactor < 1) scaleFactor = 1;
+
+                // Decode the image file into a Bitmap sized to fill the View
+                bmOptions.inJustDecodeBounds = false;
+                bmOptions.inSampleSize = scaleFactor;//scaleFactor;
+
+                Bitmap bitmap = BitmapFactory.decodeFile(currentPhotoPath, bmOptions);
+                Bitmap pdfBitmap = resize(bitmap, targetW, targetH);
+                try {
+                    pdfBitmap.compress(Bitmap.CompressFormat.JPEG, 85, new FileOutputStream(currentPhotoPath));
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
             //model.setPdfImageString(ImageUtil.convert(bitmap));
             model.setPdfPath(currentPhotoPath);
             model.setCaptured(true);
@@ -330,22 +428,86 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
                 save();
         }
 
-        if (requestCode == BUYER_SIGNATURE && resultCode == RESULT_OK)
-        {
+
+        if (requestCode == BUYER_SIGNATURE && resultCode == RESULT_OK) {
             String file = data.getExtras().getString("signature_file");
             model.setSignaturePath(file);
             binding.invalidateAll();
-            ((Button)findViewById(R.id.btnSign)).setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_checked, 0, 0, 0);
+            ((Button) findViewById(R.id.btnSign)).setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_checked, 0, 0, 0);
         }
-        if (requestCode == SELLER_SIGNATURE && resultCode == RESULT_OK)
-        {
+        if (requestCode == SELLER_SIGNATURE && resultCode == RESULT_OK) {
             String file = data.getExtras().getString("signature_file");
             model.setSellerSignaturePath(file);
             binding.invalidateAll();
-            ((Button)findViewById(R.id.btnSellerSign)).setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_checked, 0, 0, 0);
+            ((Button) findViewById(R.id.btnSellerSign)).setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_checked, 0, 0, 0);
         }
     }
-    String m_Title,m_Text;
+
+    private static Bitmap resize(Bitmap image, int maxWidth, int maxHeight) {
+        if (maxHeight > 0 && maxWidth > 0) {
+            int width = image.getWidth();
+            int height = image.getHeight();
+            float ratioBitmap = (float) width / (float) height;
+            float ratioMax = (float) maxWidth / (float) maxHeight;
+
+            int finalWidth = maxWidth;
+            int finalHeight = maxHeight;
+            if (ratioMax > ratioBitmap) {
+                finalWidth = (int) ((float) maxHeight * ratioBitmap);
+            } else {
+                finalHeight = (int) ((float) maxWidth / ratioBitmap);
+            }
+            image = Bitmap.createScaledBitmap(image, finalWidth, finalHeight, true);
+            return image;
+        } else {
+            return image;
+        }
+    }
+
+    private void showImage(String imagePath) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+
+        ImageView iv = new ImageView(this);
+
+
+        File imgFile = new File(imagePath);
+
+        if (imgFile.exists()) {
+
+            Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+
+            iv.setImageBitmap(myBitmap);
+
+        }
+
+
+        Button btn = new Button(this);
+        btn.setText(R.string.recapture);
+
+        layout.addView(btn);
+        builder.setView(layout);
+        layout.addView(iv);
+        layout.setPadding(10, 10, 10, 10);
+        Dialog dlg = builder.create();
+
+        dlg.show();
+
+        //iv.getLayoutParams().width = 800;
+
+        dlg.getWindow().setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dlg.dismiss();
+                openImagePicker();
+            }
+        });
+    }
+
+    String m_Title, m_Text;
+
     private void showEditDialog(final int id, int inputType, String pattern, boolean required) {
 
 
@@ -355,7 +517,12 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
         input.setInputType(inputType);
         input.setTypeface(Typeface.DEFAULT);
 
-        input.setText(((TextView) findViewById(id)).getText());
+        if (id == R.string.receipt_number) {
+            input.setText(getSetting().getReceiptCode().substring(0, 3));
+            input.setSelection(3);
+
+        } else
+            input.setText(((TextView) findViewById(id)).getText().toString().trim());
 
 
         input.setImeOptions(EditorInfo.IME_ACTION_DONE);
@@ -393,7 +560,7 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
 
         dialog.show();
         input.requestFocus();
-
+        input.setSelection(0, input.getText().length());
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -427,14 +594,25 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
                                 return false;
                             }
                             model.setSplitAmount(d);
-                            binding.invalidateAll();
+
                             break;
 
                         case R.id.receipt_defueling_number:
                             model.setDefuelingNo(m_Text);
-                            binding.invalidateAll();
+
+                            break;
+                        case R.id.receipt_techlog:
+                            double techlog = numberFormat.parse(m_Text).doubleValue();
+                            model.setTechLog(techlog);
+
+                            break;
+                        case R.id.receipt_number:
+                            model.setNumber(m_Text.trim());
+                            autoNumber = false;
+
                             break;
                     }
+                    binding.invalidateAll();
                 } catch (ParseException ex) {
                     Toast.makeText(getBaseContext(), R.string.invalid_number_format, Toast.LENGTH_LONG).show();
                     return false;
@@ -446,26 +624,25 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
         });
     }
 
-    private void openSave()
-    {
-        if (!model.isCaptured() && !BuildConfig.FHS)
-        {
+    private void openSave() {
+        //LocalDate today = LocalDate.now();
+
+        if (!model.isCaptured() && !BuildConfig.FHS) {
             showConfirmMessage(R.string.not_capture_confirm, new Callable<Void>() {
                 @Override
                 public Void call() throws Exception {
                     exitAfterCapture = true;
-                    openCapture();
+                    openImagePicker();
                     return null;
                 }
-            }, new Callable<Void>() {
+            }/*, new Callable<Void>() {
                 @Override
                 public Void call() throws Exception {
                     save();
                     return null;
                 }
-            });
-        }
-        else
+            }*/);
+        } else
             showConfirmMessage(R.string.e_invoice_confirm, new Callable<Void>() {
                 @Override
                 public Void call() throws Exception {
@@ -476,6 +653,8 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
 
     }
 
+    private boolean autoNumber = true;
+
     private void save() {
         Logger.appendLog("RECEIPT_WINDOW", "save receipt " + model.getNumber());
         setProgressDialog();
@@ -483,12 +662,22 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
             @Override
             protected Void doInBackground(Void... voids) {
                 DataHelper.postReceipt(model);
+                if (autoNumber) {
+                    TruckModel setting = FMSApplication.getApplication().getSetting();
+
+                    int number = Integer.valueOf( model.getNumber().substring(4),36);
+
+
+                    setting.setReceiptCount(number);
+                    FMSApplication.getApplication().saveSetting(setting);
+                }
                 return null;
             }
 
             @Override
             protected void onPostExecute(Void response) {
                 postCompleted();
+
                 super.onPostExecute(response);
             }
         }.execute();
@@ -496,25 +685,22 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
 
     }
 
-    private void postCompleted()
-    {
+    private void postCompleted() {
         closeProgressDialog();
         Logger.appendLog("RECEIPT_WINDOW", "save receipt completed " + model.getNumber());
         Intent returnIntent = new Intent();
-        returnIntent.putExtra("result",model.getNumber());
-        setResult(Activity.RESULT_OK,returnIntent);
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(R.string.info)
-        .setMessage(R.string.save_receipt_completed)
-        .setCancelable(false)
-        .setPositiveButton(R.string.accept, new DialogInterface.OnClickListener() {
+        returnIntent.putExtra("number", model.getNumber());
+        returnIntent.putExtra("uniqueId", model.getUniqueId());
+        returnIntent.putExtra("techlog", model.getTechLog());
+        setResult(Activity.RESULT_OK, returnIntent);
+
+
+        showInfoMessage(R.string.save_receipt_completed, new Callable<Void>() {
             @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                dialogInterface.dismiss();
+            public Void call() throws Exception {
                 finish();
+                return null;
             }
         });
-
-        builder.create().show();
     }
 }

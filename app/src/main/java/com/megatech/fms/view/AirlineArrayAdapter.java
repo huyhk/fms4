@@ -21,7 +21,7 @@ import java.util.List;
 
 public class AirlineArrayAdapter extends ArrayAdapter<AirlineModel> {
     private List<AirlineModel> originList;
-    private List<AirlineModel> filteredList;
+    private final List<AirlineModel> filteredList;
 
     public AirlineArrayAdapter(Context context, List<AirlineModel> items) {
 

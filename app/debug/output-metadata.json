@@ -10,9 +10,9 @@
     {
       "type": "SINGLE",
       "filters": [],
-      "versionCode": 38,
-      "versionName": "10.4.20220415.38",
-      "outputFile": "fms-debug-38-20220415.apk"
+      "versionCode": 39,
+      "versionName": "10.4.20220516.39",
+      "outputFile": "fms-debug-39-20220516.apk"
     }
   ]
 }

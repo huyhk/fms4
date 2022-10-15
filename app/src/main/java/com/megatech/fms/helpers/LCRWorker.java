@@ -13,9 +13,9 @@ import java.util.Queue;
 
 public class LCRWorker implements Observer {
 
-    private TcpClient mTcpClient;
+    private final TcpClient mTcpClient;
     final int LCR_PORT = 10001;
-    private String ipAddress;
+    private final String ipAddress;
     public  LCRWorker(String ipAddress)
     {
         this.ipAddress = ipAddress;
@@ -179,9 +179,9 @@ public class LCRWorker implements Observer {
         GROSS_METER,
         PREV_METER
     }
-    private char[] GROSS_QTY = new char[]{0x20, 0x2C};
-    private char[] GROSS_METER = new char[]{0x20, 0x11};
-    private char[] PREV_METER = new char[]{0x20, 0x64};
+    private final char[] GROSS_QTY = new char[]{0x20, 0x2C};
+    private final char[] GROSS_METER = new char[]{0x20, 0x11};
+    private final char[] PREV_METER = new char[]{0x20, 0x64};
 
 
 

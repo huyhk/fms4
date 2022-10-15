@@ -18,10 +18,27 @@ public class ImageUtil
 
     public static String convert(Bitmap bitmap)
     {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
+        try(ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
 
-        return Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT);
+            return Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT);
+        }
+        catch (Exception ex)
+        {
+            Logger.appendLog("ImageUtil",ex.getMessage());
+            return null;
+        }
     }
+
+    public static Bitmap resize(Bitmap bitmap, int newWidth)
+    {
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        double ratio = (double) newWidth/width;
+        int newHeight = (int)( height * ratio);
+        Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap,newWidth,newHeight,false);
+        return  scaledBitmap;
+    }
+
 
 }

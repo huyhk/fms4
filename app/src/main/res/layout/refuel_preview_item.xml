@@ -4,7 +4,7 @@
 
         <import type="com.megatech.fms.BuildConfig"/>
         <import type="com.megatech.fms.helpers.DateUtils" />
-
+        <import type="android.view.View"/>
         <import type="com.megatech.fms.model.REFUEL_ITEM_STATUS" />
         <variable
             name="truckItem"
@@ -65,7 +65,7 @@
             android:layout_height="match_parent"
             android:layout_weight=".15"
             android:gravity="center"
-
+            android:visibility='@{truckItem.printed?View.VISIBLE:View.INVISIBLE}'
             android:text='@{truckItem.invoiceNumber==null?truckItem.receiptNumber:truckItem.invoiceNumber}' />
 
         <CheckedTextView

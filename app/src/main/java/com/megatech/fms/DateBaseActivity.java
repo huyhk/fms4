@@ -12,8 +12,9 @@ import java.util.Date;
 import java.util.List;
 
 public abstract class DateBaseActivity extends UserBaseActivity {
-    private Context context = this;
-    private int mHour, mMinute, mYear, mMonth, mDay;
+    private final Context context = this;
+    private int mHour;
+    private int mMinute;
     protected Date selectedDate = new Date();
     public List<UserModel> userList = null;
 
@@ -21,9 +22,9 @@ public abstract class DateBaseActivity extends UserBaseActivity {
 
         final Calendar c = Calendar.getInstance();
         c.setTime(selectedDate);
-        mYear = c.get(Calendar.YEAR);
-        mMonth = c.get(Calendar.MONTH);
-        mDay = c.get(Calendar.DAY_OF_MONTH);
+        int mYear = c.get(Calendar.YEAR);
+        int mMonth = c.get(Calendar.MONTH);
+        int mDay = c.get(Calendar.DAY_OF_MONTH);
 
         DatePickerDialog datePickerDialog = new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
             @Override

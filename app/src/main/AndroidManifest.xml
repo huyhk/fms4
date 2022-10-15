@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.megatech.fms">
 
-    <uses-sdk android:maxSdkVersion="28" />
+    <uses-sdk android:maxSdkVersion="31" />
 
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -12,22 +12,28 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.PREVENT_POWER_KEY" />
-    <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"  />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+
+    <uses-permission android:name="android.permission.BLUETOOTH"  android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"   android:maxSdkVersion="30"/>
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
-    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN"  />
+
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
     <uses-permission android:name="android.permission.CAMERA" />
+
     <uses-permission android:name="android.permission.READ_PRIVILEGED_PHONE_STATE " />
+    <uses-permission android:name="android.permission.INSTALL_PACKAGES "/>
 
     <uses-feature
         android:name="android.hardware.camera"
         android:required="true" />
-
+    <uses-feature android:name="android.hardware.bluetooth" android:required="true"/>
+    <uses-feature android:name="android.hardware.bluetooth_le" android:required="true"/>
     <application
         android:name=".FMSApplication"
         android:allowBackup="true"
@@ -39,13 +45,14 @@
         android:theme="@style/AppTheme.NoActionBar"
         android:hardwareAccelerated="false"
         android:largeHeap="true"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="true"
+        android:requestLegacyExternalStorage="true">
         <activity
             android:name=".PrintInvoiceActivity"
-            android:exported="false" />
+            android:exported="true" />
         <activity
             android:name=".ReceiptSignActivity"
-            android:exported="false"
+            android:exported="true"
             android:screenOrientation="landscape" />
 
         <provider
@@ -60,12 +67,14 @@
 
         <activity
             android:name=".ReceiptActivity"
-            android:exported="false" />
+            android:exported="true" />
         <activity android:name=".B2505Activity" />
         <activity android:name=".B2502Activity" />
         <activity
             android:name=".StartupActivity"
-            android:screenOrientation="landscape">
+            android:screenOrientation="landscape"
+            android:exported="true"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -74,51 +83,66 @@
         </activity>
         <activity
             android:name=".NewExtractActivity"
+            android:exported="true"
             android:screenOrientation="landscape" />
         <activity
             android:name=".NewRefuelActivity"
+            android:exported="true"
             android:screenOrientation="landscape" />
         <activity
             android:name=".VersionUpdateActivity"
-            android:screenOrientation="landscape" />
+            android:exported="true"
+            android:screenOrientation="landscape"
+            android:launchMode="singleTop"/>
         <activity
             android:name=".RefuelDetailActivity"
+            android:exported="true"
             android:configChanges="orientation|screenSize"
             android:screenOrientation="landscape" />
         <activity
             android:name=".RefuelDetailConfirmActivity"
+            android:exported="true"
             android:configChanges="orientation|screenSize"
             android:screenOrientation="landscape" />
         <activity
             android:name=".RefuelPreviewActivity"
+            android:exported="true"
             android:screenOrientation="landscape" />
         <activity
             android:name=".PrintReceiptActivity"
+            android:exported="true"
             android:screenOrientation="landscape" />
         <activity
             android:name=".InventoryActivity"
+            android:exported="true"
             android:screenOrientation="landscape" />
         <activity
             android:name=".SettingActivity"
+            android:exported="true"
             android:screenOrientation="landscape" />
         <activity
             android:name=".ExtractActivity"
+            android:exported="true"
             android:screenOrientation="landscape" />
         <activity
             android:name=".RefuelActivity"
+            android:exported="true"
             android:screenOrientation="landscape" />
         <activity
             android:name=".LoginActivity"
+            android:exported="true"
             android:screenOrientation="landscape"
             android:theme="@style/AppTheme" />
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
             android:screenOrientation="landscape"
+            android:exported="true"
             android:theme="@style/AppTheme.NoActionBar" />
 
         <receiver
             android:name=".receivers.WifiReceiver"
+            android:exported="true"
             android:enabled="true">
             <intent-filter>
                 <action android:name="android.net.wifi.WIFI_STATE_CHANGED" />

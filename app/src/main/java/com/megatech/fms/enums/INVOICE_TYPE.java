@@ -8,7 +8,7 @@ public enum INVOICE_TYPE {
     @SerializedName("0")    INVOICE(0),
     @SerializedName("1") BILL(1);
 
-    private  int value;
+    private final int value;
 
     INVOICE_TYPE(int i) {
         value = i;

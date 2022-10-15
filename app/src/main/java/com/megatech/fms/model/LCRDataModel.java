@@ -6,8 +6,8 @@ import java.util.Date;
 
 public class LCRDataModel {
 
-    private boolean volFlag = false;
-    private boolean totalFlag = false;
+    private final boolean volFlag = false;
+    private final boolean totalFlag = false;
     private int flightId;
 
     public int getFlightId() {

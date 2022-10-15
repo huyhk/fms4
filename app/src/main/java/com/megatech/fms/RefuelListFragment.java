@@ -77,7 +77,7 @@ public class RefuelListFragment extends Fragment {
         return fragment;
     }
 
-    private Timer timer = new Timer();
+    private final Timer timer = new Timer();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

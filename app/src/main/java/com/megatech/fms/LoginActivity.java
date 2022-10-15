@@ -13,6 +13,7 @@ import androidx.appcompat.app.AlertDialog;
 
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.megatech.fms.helpers.HttpClient;
+import com.megatech.fms.model.LoginResultModel;
 import com.megatech.fms.model.TruckModel;
 import com.megatech.fms.model.UserInfo;
 
@@ -52,13 +53,13 @@ public class LoginActivity extends BaseActivity {
 
                     if (!TextUtils.isEmpty(user) && !TextUtils.isEmpty(pwd)) {
                         HttpClient client = new HttpClient();
-                        JSONObject loginData = client.login(user, pwd);
+                        LoginResultModel loginData = client.login(user, pwd);
                         if (loginData == null) {
-                            showError(LOGIN_ERROR_TYPE.CONNECTION_ERROR);
+                            showError(LoginResultModel.LOGIN_ERROR_TYPE.CONNECTION_ERROR);
                         } else {
-                            if (loginData.has("userName")) {
-                                try {
-                                    if (loginData.has("invoiceName"))
+                            if (loginData.getErrorType() == null) {
+
+                                    /*if (loginData.has("invoiceName"))
                                     currentUser = new UserInfo(loginData.getInt("userId"),
                                             loginData.getString("userName"),
                                             loginData.getString("access_token"),
@@ -73,7 +74,17 @@ public class LoginActivity extends BaseActivity {
                                                 loginData.getString("access_token"),
                                                 loginData.getInt("permission"),
                                                 loginData.getString("airport")
-                                                );
+                                                );*/
+
+                                    currentUser = new UserInfo(loginData.getUserId(),
+                                            loginData.getUserName(),
+                                            loginData.getAccess_token(),
+                                            loginData.getPermission(),
+                                            loginData.getAirport(),
+                                            loginData.getAddress(),
+                                            loginData.getTaxCode(),
+                                            loginData.getInvoiceName());
+
                                     currentUser.addToSharePreferences(currentApp);
 
                                     FirebaseCrashlytics.getInstance().setUserId(currentUser.getUserName());
@@ -90,13 +101,10 @@ public class LoginActivity extends BaseActivity {
                                         showMain();
 
 
-                                } catch (JSONException e) {
-                                    showError(LOGIN_ERROR_TYPE.DATA_ERROR);
-                                }
-                            } else if (loginData.has("ResponseCode"))
-                                showError(LOGIN_ERROR_TYPE.DATA_ERROR);
-                            else
-                                showError(LOGIN_ERROR_TYPE.CONNECTION_ERROR);
+
+                            } else
+                                showError(loginData.getErrorType());
+
                         }
                     } else
                         txtUser.setError("Invalid username or password");
@@ -129,8 +137,8 @@ public class LoginActivity extends BaseActivity {
 
     }
 
-    private int LOGIN_RESULT_OK = 0;
-    private int LOGIN_RESULT_MODIFIED = 1;
+    private final int LOGIN_RESULT_OK = 0;
+    private final int LOGIN_RESULT_MODIFIED = 1;
 
     private Activity activity;
 
@@ -141,12 +149,12 @@ public class LoginActivity extends BaseActivity {
         finish();
     }
 
-    private void showError(LOGIN_ERROR_TYPE error_type) {
+    private void showError(LoginResultModel.LOGIN_ERROR_TYPE error_type) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setCancelable(false);
         builder.setTitle(R.string.app_name);
-        builder.setIcon(error_type == LOGIN_ERROR_TYPE.CONNECTION_ERROR ? R.drawable.ic_no_internet : R.drawable.ic_data_warning);
-        builder.setMessage(error_type == LOGIN_ERROR_TYPE.CONNECTION_ERROR ? R.string.internet_connection_error : R.string.login_error_message);
+        builder.setIcon(error_type == LoginResultModel.LOGIN_ERROR_TYPE.CONNECTION_ERROR ? R.drawable.ic_no_internet : R.drawable.ic_data_warning);
+        builder.setMessage(error_type == LoginResultModel.LOGIN_ERROR_TYPE.CONNECTION_ERROR ? R.string.internet_connection_error : R.string.login_error_message);
 
         builder.setNegativeButton(getString(R.string.back),
                 new DialogInterface.OnClickListener() {
@@ -159,8 +167,5 @@ public class LoginActivity extends BaseActivity {
         builder.create().show();
     }
 
-    private enum LOGIN_ERROR_TYPE {
-        CONNECTION_ERROR,
-        DATA_ERROR
-    }
+
 }

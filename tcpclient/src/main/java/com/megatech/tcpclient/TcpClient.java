@@ -22,7 +22,7 @@ public class TcpClient extends Observable {
 
     private String address;
     private Integer port;
-    private Integer timeout = 2000;
+    private final Integer timeout = 2000;
 
     private TcpClientState state = TcpClientState.DISCONNECTED;
 
@@ -99,7 +99,7 @@ public class TcpClient extends Observable {
 
     private class SendMessageThread extends Thread {
         private String messageLine;
-        private char[] messageChar;
+        private final char[] messageChar;
 
         public SendMessageThread(String message) {
             this.messageLine = message ;

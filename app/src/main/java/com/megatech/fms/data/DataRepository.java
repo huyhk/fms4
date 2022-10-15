@@ -1,5 +1,9 @@
 package com.megatech.fms.data;
 
+import android.database.Cursor;
+
+import androidx.sqlite.db.SimpleSQLiteQuery;
+
 import com.megatech.fms.data.entity.Airline;
 import com.megatech.fms.data.entity.BM2505;
 import com.megatech.fms.data.entity.Flight;
@@ -11,6 +15,7 @@ import com.megatech.fms.data.entity.Shift;
 import com.megatech.fms.data.entity.Truck;
 import com.megatech.fms.data.entity.TruckFuel;
 import com.megatech.fms.data.entity.User;
+import com.megatech.fms.helpers.DateUtils;
 import com.megatech.fms.helpers.HttpClient;
 import com.megatech.fms.model.AirlineModel;
 import com.megatech.fms.model.BM2505Model;
@@ -29,7 +34,7 @@ import java.util.List;
 public class DataRepository {
 
 
-    private AppDatabase db;
+    private final AppDatabase db;
     private static DataRepository sInstance;
 
     private DataRepository(final AppDatabase db) {
@@ -424,5 +429,28 @@ public class DataRepository {
 
     public void cancelReceipts(String[] printedItems, String reason ) {
         db.receiptDao().cancel(printedItems, reason);
+    }
+
+    public RefuelItem getRefuelByFlightAndTruck(Integer flightId, int truckId) {
+        return db.refuelItemDao().getByFlightAndTruck(flightId,truckId);
+    }
+
+    public boolean getLocalModified() {
+        SimpleSQLiteQuery query = new SimpleSQLiteQuery("Select SUM(CNT ) FROM (Select count(0) as CNT from RefuelItem where isLocalModified = 1 Union Select count(0) from Receipt where isLocalModified = 1)");
+        Cursor cs = db.query(query);
+        if (cs.getCount()>0) {
+            cs.moveToFirst();
+            int c = cs.getInt(0);
+            return c > 0;
+        }
+        else return false;
+    }
+
+    public List<Receipt> getReceiptList(Date date) {
+
+        Date next = DateUtils.getNextDate(date);
+
+        List<Receipt> modified = db.receiptDao().getAll(date.getTime(), next.getTime());
+        return modified;
     }
 }

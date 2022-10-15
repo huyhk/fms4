@@ -1,12 +1,14 @@
 package com.megatech.fms;
 
 
+import androidx.annotation.RequiresApi;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.DialogFragment;
 import androidx.lifecycle.ViewModelProviders;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.AsyncNotedAppOp;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
@@ -14,14 +16,17 @@ import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import android.os.Environment;
 import android.text.InputType;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -33,28 +38,39 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.widget.ArrayAdapter;
 import android.widget.CheckedTextView;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
 
 import com.megatech.fms.databinding.ActivityRefuelDetailConfirmBinding;
+import com.megatech.fms.databinding.SelectUserBinding;
 import com.megatech.fms.helpers.DataHelper;
+import com.megatech.fms.helpers.ImageUtil;
 import com.megatech.fms.helpers.LCRWorker;
 import com.megatech.fms.helpers.Logger;
+import com.megatech.fms.helpers.ScreenshotAPI;
 import com.megatech.fms.model.RefuelItemData;
+import com.megatech.fms.model.UserModel;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.sql.Ref;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -121,6 +137,8 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
     private void loaddata() {
         setProgressDialog();
         new Thread(() -> {
+            if (userList == null)
+                userList = DataHelper.getUsers();
 
             Bundle b = getIntent().getExtras();
             String mData = b.getString("REFUEL", "");
@@ -151,6 +169,8 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
                 });
 
             }
+
+
 
         }).start();
 
@@ -382,7 +402,10 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
             case R.id.refuel_confirm_end_time:
                 showTimeDialog(id);
                 break;
-
+            case R.id.refuel_confirm_driver:
+            case R.id.refuel_confirm_operator:
+                showSelectUser();
+                break;
             case R.id.btnConfirm:
                 save();
             default:
@@ -399,7 +422,7 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
             showErrorMessage(R.string.invalid_real_amount);
         else if(mItem.getStartNumber()<=0 || mItem.getEndNumber()<=0 || mItem.getEndNumber() != mItem.getStartNumber() + ( BuildConfig.FHS? mItem.getVolume(): mItem.getRealAmount()))
             showErrorMessage(R.string.invalid_start_end_meter);
-        else if(mItem.getStartTime().after( mItem.getEndTime() ))
+        else if(!mItem.validTime())
             showErrorMessage(R.string.invalid_start_end_time);
         else if (mItem.getQualityNo().trim().isEmpty())
         {
@@ -409,13 +432,19 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
         {
             showErrorMessage(R.string.real_amount_too_big);
         }
-        else
+        else if (mItem.getDriverId() <=0 || mItem.getOperatorId() <=0)
+            showErrorMessage(R.string.invalid_driver_operator);
+        else {
+            sendScreenshot();
+
+            //Logger.appendLog("CONFIRM","StartNumber: "+ mItem.getStartNumber() + " EndNumber: "+ mItem.getEndNumber() + " RealAmount: "+ mItem.getRealAmount() +" Temperature: "+ mItem.getManualTemperature() + " Density: "+ mItem.getDensity());
             postData();
+        }
     }
 
 
     private int mHour, mMinute, mYear, mMonth, mDay;
-    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
     private void showTimeDialog(int id) {
         final Date date = new Date();
         if (id == R.id.refuel_confirm_start_time) {
@@ -467,10 +496,14 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
         updateBinding();
     }
 
-    private String LOG_TAG = "RFC";
+    private final String LOG_TAG = "RFC";
     private void postData()
     {
         if (!BuildConfig.FHS) {
+            if (mItem.getTruckId() != currentApp.getTruckId() && mItem.getReceiptNumber() !=null && !mItem.getReceiptNumber().isEmpty())
+            {
+                mItem.setReceiptNumber(null);
+            }
             mItem.setTruckId(currentApp.getTruckId());
             mItem.setTruckNo(currentApp.getTruckNo());
         }
@@ -478,8 +511,10 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
         new AsyncTask<Void, Void, RefuelItemData>() {
             @Override
             protected RefuelItemData doInBackground(Void... voids) {
-                Logger.appendLog(LOG_TAG, "Post item");
-                mItem = DataHelper.postRefuel(mItem);
+                Logger.appendLog(LOG_TAG, "Post item " + mItem.getId() + " UniqueId: " + mItem.getUniqueId());
+                Logger.appendLog(LOG_TAG,"StartNumber: "+ mItem.getStartNumber() + " EndNumber: "+ mItem.getEndNumber() + " RealAmount: "+ mItem.getRealAmount() +" Temperature: "+ mItem.getManualTemperature() + " Density: "+ mItem.getDensity());
+
+                mItem = DataHelper.postRefuel(mItem,false);
                 return mItem;
             }
 
@@ -492,9 +527,64 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
             }
         }.execute();
     }
+
+    private  void sendScreenshot()
+    {
+        Bitmap b = takeScreenshot();
+        File f = saveBitmap(b);
+        Logger.appendLog("RFC", "screenshot file " + f.getName());
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... voids) {
+                try {
+                    if (new  ScreenshotAPI().postScreenshot(f))
+                        f.delete();
+
+                } catch (Exception e) {
+                    Logger.appendLog("RFC","Send screenshot failed");
+                }
+                return null;
+            }
+        }.execute();
+    }
+    private Bitmap takeScreenshot() {
+        View rootView = findViewById(android.R.id.content).getRootView();
+        rootView.setDrawingCacheEnabled(true);
+        return rootView.getDrawingCache();
+    }
+
+    private File saveBitmap(Bitmap bitmap) {
+        File folder = getExternalFilesDir(Environment.DIRECTORY_PICTURES) ;
+        File imagePath = null;
+        try {
+            imagePath = new File(folder,"screenshot_"+ mItem.getUniqueId()+".jpg");
+            imagePath.createNewFile();
+            // File.createTempFile("screenshot_"+ mItem.getUniqueId(),".jpg",folder);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        FileOutputStream fos;
+        try {
+            fos = new FileOutputStream(imagePath);
+            Bitmap scaledBitmap = ImageUtil.resize(bitmap, 800);
+            scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+            bitmap.recycle();
+            fos.flush();
+            fos.close();
+        } catch (FileNotFoundException e) {
+
+        } catch (IOException e) {
+
+        } catch (Exception ex)
+        {
+
+        }
+        return imagePath;
+    }
     private void postRefuelCompleted(RefuelItemData mItem) {
         closeProgressDialog();
-        if (mItem.isLocalModified())
+       /* if (mItem.isLocalModified())
         {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle(R.string.sync_error)
@@ -524,7 +614,8 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
             builder.create().show();
         }
 
-        else
+        else*/
+
             openPreview();
 
     }
@@ -542,7 +633,93 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
 
         finish();
     }
+    private List<UserModel> userList = null;
 
+    private void showSelectUser() {
+
+
+
+
+        if (userList != null) {
+            Dialog dialog = new Dialog(this);
+            SelectUserBinding binding = DataBindingUtil.inflate(dialog.getLayoutInflater(), R.layout.select_user, null, false);
+            binding.setRefuelItem(mItem);
+            dialog.setContentView(binding.getRoot());
+            Spinner spn = dialog.findViewById(R.id.select_user_driver);
+
+            ArrayAdapter<UserModel> spinnerAdapter = new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, userList);
+            spinnerAdapter.setDropDownViewResource(android.R.layout.simple_list_item_single_choice);
+
+            spn.setAdapter(spinnerAdapter);
+            spn.setSelection(findUser(mItem.getDriverId(), userList));
+
+            spn = dialog.findViewById(R.id.select_user_operator);
+
+            spn.setAdapter(spinnerAdapter);
+            spn.setSelection(findUser(mItem.getOperatorId(), userList));
+
+            dialog.show();
+
+            dialog.getWindow().setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+
+            dialog.findViewById(R.id.btn_select).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    Spinner spnDriver = dialog.findViewById(R.id.select_user_driver);
+                    UserModel driver = (UserModel) spnDriver.getSelectedItem();
+
+
+                    Spinner spnOperator = dialog.findViewById(R.id.select_user_operator);
+                    UserModel operator = (UserModel) spnOperator.getSelectedItem();
+
+                    if (driver.getId() == operator.getId()) {
+                        new AlertDialog.Builder(dialog.getContext())
+                                .setTitle(R.string.select_user)
+                                .setMessage(R.string.error_same_user)
+                                .setIcon(R.drawable.ic_error)
+                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        dialogInterface.dismiss();
+                                    }
+                                })
+                                .show();
+                        return;
+                    }
+
+                    if (driver != null) {
+                        mItem.setDriverId(driver.getId());
+                        mItem.setDriverName(driver.getName());
+                    }
+
+                    if (operator != null) {
+                        mItem.setOperatorId(operator.getId());
+                        mItem.setOperatorName(operator.getName());
+                    }
+
+                    updateBinding();
+                    dialog.dismiss();
+                }
+            });
+
+            dialog.findViewById(R.id.btn_back).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    dialog.dismiss();
+                }
+            });
+        }
+    }
+    private int findUser(int userId, List<UserModel> userList) {
+        int pos = 0;
+        for (UserModel item : userList) {
+            if (item.getId() == userId)
+                return pos;
+            pos++;
+        }
+        return -1;
+    }
     @Override
     protected void onDestroy() {
         super.onDestroy();

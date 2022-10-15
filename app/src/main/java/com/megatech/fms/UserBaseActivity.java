@@ -2,9 +2,12 @@ package com.megatech.fms;
 
 import android.Manifest;
 import android.app.Dialog;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -17,6 +20,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -24,7 +28,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
+import androidx.databinding.adapters.ImageViewBindingAdapter;
+import androidx.legacy.content.WakefulBroadcastReceiver;
 
+import com.megatech.fms.helpers.DataHelper;
 import com.megatech.fms.helpers.HttpClient;
 import com.megatech.fms.helpers.Logger;
 
@@ -58,7 +65,10 @@ public class UserBaseActivity extends BaseActivity {
         }
 */
 
+
     }
+
+    public  final static  String SYNC_BROADCAST = "com.megatech.syn_broadcast";
 
     @Override
     protected void onResume() {
@@ -77,6 +87,20 @@ public class UserBaseActivity extends BaseActivity {
         TextView lblInventory = findViewById(R.id.lbltoolbar_Inventory);
         if (lblInventory != null)
             lblInventory.setText(String.format("%s: %.0f", currentApp.getTruckNo(), currentApp.getCurrentAmount()));
+        new AsyncTask<Void, Void, Boolean>() {
+            @Override
+            protected Boolean doInBackground(Void... voids) {
+                boolean hasModified = DataHelper.checkLocalModified();
+                return  hasModified;
+            }
+
+            @Override
+            protected void onPostExecute(Boolean hasModified) {
+                super.onPostExecute(hasModified);
+
+            }
+        }.execute();
+
 
 
     }
@@ -84,6 +108,7 @@ public class UserBaseActivity extends BaseActivity {
 
     protected void setToolbar() {
         Toolbar toolbar = findViewById(R.id.toolbar);
+
         if (toolbar != null) {
             setSupportActionBar(toolbar);
             getSupportActionBar().setDisplayShowTitleEnabled(false);
@@ -112,8 +137,8 @@ public class UserBaseActivity extends BaseActivity {
                 });
 
             Button btnSetting = findViewById(R.id.btnSetting);
-            if (btnSetting!=null)
-            btnSetting.setOnClickListener(v -> setting());
+            if (btnSetting != null)
+                btnSetting.setOnClickListener(v -> setting());
 
             Button btnRefuel = findViewById(R.id.btnRefuel);
             if (btnRefuel != null)
@@ -125,9 +150,32 @@ public class UserBaseActivity extends BaseActivity {
             Button btnLogout = findViewById(R.id.btnLogout);
             if (btnLogout != null)
                 btnLogout.setOnClickListener(v -> logout());
-
+            Button btnReceipt = findViewById(R.id.btnReceipt);
+            if (btnReceipt != null)
+                btnReceipt.setOnClickListener(v -> {
+                    Intent intent = new Intent(this, ReceiptActivity.class);
+                    startActivity(intent);
+                });
             setTruckInfo();
         }
+
+    }
+
+    private void sync() {
+        setProgressDialog();
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... voids) {
+                DataHelper.Synchronize();
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void unused) {
+                super.onPostExecute(unused);
+                closeProgressDialog();
+            }
+        }.execute();
 
     }
 
@@ -424,7 +472,7 @@ public class UserBaseActivity extends BaseActivity {
         }
     }
 
-    private int REQUEST_WRITE_PERMISSION = 1;
+    private final int REQUEST_WRITE_PERMISSION = 1;
 
     protected boolean checkStoragePermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {

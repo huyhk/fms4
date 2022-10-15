@@ -300,7 +300,7 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
             binding = DataBindingUtil.inflate(getLayoutInflater(), R.layout.activity_refuel_preview, null, false);
             binding.setMItem(refuelData);
             setContentView(binding.getRoot());
-            findViewById(R.id.refuel_preview_international).setEnabled(isEditable);
+            //findViewById(R.id.refuel_preview_international).setEnabled(isEditable);
             ((CheckBox)findViewById(R.id.refuel_preview_international)).setOnTouchListener((view, motionEvent) -> {
                if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
                    showConfirmMessage(R.string.change_route_type_confirm, new Callable<Void>() {
@@ -435,12 +435,12 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
                 if (printedItems.length > 0) {
                     showCancelReceiptInput(printedItems);
                 } else {
-                    showReceiptPreview();
+                    showReceiptPreview(true);
                 }
             }
         } else {
             if (validate(isReturn)) {
-                ReceiptModel model = ReceiptModel.createReceipt(printItems, true);
+                ReceiptModel model = ReceiptModel.createReceipt(printItems,null, true,null, true);
                 Intent intent = new Intent(this, PrintReceiptActivity.class);
                 intent.putExtra("RECEIPT", model.toJson());
                 //startActivityForResult(intent, RECEIPT_WINDOW);
@@ -470,15 +470,12 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
             radBtn.setId(id);
             radBtn.setTag(id++);
 
-            radBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if ((int) view.getTag() == 3) {
-                        reasonEditText.setVisibility(View.VISIBLE);
-                        //reasonEditText.requestFocus();
-                    } else
-                        reasonEditText.setVisibility(View.INVISIBLE);
-                }
+            radBtn.setOnClickListener(view -> {
+                if ((int) view.getTag() == 3) {
+                    reasonEditText.setVisibility(View.VISIBLE);
+                    //reasonEditText.requestFocus();
+                } else
+                    reasonEditText.setVisibility(View.INVISIBLE);
             });
             radGroup.addView(radBtn);
 
@@ -489,7 +486,7 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
                 .setTitle(R.string.cancel_receipt_info)
                 .setMessage(R.string.cancel_receipt_message)
                 .setView(layout)
-                .setPositiveButton(R.string.accept, (dialog1, which) -> {
+                .setPositiveButton(R.string.create_new_receipt, (dialog1, which) -> {
                     String reason = reasonEditText.getText().toString();
                     int selected = radGroup.getCheckedRadioButtonId();
                     if (selected < 3)
@@ -499,38 +496,58 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
                         showErrorMessage(R.string.cancel_reason_required);
                     else {
                         final String cancelReason = reason;
+                        /*
                         showConfirmMessage(R.string.confirm_receip_cancel, () -> {
                             new Thread(() -> DataHelper.cancelReceipts(printedItems, cancelReason)).start();
                             showReceiptPreview();
                             return null;
-                        });
-
+                        });*/
+                        //new Thread(() -> DataHelper.cancelReceipts(printedItems, cancelReason)).start();
+                        showReceiptPreview(null,printedItems,true);
                         dialog1.dismiss();
 
 
                     }
                 })
-                .setNegativeButton(R.string.back, null)
+                .setNeutralButton(R.string.back, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                        dialogInterface.dismiss();
+                    }
+                })
+                .setNegativeButton(R.string.use_old_receipt, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        showReceiptPreview(oldNumber,printedItems,false);
+                        dialogInterface.dismiss();
+                    }
+                })
                 .create();
         dialog.show();
 
     }
-
-    private void showReceiptPreview() {
-        ReceiptModel model = ReceiptModel.createReceipt(printItems);
-
+    private void showReceiptPreview( boolean createNew)
+    {
+        showReceiptPreview(null, null,createNew);
+    }
+    private void showReceiptPreview(String oldNumber, String[] replacedReceipts, boolean createNew) {
+        //ReceiptModel model = ReceiptModel.createReceipt(printItems,oldNumber, createNew);
+        ReceiptModel model = ReceiptModel.createReceipt(printItems,replacedReceipts,false, oldNumber, createNew);
         Intent intent = new Intent(this, PrintReceiptActivity.class);
         intent.putExtra("RECEIPT", model.toJson());
         startActivityForResult(intent, RECEIPT_WINDOW);
     }
 
+    private String oldNumber;
     private String[] checkPrintedItems() {
         ArrayList<String> stringArrayList = new ArrayList<String>();
-
+        oldNumber = null;
         for (RefuelItemData item : printItems
         ) {
-            if (item.getReceiptNumber() != null && !item.getReceiptNumber().isEmpty()) {
-                stringArrayList.add(item.getReceiptNumber());
+            if (item.getReceiptCount() >0 && item.getReceiptNumber() != null && !item.getReceiptNumber().isEmpty()) {
+                stringArrayList.add(item.getReceiptUniqueId());
+                oldNumber = item.getReceiptNumber();
             }
         }
         return stringArrayList.toArray(new String[0]);
@@ -540,14 +557,17 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == RECEIPT_WINDOW && resultCode == Activity.RESULT_OK) {
-            String number = data.getStringExtra("result");
-            updateAllReceipt(number);
+            String number = data.getStringExtra("number");
+            String uniqueId = data.getStringExtra("uniqueId");
+            double techlog = data.getDoubleExtra("techlog",0);
+            updateAllReceipt(uniqueId, number,techlog);
             truckArrayAdapter.notifyDataSetChanged();
         } else if (requestCode == INVOICE_WINDOW && resultCode == Activity.RESULT_OK) {
             String number = data.getStringExtra("number");
             int formId = data.getIntExtra("formId", 0);
+            double techlog = data.getDoubleExtra("techlog",0);
             INVOICE_TYPE printTemplate = (INVOICE_TYPE) data.getSerializableExtra("printTemplate");
-            if (updateAllInvoice(number, formId, printTemplate))
+            if (updateAllInvoice(number, formId, printTemplate,techlog))
                 truckArrayAdapter.notifyDataSetChanged();
         }
     }
@@ -1182,7 +1202,7 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
         return -1;
     }
 
-    private String LOG_TAG = "PRW";
+    private final String LOG_TAG = "PRW";
 
     private void updateBinding() {
         updateBinding(true);
@@ -1209,8 +1229,8 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
 
     }
 
-    private boolean vatFirstClick = true;
-    private boolean airlineFirstClick = true;
+    private final boolean vatFirstClick = true;
+    private final boolean airlineFirstClick = true;
 
     private PRINT_MODE printMode = PRINT_MODE.ALL_ITEM;
 
@@ -1669,16 +1689,21 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
         }
         return true;
     }
-
-    private boolean updateAllReceipt(String receiptNumber) {
-        for (RefuelItemData item : printItems) {
+    private boolean updateAllReceipt(String receiptNumber)
+    {
+        return updateAllReceipt(UUID.randomUUID().toString(), receiptNumber, 0);
+    }
+    private boolean updateAllReceipt(String uniqueId, String receiptNumber, double techlog) {
+        /*for (RefuelItemData item : printItems) {
             if (item.getReceiptNumber() != null && item.getReceiptNumber().equals(receiptNumber)) {
                 return false;
             }
-        }
+        }*/
 
         for (RefuelItemData item : printItems) {
             item.setReceiptNumber(receiptNumber);
+            item.setReceiptUniqueId(uniqueId);
+            item.setWeightNote(String.format("%.0f",techlog));
             item.setReceiptCount(item.getReceiptCount() + 1);
             item.setPrintStatus(RefuelItemData.ITEM_PRINT_STATUS.SUCCESS);
 
@@ -1686,14 +1711,15 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
 
         new Thread(() -> DataHelper.postRefuels(printItems, true)).start();
         truckArrayAdapter.notifyDataSetChanged();
+        binding.invalidateAll();
         return true;
     }
 
     private boolean updateAllInvoice(String invoiceNumber) {
-        return updateAllInvoice(invoiceNumber, invoiceModel.getInvoiceFormId(), invoiceModel.getInvoiceType());
+        return updateAllInvoice(invoiceNumber, invoiceModel.getInvoiceFormId(), invoiceModel.getInvoiceType(), invoiceModel.getTechLog());
     }
 
-    private boolean updateAllInvoice(String invoiceNumber, int formId, INVOICE_TYPE printTemplate) {
+    private boolean updateAllInvoice(String invoiceNumber, int formId, INVOICE_TYPE printTemplate,double techlog) {
         for (RefuelItemData item : printItems) {
             if (item.getInvoiceNumber() != null && item.getInvoiceNumber().equals(invoiceNumber)) {
                 return false;
@@ -1708,7 +1734,10 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
             item.setTaxRate(refuelData.getTaxRate());
             item.setPrintTemplate(printTemplate);
             item.setInvoiceFormId(formId);
+
+            item.setWeightNote(String.format("%.0f",techlog));
             item.setLocalModified(true);
+
             //item.setInvoiceModel(invoiceModel);
 
         }
@@ -1721,11 +1750,12 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
         if (printDialog != null)
             printDialog.dismiss();
         truckArrayAdapter.notifyDataSetChanged();
+        binding.invalidateAll();
         return true;
     }
 
 
-    private Context context = this;
+    private final Context context = this;
     private int mHour;
     private int mMinute;
     private int mDay;
@@ -1839,7 +1869,7 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
         returnAmountEditText.requestFocus();
     }
 
-    private boolean isEditing = false;
+    private final boolean isEditing = false;
 
     @SuppressLint("StaticFieldLeak")
     private void createNewItem() {

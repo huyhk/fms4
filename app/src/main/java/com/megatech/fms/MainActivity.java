@@ -6,6 +6,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -25,9 +26,8 @@ import android.widget.SearchView;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.view.menu.ActionMenuItem;
-import androidx.appcompat.view.menu.ActionMenuItemView;
 import androidx.databinding.DataBindingUtil;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.viewpager.widget.ViewPager;
 
 import com.google.android.material.tabs.TabLayout;
@@ -54,7 +54,7 @@ import java.util.concurrent.Callable;
 
 public class MainActivity extends UserBaseActivity implements RefuelListFragment.OnFragmentInteractionListener {
     private boolean mTwoPane;
-    Button btnUpdate;
+    Button btnSync;
     Button toolbarRefuelButton;
     Button toolbarExtractButton;
 
@@ -70,9 +70,9 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
                 tbl.getTabAt(0).setText(currentApp.getTruckNo());
             }
 
-            ViewPager viewPager = findViewById(R.id.main_viewpager);
-            ((PageAdapter) viewPager.getAdapter()).updateLists();
-
+//            ViewPager viewPager = findViewById(R.id.main_viewpager);
+//            ((PageAdapter) viewPager.getAdapter()).updateLists();
+            updateRefuelList();
 
         }
     }
@@ -83,9 +83,12 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
         super.onResume();
         TabLayout tbl = findViewById(R.id.main_tablayout);
         tbl.getTabAt(0).setText(currentApp.getTruckNo());
-        if (btnUpdate != null)
-            btnUpdate.setVisibility(View.VISIBLE);
+        if (btnSync != null)
+            btnSync.setVisibility(View.VISIBLE);
         showShiftInfo();
+        updateRefuelList();
+
+
     }
 
     @Override
@@ -102,9 +105,9 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
 
         //toolbarRefuelButton.setVisibility(View.GONE);
 
-        btnUpdate = findViewById(R.id.btnUpdate2);
-        if (btnUpdate != null)
-            btnUpdate.setOnClickListener(new View.OnClickListener() {
+        btnSync = findViewById(R.id.btnSync);
+        if (btnSync != null)
+            btnSync.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
 
@@ -145,7 +148,38 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
 
         if (!currentApp.isFirstUse())
             initReader();
+
+
+        registerReceiver(mMessageReceiver,
+                new IntentFilter(UserBaseActivity.SYNC_BROADCAST));
     }
+    private FMSReceiver mMessageReceiver = new FMSReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            super.onReceive(context, intent);
+            updateRefuelList();
+            new AsyncTask<Void, Void, Boolean>() {
+                @Override
+                protected Boolean doInBackground(Void... voids) {
+                    boolean hasModified = DataHelper.checkLocalModified();
+                    return  hasModified;
+                }
+
+                @Override
+                protected void onPostExecute(Boolean hasModified) {
+                    super.onPostExecute(hasModified);
+                    Button btn = (Button) findViewById(R.id.btnSync);
+                    if (btn!=null ) {
+                        if (hasModified)
+                            btn.setCompoundDrawablesWithIntrinsicBounds(null, null, getDrawable(R.drawable.ic_not_sync), null);
+                        else
+                            btn.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
+
+                    }
+                }
+            }.execute();
+        }
+    };
 
     private void initReader() {
         reader = LCRReader.create(this, currentApp.getDeviceIP(), 10001, true);
@@ -424,6 +458,7 @@ public class MainActivity extends UserBaseActivity implements RefuelListFragment
 
     @Override
     protected void onDestroy() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
         super.onDestroy();
 
     }

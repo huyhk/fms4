@@ -86,6 +86,16 @@ public class RefuelItemData extends BaseModel implements Cloneable {
 
     //private InvoiceModel invoiceModel;
 
+    private String receiptUniqueId;
+
+    public String getReceiptUniqueId() {
+        return receiptUniqueId;
+    }
+
+    public void setReceiptUniqueId(String receiptUniqueId) {
+        this.receiptUniqueId = receiptUniqueId;
+    }
+
     private String receiptNumber;
 
     public String getReceiptNumber() {
@@ -106,6 +116,16 @@ public class RefuelItemData extends BaseModel implements Cloneable {
 
     public void setReceiptCount(int receiptCount) {
         this.receiptCount = receiptCount;
+    }
+
+    public int getInvoiceStatus()
+    {
+        if (invoiceNumber != null && !invoiceNumber.isEmpty())
+            return 0;
+        else if (receiptCount>0)
+            return  1;
+        else
+            return  2;
     }
 
     public RefuelItemData() {
@@ -138,10 +158,12 @@ public class RefuelItemData extends BaseModel implements Cloneable {
             itemData.setUniqueId( UUID.randomUUID().toString());
             itemData.setReceiptCount(0);
             itemData.setReceiptNumber(null);
+            itemData.setInvoiceNumber(null);
             itemData.setStartNumber(0);
             itemData.setEndNumber(0);
             itemData.setStartTime(new Date());
             itemData.setEndTime(new Date());
+            itemData.setReturnAmount(0);
 
             itemData.setPrinted(false);
             itemData.setPrintStatus(ITEM_PRINT_STATUS.NONE);
@@ -604,11 +626,14 @@ public class RefuelItemData extends BaseModel implements Cloneable {
     }
 
     public String getInvoiceNumber() {
-        return invoiceNumber;
+
+            return invoiceNumber;
+
+
     }
 
     public void setInvoiceNumber(String invoiceNumber) {
-        if (!invoiceNumber.isEmpty())
+        //if (invoiceNumber!=null && !invoiceNumber.isEmpty())
             this.invoiceNumber = invoiceNumber;
     }
 
@@ -809,6 +834,15 @@ public class RefuelItemData extends BaseModel implements Cloneable {
     }
 
 
+    private boolean isSplit;
+
+    public boolean isSplit() {
+        return isSplit;
+    }
+
+    public void setSplit(boolean split) {
+        isSplit = split;
+    }
 
     public RefuelItemData split(double splitAmount)
     {
@@ -817,7 +851,8 @@ public class RefuelItemData extends BaseModel implements Cloneable {
         splitItem.setLocalId(0);
         splitItem.setUniqueId(UUID.randomUUID().toString());
         splitItem.setLocalModified(true);
-
+        splitItem.setSplit(true);
+        splitItem.setEndTime(new Date(splitItem.getEndTime().getTime()+1000*60));
         double vol = Math.round(splitAmount / getDensity());
         double gal = Math.round(vol / GALLON_TO_LITTER);
         //double newAmount = Math.round(Math.round(gal * GALLON_TO_LITTER) * getDensity());
@@ -825,6 +860,8 @@ public class RefuelItemData extends BaseModel implements Cloneable {
         splitItem.setRealAmount(gal);
         splitItem.setGallon(gal);
         splitItem.setVolume(vol);
+        splitItem.setReceiptNumber(null);
+        splitItem.setReceiptCount(0);
         if (BuildConfig.FHS)
             splitItem.setEndNumber(this.getStartNumber()+vol);
         else
@@ -837,6 +874,11 @@ public class RefuelItemData extends BaseModel implements Cloneable {
         this.setLocalModified(true);
 
         return  splitItem;
+    }
+
+    public boolean validTime() {
+        return startTime.before(endTime) && startTime.after(new Date(endTime.getTime() - 120 *60 *1000));
+
     }
 
 
@@ -858,7 +900,7 @@ public class RefuelItemData extends BaseModel implements Cloneable {
         @SerializedName("2") REFUELING(2),
         @SerializedName("3") REFUELED(3),
         @SerializedName("4") CANCELLED(4);
-        private int value;
+        private final int value;
 
         FLIGHT_STATUS(int i) {
             value = i;
@@ -872,7 +914,7 @@ public class RefuelItemData extends BaseModel implements Cloneable {
         @SerializedName("2") TEST(2);
 
 
-        private int value;
+        private final int value;
 
         REFUEL_ITEM_TYPE(int i) {
             value = i;
@@ -884,7 +926,7 @@ public class RefuelItemData extends BaseModel implements Cloneable {
         @SerializedName("1") USD(1),
         @SerializedName("2") TEST(2);
 
-        private int value;
+        private final int value;
 
         CURRENCY(int i) {
             value = i;

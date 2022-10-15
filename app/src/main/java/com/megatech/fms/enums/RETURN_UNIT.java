@@ -6,7 +6,7 @@ public enum RETURN_UNIT {
     @SerializedName("0") KG(0),
     @SerializedName("1") GALLON(1);
 
-    private  int value;
+    private final int value;
     RETURN_UNIT(int i) {
         value = i;
     }

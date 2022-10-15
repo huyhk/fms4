@@ -61,7 +61,7 @@ import java.util.concurrent.TimeUnit;
 public class LCRReader {
 
 
-    private boolean deviceError = true;
+    private final boolean deviceError = true;
     private static boolean _dateFormatRequested = false;
     private static SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
     private static boolean isLCR600 = false;
@@ -751,7 +751,7 @@ public class LCRReader {
     /**
      * DeviceCommunicationListener report SDK communication information to LCR device
      */
-    private DeviceCommunicationListener deviceCommunicationListener = new DeviceCommunicationListener() {
+    private final DeviceCommunicationListener deviceCommunicationListener = new DeviceCommunicationListener() {
 
         /**
          * Notify when message state is changed between SDK and LCR device
@@ -967,12 +967,12 @@ public class LCRReader {
             raiseError("Security level changed : " + " " + oldValue + " -> " + newValue);
         }
     };
-    private Context context;
+    private final Context context;
     /**
      * Setup for WiFi connection
      */
-    private String wifiIpAddress;
-    private Integer wifiPort;
+    private final String wifiIpAddress;
+    private final Integer wifiPort;
 
     public void requestSerial() {
 

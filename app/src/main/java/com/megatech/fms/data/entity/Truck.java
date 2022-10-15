@@ -10,7 +10,7 @@ import com.megatech.fms.model.TruckModel;
 
 @Entity
 public class Truck extends BaseEntity {
-    private static Gson gson = new GsonBuilder().create();
+    private static final Gson gson = new GsonBuilder().create();
     public TruckModel toTruckModel()
     {
         return  gson.fromJson(getJsonData(),TruckModel.class);

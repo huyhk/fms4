@@ -64,9 +64,16 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="right"
                 android:drawableStart="@android:drawable/ic_menu_save"
-                android:enabled="false"
+
                 android:onClick="onClick"
                 android:text="@string/invoice_number_input" />
+            <Button
+                android:id="@+id/btnTechlog"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onClick"
+                android:layout_gravity="right"
+                android:text="@string/input_techlog" />
 
             <Button
                 android:id="@+id/btnPrint"
@@ -363,6 +370,28 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight=".25"
+                    android:text="@string/tech_log"
+                    />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight=".25"
+                    android:text='@{String.format( "%,.0f",invoiceItem.techLog)}'
+                    />
+
+            </TableRow>
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#efefef"
+                android:padding="3dp"
+                android:visibility="@{invoiceItem.invoiceType == INVOICE_TYPE.INVOICE? View.VISIBLE:View.INVISIBLE}">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight=".25"
                     android:text="Đơn giá"
                     android:visibility="@{invoiceItem.invoiceType == INVOICE_TYPE.INVOICE? View.VISIBLE:View.INVISIBLE}" />
 
@@ -373,15 +402,6 @@
                     android:text='@{String.format(invoiceItem.currency == CURRENCY.VND? "%,.0f": "%,.2f",invoiceItem.price)}'
                     android:visibility="@{invoiceItem.invoiceType == INVOICE_TYPE.INVOICE? View.VISIBLE:View.INVISIBLE}" />
 
-            </TableRow>
-
-            <TableRow
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="#efefef"
-                android:padding="3dp"
-                android:visibility="@{invoiceItem.invoiceType == INVOICE_TYPE.INVOICE? View.VISIBLE:View.INVISIBLE}">
-
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -391,7 +411,7 @@
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
+                    android:layout_weight=".25"
                     android:text='@{String.format(invoiceItem.currency == CURRENCY.VND? "%,.0f": "%,.2f",invoiceItem.saleAmount)}' />
 
             </TableRow>

@@ -227,12 +227,15 @@ public class Receipt extends  BaseEntity {
         this.cancelReason = cancelReason;
     }
 
+
+
     public ReceiptModel toModel()
     {
         ReceiptModel model = gson.fromJson(this.getJsonData(), ReceiptModel.class);
         model.setLocalId(this.getLocalId());
         model.setCancelled(isCancelled);
         model.setCancelReason(cancelReason);
+        model.setLocalModified(this.isLocalModified());
         return model;
 
     }

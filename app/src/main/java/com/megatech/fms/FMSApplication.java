@@ -17,6 +17,7 @@ import com.google.gson.GsonBuilder;
 import com.megatech.fms.data.AppDatabase;
 import com.megatech.fms.data.DataRepository;
 import com.megatech.fms.enums.INVOICE_TYPE;
+import com.megatech.fms.helpers.DataHelper;
 import com.megatech.fms.helpers.HttpClient;
 import com.megatech.fms.helpers.Logger;
 import com.megatech.fms.model.InvoiceFormModel;
@@ -29,10 +30,15 @@ import com.megatech.fms.receivers.WifiReceiver;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class FMSApplication extends Application implements LifecycleObserver {
 
     private static FMSApplication cApp;
+    public static boolean isFHS = BuildConfig.FHS;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -41,7 +47,24 @@ public class FMSApplication extends Application implements LifecycleObserver {
         intentFilter.addAction(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION);
         registerReceiver(new WifiReceiver(), intentFilter);*/
         checkDatabase();
+        registerDBService();
         cApp = this;
+    }
+
+    private void registerDBService() {
+        ScheduledExecutorService scheduler =
+                Executors.newSingleThreadScheduledExecutor();
+
+        scheduler.scheduleAtFixedRate
+                (new Runnable() {
+                    public void run() {
+                        try {
+                            DataHelper.Synchronize();
+                        }
+                        catch (Exception ex)
+                        {}
+                    }
+                }, 0, 30, TimeUnit.SECONDS);
     }
 
     private void checkDatabase() {
@@ -85,12 +108,11 @@ public class FMSApplication extends Application implements LifecycleObserver {
 ///////////////////////////////////////////////
 
 
+
     public UserInfo getUser()
     {
         return UserInfo.fromSharedPreferences(this);
     }
-
-    private String deviceIP;
 
     public String getDeviceIP() {
         //if (BuildConfig.DEBUG)
@@ -99,7 +121,6 @@ public class FMSApplication extends Application implements LifecycleObserver {
     }
 
     public void setDeviceIP(String deviceIP) {
-        this.deviceIP = deviceIP;
         final SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
 
         SharedPreferences.Editor editor = preferences.edit();

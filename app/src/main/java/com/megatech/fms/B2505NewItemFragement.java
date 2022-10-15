@@ -74,7 +74,6 @@ public class B2505NewItemFragement extends DialogFragment {
     NumberFormat numberFormat = NumberFormat.getInstance(locale);
     Dialog dlg;
     BM2505Model model;
-    private List<UserModel> userList;
     private List<FlightModel> flights;
     private B2505Activity activity;
 
@@ -122,7 +121,7 @@ public class B2505NewItemFragement extends DialogFragment {
         super.onViewCreated(view, savedInstanceState);
         findViews(view);
         activity = ((B2505Activity) getActivity());
-        userList = activity.userList;
+        List<UserModel> userList = activity.userList;
         flights = activity.flightList;
         Spinner spn = view.findViewById(R.id.b2505_new_operator);
 

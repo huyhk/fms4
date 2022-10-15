@@ -277,9 +277,9 @@ public class PrintWorker implements Observer {
         printed = false;
         mTcpClient.sendMessage(RELEASE_CODE);
     }
-    private char[] RESET_CODE =  new char[]{27, 64};
-    private char[] RELEASE_CODE = new char[]{27,101,60};
-    private char[] CHECK_CODE = new char[]{16,4,1};
+    private final char[] RESET_CODE =  new char[]{27, 64};
+    private final char[] RELEASE_CODE = new char[]{27,101,60};
+    private final char[] CHECK_CODE = new char[]{16,4,1};
     public enum PRINT_MODE
     {
         ONE_ITEM,

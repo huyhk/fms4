@@ -13,6 +13,7 @@ import android.net.wifi.ScanResult;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
@@ -30,6 +31,7 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.google.firebase.FirebaseApp;
 import com.liquidcontrols.lcr.iq.sdk.lc.api.constants.LCR.LCR_COMMAND;
 import com.liquidcontrols.lcr.iq.sdk.lc.api.constants.LCR.LCR_DEVICE_CONNECTION_STATE;
 import com.megatech.fms.helpers.DataHelper;
@@ -44,7 +46,7 @@ import java.util.List;
 
 public class SettingActivity extends UserBaseActivity {
 
-    private Context ctx = this;
+    private final Context ctx = this;
 
     private  LCRReader reader;
 
@@ -254,13 +256,19 @@ public class SettingActivity extends UserBaseActivity {
 
     private void assignIMEI() {
         try {
+
             String deviceUniqueIdentifier = null;
-            TelephonyManager tm = (TelephonyManager) this.getSystemService(Context.TELEPHONY_SERVICE);
-            if (null != tm) {
-                deviceUniqueIdentifier = tm.getDeviceId();
+            if (android.os.Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
+                TelephonyManager tm = (TelephonyManager) this.getSystemService(Context.TELEPHONY_SERVICE);
+                if (null != tm) {
+                    deviceUniqueIdentifier = tm.getDeviceId();
+                }
             }
             if (null == deviceUniqueIdentifier || 0 == deviceUniqueIdentifier.length()) {
-                deviceUniqueIdentifier = Settings.Secure.getString(this.getContentResolver(), Settings.Secure.ANDROID_ID);
+                deviceUniqueIdentifier = "SOFTWARE_ID_" + Settings.Secure.getString(this.getContentResolver(), Settings.Secure.ANDROID_ID);
+            }
+            if (null == deviceUniqueIdentifier || 0 == deviceUniqueIdentifier.length()) {
+
             }
             settingModel.setTabletSerial(deviceUniqueIdentifier);
             ((EditText)findViewById(R.id.txtIMEI)).setText(settingModel.getTabletSerial());
@@ -303,7 +311,7 @@ public class SettingActivity extends UserBaseActivity {
 
     public static class LoadTrucksAsync extends AsyncTask<Void, Void, List<TruckModel>>
     {
-        private WeakReference<SettingActivity> activityWeakReference;
+        private final WeakReference<SettingActivity> activityWeakReference;
 
         public  LoadTrucksAsync(SettingActivity ctx)
         {
@@ -336,6 +344,8 @@ public class SettingActivity extends UserBaseActivity {
                     settingModel.setTruckNo(model.getTruckNo());
                     settingModel.setId(model.getId());
                     settingModel.setCapacity(model.getCapacity());
+                    settingModel.setReceiptCode(model.getReceiptCode());
+                    settingModel.setReceiptCount(model.getReceiptCount());
                     ((EditText) findViewById(R.id.txtCurrentAmount)).setText(String.format("%.0f", model.getCurrentAmount()));
                 }
             }
@@ -346,11 +356,14 @@ public class SettingActivity extends UserBaseActivity {
             }
         });
         if (trucks.size() > 0) {
-            TruckModel truck = (TruckModel) truckSpinner.getItemAtPosition(0);
-            if (truck != null) {
-                String truckNo = truck.toString();// txtTruckNo.getText().toString();
-                settingModel.setCode(truckNo);
-                settingModel.setId(truck.getId());
+            TruckModel model = (TruckModel) truckSpinner.getItemAtPosition(0);
+            if (model != null) {
+                settingModel.setTruckNo(model.getTruckNo());
+                settingModel.setId(model.getId());
+                settingModel.setCapacity(model.getCapacity());
+                settingModel.setReceiptCode(model.getReceiptCode());
+                settingModel.setReceiptCount(model.getReceiptCount());
+                ((EditText) findViewById(R.id.txtCurrentAmount)).setText(String.format("%.0f", model.getCurrentAmount()));
             }
         }
     }

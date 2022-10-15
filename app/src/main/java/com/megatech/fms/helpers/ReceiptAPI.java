@@ -23,8 +23,10 @@ public class ReceiptAPI extends  BaseAPI{
             getPdfString(model);
             String parm = gson.toJson(model);
             HttpClient.HttpResponse response = httpClient.sendPOST(url, parm);
-            if (response.getResponseCode() == HttpURLConnection.HTTP_OK)
+            if (response.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                Logger.appendLog("ReceiptAPI", "Post Receipt: " + model.getNumber() + " OK");
                 return gson.fromJson(response.getData(), ReceiptModel.class);
+            }
         }
         catch (Exception ex)
         {
@@ -33,6 +35,8 @@ public class ReceiptAPI extends  BaseAPI{
         }
         return null;
     }
+    private  int MAX_WIDTH = 600;
+    private int MAX_SIGN_WIDTH = 200;
 
     private void getPdfString(ReceiptModel model)
     {
@@ -44,8 +48,11 @@ public class ReceiptAPI extends  BaseAPI{
                     bmOptions.inJustDecodeBounds = true;
 
                     BitmapFactory.decodeFile(model.getPdfPath(), bmOptions);
+                    int height = bmOptions.outHeight;
+                    int width = bmOptions.outWidth;
+                    int sampleSize = width / MAX_WIDTH;
                     bmOptions.inJustDecodeBounds = false;
-                    bmOptions.inSampleSize = 2;//scaleFactor;
+                    bmOptions.inSampleSize = sampleSize;//scaleFactor;
 
                     Bitmap bitmap = BitmapFactory.decodeFile(model.getPdfPath(), bmOptions);
                     model.setPdfImageString(ImageUtil.convert(bitmap));
@@ -58,8 +65,11 @@ public class ReceiptAPI extends  BaseAPI{
                     bmOptions.inJustDecodeBounds = true;
 
                     BitmapFactory.decodeFile(model.getSignaturePath(), bmOptions);
+                    int height = bmOptions.outHeight;
+                    int width = bmOptions.outWidth;
+                    int sampleSize = width / MAX_SIGN_WIDTH;
                     bmOptions.inJustDecodeBounds = false;
-                    bmOptions.inSampleSize = 1;//scaleFactor;
+                    bmOptions.inSampleSize = sampleSize;//scaleFactor;
 
                     Bitmap bitmap = BitmapFactory.decodeFile(model.getSignaturePath(), bmOptions);
                     model.setSignImageString(ImageUtil.convert(bitmap));
@@ -73,8 +83,11 @@ public class ReceiptAPI extends  BaseAPI{
                     bmOptions.inJustDecodeBounds = true;
 
                     BitmapFactory.decodeFile(model.getSellerSignaturePath(), bmOptions);
+                    int height = bmOptions.outHeight;
+                    int width = bmOptions.outWidth;
+                    int sampleSize = width / MAX_SIGN_WIDTH;
                     bmOptions.inJustDecodeBounds = false;
-                    bmOptions.inSampleSize = 1;//scaleFactor;
+                    bmOptions.inSampleSize = sampleSize;//scaleFactor;
 
                     Bitmap bitmap = BitmapFactory.decodeFile(model.getSellerSignaturePath(), bmOptions);
                     model.setSellerImageString(ImageUtil.convert(bitmap));

@@ -1,8 +1,8 @@
 package com.megatech.tcpclient;
 
 public class TcpEvent {
-    private TcpEventType eventType;
-    private Object payload;
+    private final TcpEventType eventType;
+    private final Object payload;
 
     public TcpEvent(TcpEventType eventType, Object payload) {
         this.eventType = eventType;

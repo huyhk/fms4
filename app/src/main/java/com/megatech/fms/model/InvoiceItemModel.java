@@ -74,7 +74,6 @@ public class InvoiceItemModel {
     }
 
 
-
     public int getTruckId() {
         return truckId;
     }
@@ -82,7 +81,6 @@ public class InvoiceItemModel {
     public void setTruckId(int truckId) {
         this.truckId = truckId;
     }
-
 
     public String getTruckNo() {
         return truckNo;

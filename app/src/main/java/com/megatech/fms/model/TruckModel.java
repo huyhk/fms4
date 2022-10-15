@@ -47,6 +47,26 @@ public class TruckModel extends BaseModel {
 
     private boolean isFHS;
 
+    private int receiptCount;
+
+    private String receiptCode;
+
+    public String getReceiptCode() {
+        return receiptCode;
+    }
+
+    public void setReceiptCode(String receiptCode) {
+        this.receiptCode = receiptCode;
+    }
+
+    public int getReceiptCount() {
+        return receiptCount;
+    }
+
+    public void setReceiptCount(int receiptCount) {
+        this.receiptCount = receiptCount;
+    }
+
     public boolean isAllowNewRefuel() {
         return allowNewRefuel;
     }
@@ -112,7 +132,7 @@ public class TruckModel extends BaseModel {
     }
 
     public String getTruckNo() {
-        return truckNo;
+        return code;
     }
 
     public void setTruckNo(String truckNo) {
@@ -123,7 +143,7 @@ public class TruckModel extends BaseModel {
     private int truckId;
 
     public int getTruckId() {
-        return truckId;
+        return id;
     }
 
     public void setTruckId(int truckId) {

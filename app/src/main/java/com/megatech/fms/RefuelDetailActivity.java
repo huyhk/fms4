@@ -40,6 +40,7 @@ import com.megatech.fms.helpers.DataHelper;
 import com.megatech.fms.helpers.DateUtils;
 import com.megatech.fms.helpers.LCRReader;
 import com.megatech.fms.helpers.Logger;
+import com.megatech.fms.helpers.NetworkHelper;
 import com.megatech.fms.model.AirlineModel;
 import com.megatech.fms.model.LCRDataModel;
 import com.megatech.fms.model.REFUEL_ITEM_STATUS;
@@ -71,8 +72,8 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
     private Button btnRestart;
     AlertDialog inputDlg;
     private Button btnBack;
-    private String TAG = "REFUEL_SCREEN";
-    private String LOG_TAG = "RFW";
+    private final String TAG = "REFUEL_SCREEN";
+    private final String LOG_TAG = "RFW";
 
     private enum CONNECTION_STATUS {
         OK,
@@ -82,8 +83,8 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
 
     private RefuelItemData mItem;
     private Activity activity;
-    private boolean isEditing = false;
-    private boolean restartRequest = false;
+    private final boolean isEditing = false;
+    private final boolean restartRequest = false;
     ActivityRefuelDetailBinding binding;
     Timer tmrCheckData = new Timer();
     private Button btnForceStop;
@@ -156,7 +157,18 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
         if (BuildConfig.FHS && btnForceStop != null)
             btnForceStop.setText(R.string.fhs_input_values);
         Logger.appendLog("Start refueling");
+
+
         loaddata();
+
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+       /* if (!NetworkHelper.isWifi(this))
+            showWarningMessage(R.string.wifi_not_connected);*/
     }
 
     private void setConnectionCheckmark(CONNECTION_STATUS status) {
@@ -226,6 +238,7 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
 
 
     private void loaddata() {
+
         setProgressDialog();
         new Thread(() -> {
             if (BuildConfig.FHS)
@@ -238,6 +251,7 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
             Bundle b = getIntent().getExtras();
             Integer id = b.getInt("REFUEL_ID", 0);
             Integer localId = b.getInt("REFUEL_LOCAL_ID", 0);
+            Integer flightId = b.getInt("FLIGHT_ID", 0);
             String unique_id = b.getString("REFUEL_UNIQUE_ID", "");
             String mData = b.getString("REFUEL", "");
             Logger.appendLog("RFW", "Start loading Item : " + id + " - " + localId);
@@ -245,6 +259,9 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
             if (mData != null && !mData.isEmpty()) {
                 itemData = RefuelItemData.fromJson(mData);
             }
+            if (itemData == null)
+                itemData = DataHelper.getItemToRefuel(flightId);
+
             if (itemData == null)
                 itemData = DataHelper.getRefuelItem(id, localId);
 
@@ -811,7 +828,7 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
     }
 
     private int mHour, mMinute, mYear, mMonth, mDay;
-    private Context context = this;
+    private final Context context = this;
 
     private void showEndTimePicker() {
         Calendar cal = Calendar.getInstance();
@@ -1019,7 +1036,8 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
                 model = dataModel;
                 if (field_change != LCRReader.FIELD_CHANGE.DATE_FORMAT &&
                         field_change != LCRReader.FIELD_CHANGE.SERIAL)
-                    updateRefuelData();
+                    if (refuel_status == REFUEL_STATUS.STARTED)
+                        updateRefuelData();
 
                 if (inputDlg != null)
                     dialogBinding.invalidateAll();
@@ -1237,6 +1255,7 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
                 if (mItem != null) {
                     Logger.appendLog("RFW", "Set item processing status");
                     mItem.setStartTime(new Date());
+
                     mItem.setTruckId(currentApp.getTruckId());
                     mItem.setTruckNo(currentApp.getTruckNo());
                     mItem.setStatus(REFUEL_ITEM_STATUS.PROCESSING);
@@ -1357,6 +1376,10 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
                 currentApp.setCurrentAmount(currentApp.getCurrentAmount() + (float) (isExtract ? mItem.getRealAmount() : -mItem.getRealAmount()));
                 mItem.setStatus(REFUEL_ITEM_STATUS.DONE);
                 if (!BuildConfig.FHS) {
+                    if (mItem.getTruckId() != currentApp.getTruckId() && mItem.getReceiptNumber() !=null && !mItem.getReceiptNumber().isEmpty())
+                    {
+                        mItem.setReceiptNumber(null);
+                    }
                     mItem.setTruckId(currentApp.getTruckId());
                     mItem.setTruckNo(currentApp.getTruckNo());
                 }

@@ -115,7 +115,7 @@ public class RefuelItemListActivity extends UserBaseActivity {
         private final RefuelItemListActivity mParentActivity;
         private final List<RefuelItemData> mValues;
         private final boolean mTwoPane;
-        private int selectedPos = RecyclerView.NO_POSITION;
+        private final int selectedPos = RecyclerView.NO_POSITION;
         private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
 
             @Override

@@ -8,6 +8,8 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.text.InputType;
+import android.text.method.DigitsKeyListener;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
@@ -29,11 +31,13 @@ import androidx.core.content.ContextCompat;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.megatech.fms.helpers.Logger;
+import com.megatech.fms.model.TruckModel;
 import com.megatech.fms.model.UserInfo;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.text.ParseException;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Callable;
@@ -43,7 +47,7 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
     protected FMSApplication currentApp;
     protected UserInfo currentUser;
     protected final String TAG = this.getClass().getName();
-    protected  boolean isActive;
+    protected boolean isActive;
 
     @SuppressLint("SourceLockedOrientationActivity")
     @Override
@@ -62,8 +66,10 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
         //Logger.appendLog("============================ " + TAG + " ======================== ");
     }
 
-
-
+    public TruckModel getSetting()
+    {
+        return FMSApplication.getApplication().getSetting();
+    }
 
     @Override
     public void onBackPressed() {
@@ -74,7 +80,7 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
 
     public void setProgressDialog() {
         if (!isActive)
-            return;;
+            return;
         int llPadding = 30;
         LinearLayout ll = new LinearLayout(this);
         ll.setOrientation(LinearLayout.HORIZONTAL);
@@ -125,11 +131,9 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
         if (!isActive)
             return;
         try {
-            if (progressDialog != null && !isFinishing() && !isDestroyed() )
+            if (progressDialog != null && !isFinishing() && !isDestroyed())
                 progressDialog.dismiss();
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
 
         }
     }
@@ -144,14 +148,40 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
+    public void showInfoMessage(int messageId, Callable<Void> positiveClick)
+    {
+        showInfoMessage(R.string.info, messageId, R.drawable.ic_info, positiveClick);
+    }
+    public void showInfoMessage(int titleId,int messageId, int iconId, Callable<Void> positiveClick) {
+        if (!isActive)
+            return;
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(titleId)
+                .setMessage(messageId)
+                .setIcon(iconId)
+                .setCancelable(false);
+
+        builder.setPositiveButton(R.string.accept, (dialog1, which) -> {
+            try {
+                if (positiveClick != null)
+                    positiveClick.call();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            dialog1.dismiss();
+        });
+        builder.create().show();
+    }
+
     public void showMessage(int titleId, int messageId, int iconId, Callable<Void> positiveClick) {
         showMessage(titleId, messageId, iconId, positiveClick, null);
     }
 
     public void showMessage(int titleId, int messageId, int iconId, Callable<Void> positiveClick, Callable<Void> negativeClick) {
         if (!isActive)
-return;;
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            return;
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(titleId)
                 .setMessage(messageId)
                 .setIcon(iconId)
@@ -201,50 +231,56 @@ return;;
         showErrorMessage(R.string.validate, messageId, R.drawable.ic_error);
 
     }
+
     public void showErrorMessage(int titleId, int messageId) {
         showErrorMessage(titleId, messageId, R.drawable.ic_error);
 
     }
+
     public void showErrorMessage(int titleId, int messageId, int iconId) {
         if (isActive)
-        new AlertDialog.Builder(this)
-                .setTitle(titleId)
-                .setMessage(messageId)
-                .setIcon(iconId)
-                .setPositiveButton("OK", (dialog1, which) -> {
-                    dialog1.dismiss();
-                })
-                .create()
-                .show();
+            new AlertDialog.Builder(this)
+                    .setTitle(titleId)
+                    .setMessage(messageId)
+                    .setIcon(iconId)
+                    .setPositiveButton("OK", (dialog1, which) -> {
+                        dialog1.dismiss();
+                    })
+                    .create()
+                    .show();
     }
 
     public void showErrorMessage(int titleId, String message, int iconId) {
         if (isActive)
 
             new AlertDialog.Builder(this)
-                .setTitle(titleId)
-                .setMessage(message)
-                .setIcon(iconId)
-                .setPositiveButton("OK", (dialog1, which) -> {
-                    dialog1.dismiss();
-                })
-                .create()
-                .show();
+                    .setTitle(titleId)
+                    .setMessage(message)
+                    .setIcon(iconId)
+                    .setPositiveButton("OK", (dialog1, which) -> {
+                        dialog1.dismiss();
+                    })
+                    .create()
+                    .show();
     }
 
-    public void showInputData(int titleId,  String defaultText, int inputType, String pattern, boolean required, OnInputCompleted onComplete)
-    {
+    public void showInputData(int titleId, String defaultText, int inputType, String pattern, boolean required, OnInputCompleted onComplete) {
         Context context = this;
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(titleId);
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(10,5,10,5);
+        layout.setPadding(10, 5, 10, 5);
         final EditText input = new EditText(this);
         input.setInputType(inputType);
+        input.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
         input.setTypeface(Typeface.DEFAULT);
 
-        input.setText(defaultText);
+        input.setText(defaultText.trim());
+
+        if ((inputType & InputType.TYPE_NUMBER_FLAG_DECIMAL) > 0)
+            input.setKeyListener(DigitsKeyListener.getInstance("0123456789,."));
+
         layout.addView(input);
         builder.setView(layout);
 
@@ -267,12 +303,17 @@ return;;
         dialog.setCancelable(!required);
         dialog.show();
         input.requestFocus();
+        input.setSelection(0, input.getText().length());
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (onComplete!=null && onComplete.onOK(input.getText().toString()))
-                    dialog.dismiss();
-                onComplete.onCompleted();
+                if (input.getText().toString().isEmpty())
+                    showErrorMessage(R.string.empty_required_field);
+                else {
+                    if (onComplete != null && onComplete.onOK(input.getText().toString()))
+                        dialog.dismiss();
+                    onComplete.onCompleted();
+                }
 
             }
 
@@ -281,7 +322,7 @@ return;;
             @Override
             public void onClick(View view) {
 
-                if (onComplete !=null) {
+                if (onComplete != null) {
                     try {
                         onComplete.onCancel();
                     } catch (Exception ex) {
@@ -295,8 +336,8 @@ return;;
     @Override
     public void onClick(View view) {
         String log;
-        if (view.getId() == View.NO_ID) log =  "no-id";
-        else log =  view.getResources().getResourceName(view.getId());
+        if (view.getId() == View.NO_ID) log = "no-id";
+        else log = view.getResources().getResourceName(view.getId());
         Logger.appendLog("Click: " + log);
     }
 
@@ -330,10 +371,11 @@ return;;
         super.onPause();
     }
 
-    public interface  OnInputCompleted
-    {
-        boolean onOK(String text);
+    public interface OnInputCompleted {
+        boolean onOK(String text) ;
+
         void onCancel();
+
         void onCompleted();
     }
 }

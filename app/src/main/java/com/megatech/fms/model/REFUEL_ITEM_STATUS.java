@@ -8,7 +8,7 @@ public enum REFUEL_ITEM_STATUS {
     @SerializedName("2") PAUSED(2),
     @SerializedName("3") DONE(3),
     @SerializedName("2") ERROR(4);
-    private  int value;
+    private final int value;
     REFUEL_ITEM_STATUS(int i) {
         value = i;
     }

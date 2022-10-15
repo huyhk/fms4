@@ -253,7 +253,7 @@
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="0.3"
+                    android:layout_weight="0.25"
 
                     android:text='@{String.format("%-12s%-12s","Hạ cánh", DateUtils.formatDatePlus(mItem.arrivalTime,"HH:mm"))}'
                     android:textSize="@dimen/medium_text"></TextView>
@@ -261,7 +261,7 @@
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="0.3"
+                    android:layout_weight="0.25"
                     android:text='@{String.format("%-12s%-12s", mItem.refuelItemType == REFUEL_ITEM_TYPE.EXTRACT?"Hút": "Tra nạp", DateUtils.formatDatePlus(mItem.refuelTime,"HH:mm"))}'
                     android:textColor="@color/colorPrimaryDark"
                     android:textSize="@dimen/medium_text"
@@ -270,10 +270,18 @@
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="0.3"
+                    android:layout_weight="0.25"
                     android:text='@{String.format("%-12s%-12s","Cất cánh", DateUtils.formatDatePlus(mItem.departureTime,"HH:mm"))}'
                     android:textSize="@dimen/medium_text"></TextView>
-
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.25"
+                    android:text='@{String.format("%-12s%-12s","Hóa đơn: ", mItem.invoiceStatus ==0? mItem.invoiceNumber : (mItem.invoiceStatus ==1? @string/invoice_issuing: @string/receipt_not_created))}'
+                    android:textSize="@dimen/medium_text"
+                    android:textStyle="bold"
+                    android:visibility='@{mItem.status == REFUEL_ITEM_STATUS.DONE? View.VISIBLE: View.INVISIBLE}'
+                    android:textColor="@color/colorRed"></TextView>
             </LinearLayout>
 
         </LinearLayout>

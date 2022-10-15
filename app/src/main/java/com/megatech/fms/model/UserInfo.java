@@ -170,7 +170,7 @@ public class UserInfo {
         @SerializedName("1") CREATE_REFUEL(1),
         @SerializedName("2") CREATE_EXTRACT(2),
         @SerializedName("4") CREATE_CUSTOMER(4);
-        private int value;
+        private final int value;
 
         USER_PERMISSION(int i) {
             value = i;

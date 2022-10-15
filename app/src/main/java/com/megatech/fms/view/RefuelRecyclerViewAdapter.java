@@ -35,14 +35,12 @@ import java.util.List;
 
 public class RefuelRecyclerViewAdapter extends RecyclerView.Adapter<RefuelRecyclerViewAdapter.MyViewHolder> implements Filterable {
 
-    private UserBaseActivity mContext;
+    private final UserBaseActivity mContext;
 
-    private List<RefuelItemData> mData;
+    private final List<RefuelItemData> mData;
 
     private List<RefuelItemData> mDataFiltered;
 
-
-    private UserBaseActivity mParentActivity;
 
     public RefuelRecyclerViewAdapter(UserBaseActivity mContext, List<RefuelItemData> mData) {
         this.mContext = mContext;
@@ -99,25 +97,29 @@ public class RefuelRecyclerViewAdapter extends RecyclerView.Adapter<RefuelRecycl
             }
             if (item.getStatus() != REFUEL_ITEM_STATUS.DONE) {
                 if (!item.getTruckNo().equals(FMSApplication.getApplication().getTruckNo())) {
-
-                    AlertDialog.Builder builder = new AlertDialog.Builder(context);
-                    builder.setTitle(R.string.app_name)
-                            .setMessage(R.string.assigned_to_another_truck)
-                            .setPositiveButton(R.string.refuel, (dialog, which) -> {
-                                dialog.dismiss();
-                                showRefuel(item);
-                            })
-                            .setNegativeButton(R.string.back, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dlgResult = -1;
+                    RefuelItemData exactItem = findCorrectItem(item);
+                    if (exactItem !=null)
+                        showRefuel(exactItem);
+                    else {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                        builder.setTitle(R.string.app_name)
+                                .setMessage(R.string.assigned_to_another_truck)
+                                .setPositiveButton(R.string.refuel, (dialog, which) -> {
                                     dialog.dismiss();
-                                }
-                            });
-                    builder.create().show();
+                                    showRefuel(item);
+                                })
+                                .setNegativeButton(R.string.back, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        dlgResult = -1;
+                                        dialog.dismiss();
+                                    }
+                                });
+                        builder.create().show();
 
-                    if (dlgResult != 0)
-                        return;
+                        if (dlgResult != 0)
+                            return;
+                    }
                 } else
                     showRefuel(item);
             } else if (item.getStatus() == REFUEL_ITEM_STATUS.DONE)
@@ -127,11 +129,20 @@ public class RefuelRecyclerViewAdapter extends RecyclerView.Adapter<RefuelRecycl
         }
     };
 
+    private RefuelItemData findCorrectItem(RefuelItemData item) {
+        return mData.stream().filter(rf->rf.getFlightId() == item.getFlightId() &&
+                rf.getTruckId() == FMSApplication.getApplication().getTruckId() &&
+                (rf.getStatus() == REFUEL_ITEM_STATUS.NONE || rf.getStatus() == REFUEL_ITEM_STATUS.PROCESSING)
+
+        ).findFirst().orElse(null);
+    }
+
     private void showRefuel(RefuelItemData item) {
         Intent intent = new Intent(mContext, RefuelDetailActivity.class);
         intent.putExtra("REFUEL_ID", item.getId());
         intent.putExtra("REFUEL_LOCAL_ID", item.getLocalId());
         intent.putExtra("REFUEL_UNIQUE_ID", item.getUniqueId());
+        intent.putExtra("FLIGHT_ID", item.getFlightId());
         mContext.startActivityForResult(intent, REQUEST_CODE);
     }
 
@@ -159,7 +170,8 @@ public class RefuelRecyclerViewAdapter extends RecyclerView.Adapter<RefuelRecycl
 
                         // name match condition. this might differ depending on your requirement
                         // here we are looking for name or phone number match
-                        if (row.getFlightCode().toLowerCase().contains(charString.toLowerCase())) {
+                        if (row.getFlightCode().toLowerCase().contains(charString.toLowerCase())
+                        || row.getAircraftCode().toLowerCase().contains(charString.toLowerCase())) {
                             filteredList.add(row);
                         }
                     }

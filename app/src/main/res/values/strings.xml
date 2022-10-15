@@ -373,6 +373,7 @@
     <string name="update_hose_presure">Cập nhật áp suất đầu vòi tra nạp</string>
     <string name="product_name">Tên hàng hóa</string>
     <string name="capture">Chụp hình</string>
+    <string name="view_image">Xem hình</string>
     <string name="litter">Lít</string>
     <string name="gallon">Gallon</string>
     <string name="weight">Kg</string>
@@ -388,7 +389,7 @@
     <string name="receipt_not_saved">Phiếu chưa được xuất hóa đơn. Bạn có muốn thoát?</string>
     <string name="update_defueling_no">Nhập số phiếu hút</string>
     <string name="print_receipt">In Hóa Đơn Điện Tử</string>
-    <string name="not_capture_confirm">Chưa chụp hình phiếu. Bạn muốn chụp hình?</string>
+    <string name="not_capture_confirm">Chưa chụp hình phiếu. Bạn muốn chụp hình và xuất hóa đơn?</string>
     <string name="save_receipt_completed">Đã lưu phiếu thành công</string>
     <string name="no_return_amount">Không có số hoàn trả, vui lòng kiểm tra lại.</string>
     <string name="real_amount_too_big">Sản lượng thực tế quá lớn. Vui lòng kiểm tra lại.</string>
@@ -401,7 +402,7 @@
     <string name="buyer_signature">Chữ ký người mua</string>
     <string name="seller_signature">Chữ ký người bán</string>
     <string name="cancel_receipt_info">"Lý do hủy phiếu "</string>
-    <string name="cancel_receipt_message">Mẻ tra nạp đã được in rồi, hủy phiếu đã in? Nhập lý do hủy:</string>
+    <string name="cancel_receipt_message">Mẻ tra nạp đã được xuất hóa đơn, bạn muốn hủy hóa đơn đã xuất? Nhập lý do hủy:</string>
     <string name="cancel_reason_required">Lý do hủy không được để trống</string>
     <string name="split_refuel">Tách mẻ</string>
     <string name="input_split_amount">Nhập số lượng cần tách (KG)</string>
@@ -422,9 +423,24 @@
     <string name="e_invoice_confirm">Bạn chắc chắn muốn xuất hóa đơn?</string>
     <string name="sync_error_title">Lỗi đồng bộ </string>
     <string name="sync_error">Lỗi đồng bộ dữ liệu với hệ thống số hóa</string>
-    <string name="sync_error_message">Dữ liệu tra nạp đã được lưu trên máy tính bảng. Nhưng chưa được đồng bộ với hệ thống số hóa. Vui lòng đồng bộ lại tại giao diện kế hoạch bằng nút  </string>
+    <string name="sync_error_message">Dữ liệu tra nạp đã được lưu trên máy tính bảng. Nhưng chưa được đồng bộ với hệ thống số hóa. Vui lòng đồng bộ lại tại giao diện kế hoạch bằng nút   </string>
     <string name="sync">Đồng bộ dữ liệu</string>
     <string name="sync_completed_message">Đồng bộ dữ liệu thành công</string>
+    <string name="input_techlog">Nhập techlog</string>
+    <string name="tech_log">TechLog</string>
+    <string name="recapture">Chụp lại</string>
+    <string name="invalid_driver_operator">Phải chọn nhân viên tra nạp và lái xe</string>
+    <string name="use_old_receipt">Sử dụng phiếu đã in</string>
+    <string name="create_new_receipt">Tạo số phiếu mới</string>
+    <string name="input_receipt_number">Nhập số phiếu</string>
+    <string name="receipt_not_created">Chưa tạo phiếu</string>
+    <string name="invoice_issuing">Chờ xuất hóa đơn</string>
+    <string name="wifi_not_connected">Không có kết nối WIFI, vui lòng kiểm tra lại</string>
+    <string name="receipt_list">Danh sách receipts</string>
+    <string name="customer_code">Mã khách hàng</string>
+    <string name="receipt_date">Ngày tạo phiếu</string>
+    <string name="sync_status">Trạng thái</string>
+    <string name="receipts">Receipts</string>
 
     <string-array name="vat_array">
         <item>0%</item>

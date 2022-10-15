@@ -391,7 +391,7 @@ public class RefuelItem extends BaseEntity {
         @SerializedName("2") TEST(2);
 
 
-        private int value;
+        private final int value;
 
         REFUEL_ITEM_TYPE(int i) {
             value = i;
@@ -419,7 +419,7 @@ public class RefuelItem extends BaseEntity {
         @SerializedName("1") SUCCESS(1),
         @SerializedName("2") ERROR(2);
 
-        private int value;
+        private final int value;
 
         ITEM_PRINT_STATUS(int i) {
             value = i;
@@ -447,7 +447,7 @@ public class RefuelItem extends BaseEntity {
         @SerializedName("1") SUCCESS(1),
         @SerializedName("2") ERROR(2);
 
-        private int value;
+        private final int value;
 
         ITEM_POST_STATUS(int i) {
             value = i;
@@ -485,7 +485,7 @@ public class RefuelItem extends BaseEntity {
         @SerializedName("2") REFUELING(2),
         @SerializedName("3") REFUELED(3);
 
-        private int value;
+        private final int value;
 
         FLIGHT_STATUS(int i) {
             value = i;
@@ -513,7 +513,7 @@ public class RefuelItem extends BaseEntity {
         @SerializedName("2") PAUSED(2),
         @SerializedName("3") DONE(3),
         @SerializedName("2") ERROR(4);
-        private int value;
+        private final int value;
 
         REFUEL_ITEM_STATUS(int i) {
             value = i;

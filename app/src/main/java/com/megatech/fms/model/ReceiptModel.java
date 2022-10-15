@@ -7,31 +7,55 @@ import com.megatech.fms.FMSApplication;
 import com.megatech.fms.enums.RETURN_UNIT;
 import com.megatech.fms.helpers.DateUtils;
 
+import java.time.Year;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 public class ReceiptModel extends BaseModel {
 
-
     public static ReceiptModel createReceipt(List<RefuelItemData> refuels) {
-        return createReceipt(refuels, false);
+        return createReceipt(refuels,null, false, null,false);
+    }
+    public static ReceiptModel createReceipt(List<RefuelItemData> refuels, String oldNumber, boolean createNew) {
+        return createReceipt(refuels, null, false,oldNumber, createNew);
     }
 
-    public static ReceiptModel createReceipt(List<RefuelItemData> refuels, boolean isReturn) {
+    public static ReceiptModel createReceipt(List<RefuelItemData> refuels, String[] replacedReceipts, boolean isReturn, String oldNumber, boolean createNew) {
         ReceiptModel model = null;
 
+        TruckModel  setting  = FMSApplication.getApplication().getSetting();
+
+        String receiptCode = setting.getReceiptCode();
+        int receiptCount = setting.getReceiptCount();
+        receiptCount ++;
 
         if (refuels.size() > 0) {
             RefuelItemData refuel = refuels.get(0);
-            String number = refuel.getTruckNo().substring(0, 3) + refuel.getTruckNo().substring(refuel.getTruckNo().length() - 2);
+            //String number = refuel.getTruckNo().substring(0, 3) + refuel.getTruckNo().substring(refuel.getTruckNo().length() - 2);
             //number += DateUtils.formatDate(new Date(),"yyMMddHHmm");
-
+            String number = refuel.getReceiptNumber();
+            if (number == null || number.isEmpty() || (refuel.getReceiptCount() > 0 && createNew))
+                number = receiptCode + String.format("%4s",Integer.toString(receiptCount, 36)).replace(" ","0").toUpperCase();
             String data = gson.toJson(refuel);
             model = gson.fromJson(data, ReceiptModel.class);
+            model.uniqueId = UUID.randomUUID().toString();
             model.setId(0);
             model.setLocalId(0);
-            model.setNumber(number);
+            if (oldNumber !=null && !createNew){
+                model.setNumber(oldNumber);
+                model.setReuse(true);
+
+                //model.setReplaceNumber(oldNumber);
+            }
+            else {
+                model.setNumber(number);
+
+            }
+            model.setReplaceNumber(oldNumber);
+            model.setReplacedId(replacedReceipts);
+
             model.setGallon(0);
             model.setVolume(0);
             model.setWeight(0);
@@ -50,8 +74,8 @@ public class ReceiptModel extends BaseModel {
             model.isReturn = isReturn;
             model.setFlightType(refuel.isInternational()?1:0);
 
-            int receiptCount = 1;
-
+            //int receiptCount = 1;
+            int id = 0;
             for (RefuelItemData itemData : refuels) {
 
                 addItem(model, itemData);
@@ -62,12 +86,18 @@ public class ReceiptModel extends BaseModel {
                 if (itemData.getEndTime().compareTo(model.getEndTime()) > 0) {
                     model.setEndTime(itemData.getEndTime());
                 }
-                if (itemData.getReceiptCount() > 0)
-                    receiptCount = Math.max(receiptCount, itemData.getReceiptCount() + 1);
+//                if (itemData.getReceiptCount() > 0 && createNew)
+//                    receiptCount = Math.max(receiptCount, itemData.getReceiptCount() + 1);
+
+                if (itemData.getWeightNote() !=null && !itemData.getWeightNote().isEmpty())
+                    model.techLog = Double.parseDouble(itemData.getWeightNote());
+                id = Math.max(id, itemData.getId());
             }
 
             model.setDate(model.getEndTime());
-            number += DateUtils.formatDate(model.getDate(), "yyMMddHHmm") + receiptCount;
+            //number += DateUtils.formatDate(model.getDate(), "yyMMddHHmm") + receiptCount;
+
+            //number += String.format()+ receiptCount;
             if (model.isReturn)
                 number += "HT";
 
@@ -88,6 +118,8 @@ public class ReceiptModel extends BaseModel {
             itemModel.setTemperature(itemData.getManualTemperature());
             itemModel.setQualityNo(itemData.getQualityNo());
             itemModel.setWeight(itemData.getWeight());
+            itemModel.setDriverId(itemData.getDriverId());
+            itemModel.setOperatorId(itemData.getOperatorId());
             if (itemData.getReturnAmount() > 0) {
 
                 double returnA = itemData.getReturnAmount();
@@ -550,6 +582,16 @@ public class ReceiptModel extends BaseModel {
     private boolean invoiceSplit;
     private double splitAmount;
 
+    private String replaceNumber;
+
+    public String getReplaceNumber() {
+        return replaceNumber;
+    }
+
+    public void setReplaceNumber(String replaceNumber) {
+        this.replaceNumber = replaceNumber;
+    }
+
     List<ReceiptItemModel> items;
 
     public static ReceiptModel fromJson(String data) {
@@ -898,5 +940,35 @@ public class ReceiptModel extends BaseModel {
 
     public void setCancelReason(String cancelReason) {
         this.cancelReason = cancelReason;
+    }
+
+    private double techLog;
+
+    public double getTechLog() {
+        return techLog;
+    }
+
+    public void setTechLog(double techLog) {
+        this.techLog = techLog;
+    }
+
+    private boolean isReuse;
+
+    public boolean isReuse() {
+        return isReuse;
+    }
+
+    public void setReuse(boolean reuse) {
+        isReuse = reuse;
+    }
+
+    private String[] replacedId;
+
+    public String[] getReplacedId() {
+        return replacedId;
+    }
+
+    public void setReplacedId(String[] replacedId) {
+        this.replacedId = replacedId;
     }
 }

@@ -70,7 +70,6 @@ public class B2502NewItemFragement extends DialogFragment {
     NumberFormat numberFormat = NumberFormat.getInstance(locale);
     Dialog dlg;
     TruckFuelModel model;
-    private List<UserModel> userList;
     private B2502Activity activity;
 
     @NonNull
@@ -117,7 +116,7 @@ public class B2502NewItemFragement extends DialogFragment {
         super.onViewCreated(view, savedInstanceState);
         findViews(view);
         activity = ((B2502Activity) getActivity());
-        userList = activity.userList;
+        List<UserModel> userList = activity.userList;
         Spinner spn = view.findViewById(R.id.b2502_new_operator);
         ArrayAdapter<UserModel> spinnerAdapter = new ArrayAdapter<UserModel>(activity, R.layout.support_simple_spinner_dropdown_item, userList);
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_list_item_single_choice);

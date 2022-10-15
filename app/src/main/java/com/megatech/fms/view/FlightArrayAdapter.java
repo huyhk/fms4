@@ -23,7 +23,7 @@ import java.util.List;
 
 public class FlightArrayAdapter extends ArrayAdapter<FlightModel> {
     private List<FlightModel> originList;
-    private List<FlightModel> filteredList;
+    private final List<FlightModel> filteredList;
 
     public FlightArrayAdapter(Context context, List<FlightModel> items) {
 

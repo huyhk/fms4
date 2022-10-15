@@ -27,7 +27,10 @@ import com.megatech.fms.model.InvoiceFormModel;
 import com.megatech.fms.model.InvoiceModel;
 import com.megatech.fms.view.InvoiceItemAdapter;
 
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 public class PrintInvoiceActivity extends UserBaseActivity implements View.OnClickListener {
@@ -79,7 +82,7 @@ public class PrintInvoiceActivity extends UserBaseActivity implements View.OnCli
                     model.setPrinted(true);
                     runOnUiThread(()->{
                         findViewById(R.id.btnComplete).setEnabled(true);
-                        showMessage(R.string.print_completed, R.string.print_completed_message,R.drawable.ic_checked_circle, null);
+                        showInfoMessage(R.string.print_completed, R.string.print_completed_message,R.drawable.ic_info, null);
                     });
                     binding.invalidateAll();
 
@@ -251,6 +254,35 @@ public class PrintInvoiceActivity extends UserBaseActivity implements View.OnCli
             case R.id.btnComplete:
                 inputInvoiceNumber();
                 break;
+
+            case R.id.btnTechlog:
+                showInputData(R.string.input_techlog, String.format("%,.0f", model.getTechLog()), InputType.TYPE_NUMBER_FLAG_DECIMAL, ".*", false, new OnInputCompleted() {
+                    @Override
+                    public boolean onOK(String text)  {
+                        try {
+                            Locale locale = Locale.getDefault();
+                            NumberFormat numberFormat = NumberFormat.getInstance(locale);
+                            double d = numberFormat.parse(text).doubleValue();
+                            model.setTechLog(d);
+                            return true;
+                        }
+                        catch (ParseException ex)
+                        {
+                            return false;
+                        }
+                    }
+
+                    @Override
+                    public void onCancel() {
+
+                    }
+
+                    @Override
+                    public void onCompleted() {
+                        binding.invalidateAll();
+                    }
+                });
+                break;
         }
     }
 
@@ -306,6 +338,7 @@ public class PrintInvoiceActivity extends UserBaseActivity implements View.OnCli
         returnIntent.putExtra("number",model.getInvoiceNumber());
         returnIntent.putExtra("formId",model.getInvoiceFormId());
         returnIntent.putExtra("printTemplate",model.getInvoiceType());
+        returnIntent.putExtra("techlog", model.getTechLog());
         setResult(Activity.RESULT_OK,returnIntent);
         finish();
     }

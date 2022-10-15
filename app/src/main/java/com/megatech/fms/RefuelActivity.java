@@ -32,7 +32,7 @@ import java.util.List;
 public class RefuelActivity extends UserBaseActivity  implements View.OnClickListener {
 
     private LCRReader reader;
-    private List<String> loggerList = new ArrayList<>();
+    private final List<String> loggerList = new ArrayList<>();
     HttpClient client = new HttpClient();
 
     @Override
@@ -41,7 +41,7 @@ public class RefuelActivity extends UserBaseActivity  implements View.OnClickLis
 
         super.finish();
     }
-    private int result = Activity.RESULT_OK;
+    private final int result = Activity.RESULT_OK;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -297,7 +297,7 @@ public class RefuelActivity extends UserBaseActivity  implements View.OnClickLis
 
 */
     }
-    private int PREVIEW_OPEN = 1;
+    private final int PREVIEW_OPEN = 1;
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {

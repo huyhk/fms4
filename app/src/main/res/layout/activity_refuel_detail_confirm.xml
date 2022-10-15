@@ -82,7 +82,30 @@
                 android:padding="8dp"
                 android:stretchColumns="0"
                 app:layout_constraintTop_toTopOf="parent">
+<TableRow android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#efefef"
+    android:padding="8dp"
+    android:paddingTop="1dp"
+    android:paddingBottom="1dp">
+    <TextView style="?android:attr/textAppearanceMedium"
+        android:layout_width="0dp" android:layout_height="wrap_content"
+        android:layout_weight=".25"
+        android:text="@string/flight_code"></TextView>
 
+    <TextView style="?android:attr/textAppearanceMedium"
+        android:layout_width="0dp" android:layout_height="wrap_content"
+        android:layout_weight=".25" android:text="@{mItem.flightCode}"></TextView>
+
+    <TextView style="?android:attr/textAppearanceMedium"
+        android:layout_width="0dp" android:layout_height="wrap_content"
+        android:layout_weight=".25" android:text="@string/route_name" ></TextView>
+
+    <TextView style="?android:attr/textAppearanceMedium"
+        android:layout_width="0dp" android:layout_height="wrap_content"
+        android:layout_weight=".25" android:text="@{mItem.routeName}"></TextView>
+
+</TableRow>
 
                 <TableRow
                     android:layout_width="match_parent"
@@ -253,7 +276,7 @@
                     android:padding="8dp"
                     android:paddingTop="1dp"
                     android:paddingBottom="1dp"
-                    android:visibility="gone">
+                    android:visibility="visible">
 
                     <TextView
 
@@ -270,7 +293,10 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="0.25"
+                        android:focusable="false"
+                        android:drawableLeft="@drawable/ic_edit"
 
+                        android:hint="@string/touch_to_edit"
                         android:onClick="onClick"
                         android:padding="3dp"
                         android:text='@{mItem.driverName}'
@@ -291,7 +317,9 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="0.25"
-
+                        android:focusable="false"
+                        android:drawableLeft="@drawable/ic_edit"
+                        android:hint="@string/touch_to_edit"
                         android:onClick="onClick"
                         android:padding="3dp"
                         android:text='@{mItem.operatorName}'
@@ -299,7 +327,7 @@
                 </TableRow>
 
                 <TableRow
-                    android:background="#efefef"
+                    android:background="#ffffff"
                     android:padding="8dp"
                     android:paddingTop="1dp"
                     android:paddingBottom="1dp">

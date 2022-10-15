@@ -1,6 +1,10 @@
 package com.megatech.fms.helpers;
 
 import android.content.Context;
+import android.content.Intent;
+import android.os.Environment;
+
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.megatech.fms.BuildConfig;
 import com.megatech.fms.FMSApplication;
@@ -29,17 +33,19 @@ import com.megatech.fms.model.TruckFuelModel;
 import com.megatech.fms.model.TruckModel;
 import com.megatech.fms.model.UserModel;
 
+import java.io.File;
+import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 public class DataHelper {
 
-    private static boolean isDebug = BuildConfig.DEBUG || true;
+    private static final boolean isDebug = BuildConfig.DEBUG || true;
 
-    private static  Context context = FMSApplication.getApplication();
-    private static HttpClient httpClient = new HttpClient();
-    private static DataRepository repo = DataRepository.getInstance(AppDatabase.getInstance(context));
+    private static final Context context = FMSApplication.getApplication();
+    private static final HttpClient httpClient = new HttpClient();
+    private static final DataRepository repo = DataRepository.getInstance(AppDatabase.getInstance(context));
     private static boolean processing = false;
 
     public  static List<TruckModel> getTrucks()
@@ -76,12 +82,12 @@ public class DataHelper {
     public static List<RefuelItemData> getRefuelList(boolean self, int type) {
         if (isDebug) {
 
-            new Runnable() {
+          /*  new Runnable() {
                 @Override
                 public void run() {
                     Synchronize();
                 }
-            }.run();
+            }.run();*/
 
             ShiftModel shiftModel = FMSApplication.getApplication().getShift();
             Date d = new Date();
@@ -165,6 +171,15 @@ public class DataHelper {
         new Thread(() -> Synchronize()).start();
     }
     private static boolean locked = false;
+    public static RefuelItemData getItemToRefuel(Integer flightId)
+    {
+        RefuelItem localItem = repo.getRefuelByFlightAndTruck(flightId, FMSApplication.getApplication().getTruckId());
+        if (localItem !=null)
+            return localItem.toRefuelItemData();
+        else
+            return null;
+
+    }
     public static RefuelItemData getRefuelItem(Integer id, Integer localId)
     {
         RefuelItemData remoteItem = null;
@@ -200,15 +215,35 @@ public class DataHelper {
         return  remoteItem;
     }
 
+    public static boolean checkLocalModified()
+    {
+
+        return repo.getLocalModified();
+    }
     public static void Synchronize() {
-        if (!processing && !locked) {
+        if (!processing ) {
             processing = true;
             //post local modified data
             new Thread(new Runnable() {
                 @Override
                 public void run() {
 
+                    List<RefuelItem> modified = repo.getModifiedRefuel();
+                    if (modified.size() > 0) {
+                        for (RefuelItem item : modified) {
+                            RefuelItemData itemData = item.toRefuelItemData();
+                            RefuelItemData newData = httpClient.postRefuel(itemData);
+                            if (newData != null) {
+                                item.setLocalModified(false);
+                                item.setId(newData.getId());
+                                item.setUniqueId(newData.getUniqueId());
+                                item.setPostStatus(RefuelItem.ITEM_POST_STATUS.SUCCESS);
+                                item.setJsonData(newData.toJson());
 
+                                repo.insertRefuel(item);
+                            }
+                        }
+                    }
 
                     Date d = repo.getLastModifiedRefuel();
                     List<RefuelItemData> remoteList = httpClient.getModifiedRefuels(0, d);
@@ -242,26 +277,14 @@ public class DataHelper {
                         repo.removeDeletedRefuels(ids);
                     }
 
-                    List<RefuelItem> modified = repo.getModifiedRefuel();
-                    if (modified.size() > 0) {
-                        for (RefuelItem item : modified) {
-                            RefuelItemData itemData = item.toRefuelItemData();
-                            RefuelItemData newData = httpClient.postRefuel(itemData);
-                            if (newData != null) {
-                                item.setLocalModified(false);
-                                item.setId(newData.getId());
-                                item.setUniqueId(newData.getUniqueId());
-                                item.setPostStatus(RefuelItem.ITEM_POST_STATUS.SUCCESS);
-                                //item.setJsonData(newData.toJson());
 
-                                repo.insertRefuel(item);
-                            }
-                        }
-                    }
                     //Delete old records
                     repo.deleteOldRefuels(10);
                     processing = false;
 
+                   /* Intent intent = new Intent("custom-event-name");
+                    intent.putExtra("message", "This is my message!");
+                    LocalBroadcastManager.getInstance(FMSApplication.getApplication()).sendBroadcast(intent);*/
                     //Logger.appendLog("DTH","END Synchornize");
 
 
@@ -305,6 +328,9 @@ public class DataHelper {
                             }
                         }
                     }
+                    Intent intent = new Intent(UserBaseActivity.SYNC_BROADCAST);
+                    intent.putExtra("Name","SYNC");
+                    FMSApplication.getApplication().sendBroadcast(intent);
                 }
              }).start();
             // synchronize truck fuels items
@@ -424,6 +450,28 @@ public class DataHelper {
             new Thread(() -> {
                 Logger.sendLog();
             }).start();
+
+            new Thread(()->{
+                ScreenshotAPI api = new ScreenshotAPI();
+                try {
+                    File folder = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+                    FilenameFilter filter = new FilenameFilter() {
+                        @Override
+                        public boolean accept(File dir, String name) {
+                            return name.startsWith("screenshot_") && name.endsWith(".jpg");
+                        }
+                    };
+                    File[] files = folder.listFiles(filter);
+                    for (File f:files) {
+                        if (api.postScreenshot(f))
+                            f.delete();
+
+                    }
+                }catch (Exception ex)
+                {
+
+                }
+            }).start();
                     //get n
         }
 
@@ -448,7 +496,7 @@ public class DataHelper {
     }
     public static RefuelItemData postRefuel(RefuelItemData refuelData)
     {
-        RefuelItemData postedItem =  postRefuel(refuelData, true);
+        RefuelItemData postedItem =  postRefuel(refuelData, false);
         // call synchronize to update remote database
         Synchronize();
         return  postedItem;
@@ -594,12 +642,13 @@ public class DataHelper {
         if (repo.insertReceipt(localModel)>0) {
             Logger.appendLog("DTH", "Post receipt success:" + model.getNumber());
 
+            /*
             ReceiptModel postedReceipt =  new ReceiptAPI().post(model) ;
             if (postedReceipt!=null) {
                 localModel.setId(postedReceipt.getId());
                 localModel.setLocalModified(false);
                 repo.insertReceipt(localModel);
-            }
+            }*/
             // call synchronize to update remote database
             Synchronize();
         }
@@ -608,5 +657,15 @@ public class DataHelper {
     public static void cancelReceipts(String[] printedItems, String reason) {
         repo.cancelReceipts(printedItems, reason);
         Synchronize();
+    }
+
+    public static List<ReceiptModel> getReceiptList(Date date) {
+        List<Receipt> modified =  repo.getReceiptList(date);
+        List<ReceiptModel> lst = new ArrayList<>();
+        for (Receipt local : modified)
+        {
+            lst.add(local.toModel());
+        }
+        return  lst;
     }
 }

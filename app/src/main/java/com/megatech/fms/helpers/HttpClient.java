@@ -14,6 +14,7 @@ import com.megatech.fms.model.FlightData;
 import com.megatech.fms.model.InvoiceFormModel;
 import com.megatech.fms.model.InvoiceModel;
 import com.megatech.fms.model.LCRDataModel;
+import com.megatech.fms.model.LoginResultModel;
 import com.megatech.fms.model.RefuelItemData;
 import com.megatech.fms.model.ShiftModel;
 import com.megatech.fms.model.TruckFuelModel;
@@ -24,9 +25,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -52,50 +56,61 @@ public class HttpClient {
     private TruckModel setting;
     private final Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
 
-    public HttpClient()
-    {
+    public HttpClient() {
         this.token = FMSApplication.getApplication().getUser().getToken();
         this.setting = FMSApplication.getApplication().getSetting();
     }
-    public HttpClient(String token)
-    {
+
+    public HttpClient(String token) {
         this.token = token;
     }
 
 
-    public JSONObject login(String username, String password) {
+    public LoginResultModel login(String username, String password) {
         String loginUrl = API_BASE_URL + "/token";
         String contentType = "application/x-www-form-urlencoded";
+        LoginResultModel resultModel = new LoginResultModel();
+        resultModel.setErrorType(LoginResultModel.LOGIN_ERROR_TYPE.CONNECTION_ERROR);
         try {
             String param = "grant_type=password&username=" + username + "&password=" + password;
-            HttpResponse response = sendPOST(loginUrl, param,contentType);// executeUrl(loginUrl,contentType,"POST", "grant_type=password&username="+username+"&password="+password);
-            if (response.responseCode == HttpURLConnection.HTTP_OK)
-            {
+            HttpResponse response = sendPOST(loginUrl, param, contentType);// executeUrl(loginUrl,contentType,"POST", "grant_type=password&username="+username+"&password="+password);
+
+            if (response.responseCode == HttpURLConnection.HTTP_OK) {
                 try {
-                    JSONObject obj = new JSONObject(response.data);
-                    return obj;
-                } catch (JSONException e) {
+                    JSONObject loginData = new JSONObject(response.data);
+                    resultModel.setUserId(loginData.getInt("userId"));
+                    resultModel.setUserName(loginData.getString("userName"));
+                    resultModel.setAccess_token(loginData.getString("access_token"));
+                    resultModel.setPermission(loginData.getInt("permission"));
+                    resultModel.setAirport(loginData.getString("airport"));
+                    resultModel.setAddress(loginData.getString("address"));
+                    resultModel.setTaxCode(loginData.getString("taxcode"));
+                    resultModel.setInvoiceName(loginData.getString("invoiceName"));
+                    resultModel.setErrorType(null);
+
+                } catch (Exception e) {
+
+                    Log.e("LOGIN", e.getMessage());
 
                 }
-            }
-
+            } else if (response.responseCode == HttpURLConnection.HTTP_BAD_REQUEST)
+                resultModel.setErrorType(LoginResultModel.LOGIN_ERROR_TYPE.CONNECTION_ERROR.DATA_ERROR);
 
         } catch (IOException e) {
             Log.e("ERROR", e.getMessage());
         }
-        return null;
+        return resultModel;
     }
-    public boolean putRefuelData(LCRDataModel dataModel)
-    {
+
+    public boolean putRefuelData(LCRDataModel dataModel) {
         return true;
     }
 
-    public FlightData getFlightData(Integer id)
-    {
-        String url = API_BASE_URL +"api/flights/";
+    public FlightData getFlightData(Integer id) {
+        String url = API_BASE_URL + "api/flights/";
         String contentType = "application/json";
         try {
-            url = url+ id.toString();
+            url = url + id.toString();
             HttpResponse response = sendGET(url);
             if (response.responseCode == HttpURLConnection.HTTP_OK) {
                 String data = response.data;
@@ -110,17 +125,15 @@ public class HttpClient {
                 } catch (JSONException e) {
                 }
             }
+        } catch (IOException e) {
         }
-        catch (IOException e)
-        {}
         return null;
     }
 
-    public RefuelItemData getRefuelItem(Integer id)
-    {
+    public RefuelItemData getRefuelItem(Integer id) {
         String url = API_BASE_URL + "api/refuels/";
-        try{
-            url = url+id.toString();
+        try {
+            url = url + id.toString();
             HttpResponse response = sendGET(url);
             if (response.responseCode == HttpURLConnection.HTTP_OK) {
                 String data = response.data;
@@ -135,12 +148,10 @@ public class HttpClient {
                 }
             }
 
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
 
         }
-        return  null;
+        return null;
     }
 
     public List<UserModel> getUsers() {
@@ -160,6 +171,7 @@ public class HttpClient {
         }
         return lst;
     }
+
     public List<TruckModel> getTrucks() {
         String url = API_BASE_URL + "api/trucks";
 
@@ -177,6 +189,7 @@ public class HttpClient {
         }
         return lst;
     }
+
     public String getContent(String url) {
         try {
             return sendGET(url).data;
@@ -185,14 +198,12 @@ public class HttpClient {
         }
     }
 
-    private final String USER_AGENT = "Mozilla/5.0";
-
     public HttpResponse sendGET(String url) throws IOException {
         try {
 
             HttpURLConnection con = createConnection(url, "GET", "*/*");
-            if (con ==null)
-                return  null;
+            if (con == null)
+                return null;
 
             int responseCode = con.getResponseCode();
             String responseData;
@@ -211,29 +222,29 @@ public class HttpClient {
                 // print result
 
                 responseData = response.toString();
-            }
-            else if (responseCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
+            } else if (responseCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
                 responseData = "Not Authorized";
             } else {
 
                 responseData = "GET request not worked";
             }
-            return  new HttpResponse(responseCode, responseData);
+            return new HttpResponse(responseCode, responseData);
         } catch (SocketTimeoutException ex) {
-            return  new HttpResponse(HttpURLConnection.HTTP_GATEWAY_TIMEOUT, "socket timeout");
+            return new HttpResponse(HttpURLConnection.HTTP_GATEWAY_TIMEOUT, "socket timeout");
         } catch (IOException ex) {
-            return  new HttpResponse(HttpURLConnection.HTTP_BAD_GATEWAY, "IO Error");
+            return new HttpResponse(HttpURLConnection.HTTP_BAD_GATEWAY, "IO Error");
         }
     }
-    public HttpResponse sendPOST(String url,String params ) throws IOException
-    {
-        return  sendPOST(url,params,"application/json; utf-8");
+
+    public HttpResponse sendPOST(String url, String params) throws IOException {
+        return sendPOST(url, params, "application/json; utf-8");
     }
-    public HttpResponse sendPOST(String url,String params, String contentType ) throws IOException {
+
+    public HttpResponse sendPOST(String url, String params, String contentType) throws IOException {
         try {
 
-            HttpURLConnection con = createConnection(url, "POST",contentType );
-            if(con ==null)
+            HttpURLConnection con = createConnection(url, "POST", contentType);
+            if (con == null)
                 return null;
             // For POST only - START
             con.setDoOutput(true);
@@ -265,12 +276,71 @@ public class HttpClient {
                 return new HttpResponse(responseCode, null);
             }
         } catch (SocketTimeoutException ex) {
-            return new HttpResponse(HttpURLConnection.HTTP_GATEWAY_TIMEOUT,null);
+            return new HttpResponse(HttpURLConnection.HTTP_GATEWAY_TIMEOUT, null);
         }
     }
+    public HttpResponse sendFile(String url, File file) throws IOException {
+        try {
+            String crlf = "\r\n";
+            String twoHyphens = "--";
+            String boundary =  "*****";
+            HttpURLConnection con = createConnection(url, "POST",  "multipart/form-data;boundary=" + boundary);
+            if (con == null)
+                return null;
+            // For POST only - START
+            con.setDoOutput(true);
+            DataOutputStream os = new DataOutputStream(con.getOutputStream());
+            os.writeBytes(twoHyphens + boundary + crlf);
+            os.writeBytes("Content-Disposition: form-data; name=\"" +
+                    file.getName() + "\";filename=\"" +
+                    file.getName() + "\"" + crlf);
+            os.writeBytes( crlf);
+            int size = (int) file.length();
+            byte[] bytes = new byte[size];
+            try {
+                BufferedInputStream buf = new BufferedInputStream(new FileInputStream(file));
+                buf.read(bytes, 0, bytes.length);
+                buf.close();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            os.write(bytes);
+            os.writeBytes(crlf);
+            os.writeBytes(twoHyphens + boundary +
+                    twoHyphens + crlf);
+            os.flush();
+            os.close();
 
-    public String executeUrl(String targetURL,String contentType,String method, String urlParameters) {
-        int timeout=5000;
+            // For POST only - END
+
+            int responseCode = con.getResponseCode();
+            Logger.appendLog("HTTP", "sendPost: " + "POST Response Code :: " + responseCode);
+
+            if (responseCode == HttpURLConnection.HTTP_OK) { //success
+                BufferedReader in = new BufferedReader(new InputStreamReader(
+                        con.getInputStream()));
+                String inputLine;
+                StringBuffer response = new StringBuffer();
+
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                in.close();
+
+                con.disconnect();
+                // print result
+                return new HttpResponse(responseCode, response.toString());
+            } else {
+                return new HttpResponse(responseCode, null);
+            }
+        } catch (SocketTimeoutException ex) {
+            return new HttpResponse(HttpURLConnection.HTTP_GATEWAY_TIMEOUT, null);
+        }
+    }
+    public String executeUrl(String targetURL, String contentType, String method, String urlParameters) {
+        int timeout = 5000;
         URL url;
         HttpURLConnection connection = null;
         try {
@@ -278,7 +348,7 @@ public class HttpClient {
             url = new URL(targetURL);
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod(method);
-            connection.setRequestProperty("Content-Type",contentType);
+            connection.setRequestProperty("Content-Type", contentType);
 
             connection.setRequestProperty("Content-Length",
                     "" + urlParameters.getBytes().length);
@@ -298,7 +368,7 @@ public class HttpClient {
             wr.close();
 
             int responseCode = connection.getResponseCode();
-            if (responseCode == 200 ) {
+            if (responseCode == 200) {
                 // Get Response
                 InputStream is = connection.getInputStream();
                 BufferedReader rd = new BufferedReader(new InputStreamReader(is));
@@ -310,8 +380,7 @@ public class HttpClient {
                 }
                 rd.close();
                 return response.toString();
-            }
-            else
+            } else
                 return connection.getResponseMessage();
 
         } catch (SocketTimeoutException ex) {
@@ -354,18 +423,18 @@ public class HttpClient {
         return null;
     }
 
-    public List<RefuelItemData> getRefuelList()
-    {
+    public List<RefuelItemData> getRefuelList() {
         return getRefuelList(false, 0);
     }
 
     public List<RefuelItemData> getRefuelList(boolean others) {
         return getRefuelList(others, 0);
     }
-    public List<RefuelItemData> getRefuelList(boolean others, Integer t)
-    {
+
+    public List<RefuelItemData> getRefuelList(boolean others, Integer t) {
         return getRefuelList(others, t, false);
     }
+
     public List<RefuelItemData> getRefuelList(boolean others, Integer t, boolean d) {
 
         String url = API_BASE_URL + "api/refuels?truckNo="
@@ -425,9 +494,7 @@ public class HttpClient {
                     }
                 }
             }
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             Logger.appendLog("HTTP", "GetModified:" + e.getLocalizedMessage());
             return null;
         }
@@ -453,43 +520,37 @@ public class HttpClient {
                     refuelData.setId(newItem.getId());
                 return newItem;
             }
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
 
 
         }
-        return  null;
+        return null;
 
     }
 
     public void updateTruckAmount(String truckNo, double currentAmount) {
 
-        String url = API_BASE_URL+"api/trucks/amount";
+        String url = API_BASE_URL + "api/trucks/amount";
         try {
             Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
             String parm = gson.toJson(new TruckModel(truckNo, currentAmount));
             HttpResponse resp = sendPOST(url, parm);
 
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             Log.e("updateTruckAmount", e.getMessage());
         }
     }
 
     public TruckFuelModel postTruckFuel(TruckFuelModel model) {
 
-        String url = API_BASE_URL+"api/trucks/fuel";
+        String url = API_BASE_URL + "api/trucks/fuel";
         try {
             //Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
             String parm = gson.toJson(model);
             HttpResponse response = sendPOST(url, parm);
             if (response.responseCode == HttpURLConnection.HTTP_OK)
                 return gson.fromJson(response.data, TruckFuelModel.class);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             Log.e("postTruckFuel", e.getMessage());
         }
         return null;
@@ -498,16 +559,14 @@ public class HttpClient {
 
     public InvoiceModel postInvoice(InvoiceModel model) {
 
-        String url = API_BASE_URL+"api/invoices";
+        String url = API_BASE_URL + "api/invoices";
         try {
             //Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
             String parm = gson.toJson(model);
             HttpResponse response = sendPOST(url, parm);
             if (response.responseCode == HttpURLConnection.HTTP_OK)
                 return gson.fromJson(response.data, InvoiceModel.class);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             Log.e("postTruckFuel", e.getMessage());
         }
         return null;
@@ -547,7 +606,7 @@ public class HttpClient {
 
 
     public List<AirlineModel> getAirlines() {
-        String url = API_BASE_URL+"api/airlines";
+        String url = API_BASE_URL + "api/airlines";
         try {
             //Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
             HttpResponse response = sendGET(url);
@@ -567,9 +626,7 @@ public class HttpClient {
                 }
                 return lst;
             }
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             Log.e("updateTruckAmount", e.getMessage());
         }
         return null;
@@ -604,13 +661,13 @@ public class HttpClient {
 
     public boolean checkTruck(int truckId, String truckNo) {
 
-        String url = API_BASE_URL+"api/trucks/check";
+        String url = API_BASE_URL + "api/trucks/check";
         try {
             //Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
             String parm = gson.toJson(new TruckModel(truckNo, truckId));
             String data = sendPOST(url, parm).data;
             boolean val = gson.fromJson(data, boolean.class);
-            return  val;
+            return val;
         } catch (Exception e) {
             Log.e("Truck Check API ", e.getMessage());
             return true;
@@ -619,7 +676,7 @@ public class HttpClient {
     }
 
 
-    public boolean sendLog(String url,String filePath) throws IOException {
+    public boolean sendLog(String url, String filePath) throws IOException {
 
         String twoHyphens = "--";
         String truckNo = FMSApplication.getApplication().getTruckNo();
@@ -628,7 +685,7 @@ public class HttpClient {
         String charset = "UTF-8";
         File textFile = new File(filePath);
 
-        HttpURLConnection con = createConnection(url,"POST", "multipart/form-data; boundary=" + boundary);
+        HttpURLConnection con = createConnection(url, "POST", "multipart/form-data; boundary=" + boundary);
         try (
                 OutputStream output = con.getOutputStream();
                 PrintWriter writer = new PrintWriter(new OutputStreamWriter(output, charset), true)
@@ -642,9 +699,7 @@ public class HttpClient {
             output.flush(); // Important before continuing with writer!
             writer.append(CRLF).flush(); // CRLF is important! It indicates end of boundary.
             writer.append("--" + boundary + "--").append(CRLF).flush();
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             return false;
         }
 
@@ -664,6 +719,7 @@ public class HttpClient {
 
             con.setRequestProperty("Content-Type", contentType);
             con.setRequestProperty("Accept", "*/*");
+            String USER_AGENT = "Mozilla/5.0";
             con.setRequestProperty("User-Agent", USER_AGENT);
             con.setRequestProperty("Tablet-Id", setting.getTabletSerial());
             con.setRequestProperty("App-Version", setting.getAppVersion());
@@ -673,34 +729,29 @@ public class HttpClient {
             if (this.token != null)
                 con.setRequestProperty("Authorization", "bearer " + this.token);
             return con;
-        }
-        catch(Exception ex)
-        {
+        } catch (Exception ex) {
             return null;
         }
     }
 
 
-    public InvoiceFormModel[] getInvoiceForms()
-    {
-        String url = API_BASE_URL+"api/invoiceform";
-        try{
+    public InvoiceFormModel[] getInvoiceForms() {
+        String url = API_BASE_URL + "api/invoiceform";
+        try {
             HttpResponse response = sendGET(url);
             if (response.responseCode == HttpURLConnection.HTTP_OK) {
                 String data = response.data;
                 return gson.fromJson(data, InvoiceFormModel[].class);
             }
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
 
         }
-        return  null;
+        return null;
     }
 
     public List<TruckFuelModel> getTruckFuels() {
 
-        String url = API_BASE_URL + "api/trucks/fuels?truckId="+setting.getTruckId();
+        String url = API_BASE_URL + "api/trucks/fuels?truckId=" + setting.getTruckId();
         try {
             HttpResponse response = sendGET(url);
             if (response.responseCode == HttpURLConnection.HTTP_OK) {
@@ -728,16 +779,14 @@ public class HttpClient {
     }
 
     public BM2505Model postBM2505(BM2505Model model) {
-        String url = API_BASE_URL+"api/bm2505";
+        String url = API_BASE_URL + "api/bm2505";
         try {
             //Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
             String parm = gson.toJson(model);
             HttpResponse response = sendPOST(url, parm);
             if (response.responseCode == HttpURLConnection.HTTP_OK)
                 return gson.fromJson(response.data, BM2505Model.class);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             Log.e("postTruckFuel", e.getMessage());
         }
         return null;
@@ -745,7 +794,7 @@ public class HttpClient {
 
     public List<BM2505Model> getBM2505List() {
 
-        String url = API_BASE_URL + "api/bm2505/"+setting.getTruckId();
+        String url = API_BASE_URL + "api/bm2505/" + setting.getTruckId();
         try {
             HttpResponse response = sendGET(url);
             if (response.responseCode == HttpURLConnection.HTTP_OK) {
@@ -772,8 +821,8 @@ public class HttpClient {
 
     public RefuelItemData getRefuelItem(String uniqueId) {
         String url = API_BASE_URL + "api/refuels/?uniqueId=";
-        try{
-            url = url+uniqueId;
+        try {
+            url = url + uniqueId;
             HttpResponse response = sendGET(url);
             if (response.responseCode == HttpURLConnection.HTTP_OK) {
                 String data = response.data;
@@ -788,21 +837,18 @@ public class HttpClient {
                 }
             }
 
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
 
         }
-        return  null;
+        return null;
     }
 
-    public class HttpResponse
-    {
-        public  HttpResponse(int responseCode, String data)
-        {
+    public class HttpResponse {
+        public HttpResponse(int responseCode, String data) {
             this.responseCode = responseCode;
             this.data = data;
         }
+
         private int responseCode;
         private String data;
 

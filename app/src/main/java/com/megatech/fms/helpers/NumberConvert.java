@@ -120,7 +120,7 @@ public class NumberConvert
         String _Chuoile = "";
         if (!_ChLe.equals("00"))
         {
-            _Chuoile = Break(_ChLe, Dic, true, false);
+            _Chuoile = Break(_ChLe, Dic, true, true);
             if (!_Chuoile.equals(""))
             {
                 _Chuoile = english ? "and " : "và " + _Chuoile.trim() + " " + suffix1;

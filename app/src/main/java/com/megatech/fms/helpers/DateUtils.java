@@ -69,4 +69,25 @@ public class DateUtils {
             return null;
         }
     }
+
+    public static Date getCurrentDate () {
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.HOUR_OF_DAY,0);
+        cal.set(Calendar.MILLISECOND,0);
+        cal.set(Calendar.MINUTE,0);
+        cal.set(Calendar.SECOND,0);
+        return cal.getTime();
+
+    }
+    public static Date getNextDate (Date d) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(d);
+        cal.set(Calendar.HOUR_OF_DAY,0);
+        cal.set(Calendar.MILLISECOND,0);
+        cal.set(Calendar.MINUTE,0);
+        cal.set(Calendar.SECOND,0);
+        cal.add(Calendar.DATE,1);
+        return cal.getTime();
+
+    }
 }

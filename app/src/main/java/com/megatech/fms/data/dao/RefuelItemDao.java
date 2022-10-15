@@ -31,23 +31,23 @@ public interface RefuelItemDao {
     @Query("Select * from RefuelItem where flightId = :id")
     List<RefuelItem> getByFlightId(int id);
 
-    @Query("Select * from RefuelItem where truckNo = :truckNo and refuelTime between :start and :end")
+    @Query("Select * from RefuelItem where truckNo = :truckNo and refuelTime between :start and :end order by refuelTime")
     List<RefuelItem> getByTruckNo(String truckNo, long start, long end);
 
-    @Query("Select * from RefuelItem where truckNo = :truckNo and refuelTime between :start and :end and refuelItemType = :type")
+    @Query("Select * from RefuelItem where truckNo = :truckNo and refuelTime between :start and :end and refuelItemType = :type order by refuelTime")
     List<RefuelItem> getByTruckNo(String truckNo, long start, long end, int type);
 
-    @Query("Select * from RefuelItem where truckNo = :truckNo")
+    @Query("Select * from RefuelItem where truckNo = :truckNo order by refuelTime")
     List<RefuelItem> getByTruckNo(String truckNo);
 
 
-    @Query("Select * from RefuelItem where truckNo != :truckNo and refuelTime between :start and :end")
+    @Query("Select * from RefuelItem where truckNo != :truckNo and refuelTime between :start and :end order by refuelTime")
     List<RefuelItem> getOthers(String truckNo, long start, long end);
 
-    @Query("Select * from RefuelItem where truckNo != :truckNo and refuelTime between :start and :end and refuelItemType = :type ")
+    @Query("Select * from RefuelItem where truckNo != :truckNo and refuelTime between :start and :end and refuelItemType = :type order by refuelTime")
     List<RefuelItem> getOthers(String truckNo, long start, long end, int type);
 
-    @Query("Select * from RefuelItem where truckNo != :truckNo")
+    @Query("Select * from RefuelItem where truckNo != :truckNo order by refuelTime")
     List<RefuelItem> getOthers(String truckNo);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -86,4 +86,8 @@ public interface RefuelItemDao {
 
     @Query("Select * from RefuelItem where uniqueId != :uniqueId AND flightId = (SELECT flightId from RefuelItem where uniqueId= :uniqueId)")
     List<RefuelItem> getOtherItems(String uniqueId);
+
+    @Query("Select * from RefuelItem where flightId = :flightId  AND truckId  = :truckId and status !=3")
+    RefuelItem getByFlightAndTruck(Integer flightId, int truckId);
+
 }

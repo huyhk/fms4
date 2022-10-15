@@ -36,6 +36,12 @@
                 android:onClick="onClick"
                 android:text="@string/back" />
             <Button
+                android:id="@+id/btnTechlog"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onClick"
+                android:text="@string/input_techlog" />
+            <Button
                 android:id="@+id/btnSave"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -51,10 +57,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="right"
-                android:drawableStart="@android:drawable/ic_menu_camera"
+                android:drawableStart="@{invoiceItem.captured?@drawable/ic_camera_check: @android:drawable/ic_menu_camera}"
                 android:onClick="onClick"
-                android:enabled="@{invoiceItem.printed}"
-                android:text="@string/capture" />
+
+                android:text="@{invoiceItem.captured?@string/view_image:@string/capture}" />
 
             <Button
                 android:id="@+id/btnPrint"
@@ -104,11 +110,14 @@
                     android:text="@string/receipt_number" />
 
                 <TextView
+                    android:id="@+id/receipt_number"
                     style="@android:style/TextAppearance.Medium"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight=".25"
-                    android:text="@{invoiceItem.number}" />
+                    android:drawableStart="@drawable/ic_edit"
+                    android:onClick="onClick"
+                    android:text="@={invoiceItem.number}" />
 
                 <TextView
                     style="@android:style/TextAppearance.Medium"
@@ -320,14 +329,15 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight=".25"
-                    android:text="@string/product_name" />
+                    android:text="@string/tech_log" />
 
                 <TextView
+                    android:id="@+id/receipt_techlog"
                     style="@android:style/TextAppearance.Medium"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight=".25"
-                    android:text='@{invoiceItem.productName}' />
+                    android:text='@{String.format("%,20.0f",invoiceItem.techLog)}' />
 
             </TableRow>
 
@@ -372,6 +382,29 @@
 
             </TableRow>
 
+            <TableRow
+
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#ffffff"
+                android:visibility="gone"
+                android:padding="5dp">
+                <TextView
+                    style="@android:style/TextAppearance.Medium"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight=".25"
+                    android:text="@string/tech_log" />
+
+                <TextView
+
+                    style="@android:style/TextAppearance.Medium"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight=".25"
+
+                    android:text='@{String.format("%,20.0f",invoiceItem.techLog)}' />
+            </TableRow>
             <TableRow
 
                 android:layout_width="match_parent"

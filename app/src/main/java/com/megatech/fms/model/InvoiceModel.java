@@ -105,6 +105,16 @@ public class InvoiceModel extends BaseModel {
         this.items = items;
     }
 
+    private List<InvoiceItemModel> returnItems = new ArrayList<>();
+
+    public List<InvoiceItemModel> getReturnItems() {
+        return returnItems;
+    }
+
+    public void setReturnItems(List<InvoiceItemModel> returnItems) {
+        this.returnItems = returnItems;
+    }
+
     public InvoiceModel() {
 
     }
@@ -380,7 +390,6 @@ public class InvoiceModel extends BaseModel {
     }
 
 
-
     public Date getInvoiceDate(){
         return endTime;
     }
@@ -411,6 +420,16 @@ public class InvoiceModel extends BaseModel {
 
     public void setSign(String sign) {
         this.sign = sign;
+    }
+
+    private double techLog;
+
+    public double getTechLog() {
+        return techLog;
+    }
+
+    public void setTechLog(double techLog) {
+        this.techLog = techLog;
     }
 
     public static InvoiceModel fromRefuel(RefuelItemData refuel, ArrayList<RefuelItemData> allItems) {
@@ -469,6 +488,8 @@ public class InvoiceModel extends BaseModel {
                     model.setStartTime(item.getStartTime());
                 if (model.endTime.compareTo(item.getEndTime())<0)
                     model.setEndTime(item.getEndTime());
+                if (item.getWeightNote()!=null && !item.getWeightNote().isEmpty())
+                    model.techLog = Double.parseDouble(item.getWeightNote());
             }
 
             for (InvoiceItemModel item: model.items)
@@ -568,6 +589,8 @@ public class InvoiceModel extends BaseModel {
             invItem.setReturn(true);
             if (model.isVNA)
                 addItem(model, invItem);
+            else
+                model.returnItems.add(invItem);
 
             InvoiceItemModel invItem2 = gson.fromJson(data, InvoiceItemModel.class);
             invItem2.setStartNumber(endNumber);
@@ -581,6 +604,7 @@ public class InvoiceModel extends BaseModel {
             invItem2.setReturn(false);
             invItem2.setRefuelItemId(refuel.getId());
             invItem2.setRefuelUniqueId(refuel.getUniqueId());
+            if (invItem2.getGallon()>0)
             addItem(model, invItem2);
 
             model.hasReturn = true;
