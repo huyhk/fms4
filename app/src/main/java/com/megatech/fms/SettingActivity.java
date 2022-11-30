@@ -241,7 +241,6 @@ public class SettingActivity extends UserBaseActivity {
             if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_PHONE_STATE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_READ_PHONE_STATE);
             } else {
-                //TODO
 
                 assignIMEI();
 

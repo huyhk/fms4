@@ -18,7 +18,6 @@ public class ReceiptAPI extends  BaseAPI{
     public ReceiptModel post(ReceiptModel model)
     {
         try {
-            //Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
             Logger.appendLog("ReceiptAPI", "Post Receipt: " + model.getNumber());
             getPdfString(model);
             String parm = gson.toJson(model);
@@ -31,7 +30,6 @@ public class ReceiptAPI extends  BaseAPI{
         catch (Exception ex)
         {
             Logger.appendLog("ReceiptAPI", ex.getMessage());
-            //Log.e("ReceiptAPI: post(ReceiptModel)", e.getMessage());
         }
         return null;
     }

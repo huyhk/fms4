@@ -240,6 +240,10 @@ public class B2505NewItemFragement extends DialogFragment {
                 m_Title = getString(R.string.update_density15);
                 showEditDialog(id, InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
                 break;
+            case R.id.b2505_new_note:
+                m_Title = getString(R.string.update_note);
+                showEditDialog(id, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+                break;
         }
     }
 
@@ -353,6 +357,7 @@ public class B2505NewItemFragement extends DialogFragment {
         builder.setTitle(m_Title);
         final EditText input = new EditText(context);
         input.setInputType(inputType);
+
         input.setTypeface(Typeface.DEFAULT);
 
         input.setText(((TextView) dlg.findViewById(id)).getText());
@@ -447,6 +452,9 @@ public class B2505NewItemFragement extends DialogFragment {
                             break;
                         case R.id.b2505_new_hose_pressure:
                             model.setHosePressure(m_Text);
+                            break;
+                        case R.id.b2505_new_note:
+                            model.setNote(m_Text);
                             break;
 
                     }

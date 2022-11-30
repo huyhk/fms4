@@ -21,6 +21,9 @@ public class BM2505Model extends BaseModel {
     private int operatorId;
     private String operatorName;
 
+    private String note;
+
+
     public int getTruckId() {
         return truckId;
     }
@@ -155,5 +158,13 @@ public class BM2505Model extends BaseModel {
 
     public void setOperatorName(String operatorName) {
         this.operatorName = operatorName;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
     }
 }

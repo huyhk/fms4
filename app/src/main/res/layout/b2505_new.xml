@@ -5,7 +5,8 @@
     <data>
 
         <import type="com.megatech.fms.helpers.DateUtils" />
-        <import type="android.view.View"/>
+
+        <import type="android.view.View" />
 
         <variable
             name="mItem"
@@ -79,6 +80,7 @@
                 android:onClick="onClick"
                 android:padding="5dp"
                 android:text='@{mItem.flightCode}' />
+
             <TextView
                 style="?android:attr/textAppearanceMedium"
                 android:layout_width="0dp"
@@ -350,15 +352,20 @@
                 android:layout_weight=".25"
                 android:padding="5dp"
                 android:text="@string/appearance_check" />
+
             <TableLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25">
+
                 <TableRow>
-                    <RadioGroup  android:layout_width="0dp"
+
+                    <RadioGroup
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight=".25"
                         android:orientation="horizontal">
+
                         <RadioButton
                             android:id="@+id/b2505_new_appearance_cb"
                             android:layout_width="0dp"
@@ -371,12 +378,13 @@
                             android:id="@+id/b2505_new_appearance_other"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:onClick="onClick"
                             android:layout_weight=".5"
                             android:checked='@{!mItem.appearanceCheck.equals("C&amp;B")}'
+                            android:onClick="onClick"
                             android:text="@string/other" />
                     </RadioGroup>
                 </TableRow>
+
                 <TableRow>
 
                     <TextView
@@ -390,8 +398,8 @@
                         android:hint="@string/touch_to_edit"
                         android:onClick="onClick"
                         android:padding="5dp"
-                        android:visibility='@{mItem.appearanceCheck.equals("C&amp;B")?View.GONE:View.VISIBLE}'
-                        android:text='@{mItem.appearanceCheck}' />
+                        android:text='@{mItem.appearanceCheck}'
+                        android:visibility='@{mItem.appearanceCheck.equals("C&amp;B")?View.GONE:View.VISIBLE}' />
                 </TableRow>
             </TableLayout>
 
@@ -476,6 +484,31 @@
                 android:onClick="onClick"
                 android:padding="5dp"
                 android:text="@{mItem.hosePressure}" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#efefef"
+            android:padding="5dp">
+
+            <TextView
+                style="?android:attr/textAppearanceMedium"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight=".25"
+                android:text="@string/note" />
+
+            <TextView
+                android:id="@+id/b2505_new_note"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight=".75"
+                android:drawableStart="@drawable/ic_edit"
+                android:focusable="false"
+                android:onClick="onClick"
+                android:padding="5dp"
+                android:text="@{mItem.note}" />
         </TableRow>
     </LinearLayout>
 

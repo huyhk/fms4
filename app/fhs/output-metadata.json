@@ -10,9 +10,9 @@
     {
       "type": "SINGLE",
       "filters": [],
-      "versionCode": 45,
-      "versionName": "10.7.20221011.45",
-      "outputFile": "fms-fhs-45-20221011.apk"
+      "versionCode": 47,
+      "versionName": "10.9.20221129.47",
+      "outputFile": "fms-fhs-47-20221129.apk"
     }
   ]
 }

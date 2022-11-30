@@ -435,7 +435,7 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
         else if (mItem.getDriverId() <=0 || mItem.getOperatorId() <=0)
             showErrorMessage(R.string.invalid_driver_operator);
         else {
-            sendScreenshot();
+            //sendScreenshot();
 
             //Logger.appendLog("CONFIRM","StartNumber: "+ mItem.getStartNumber() + " EndNumber: "+ mItem.getEndNumber() + " RealAmount: "+ mItem.getRealAmount() +" Temperature: "+ mItem.getManualTemperature() + " Density: "+ mItem.getDensity());
             postData();
@@ -584,39 +584,9 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
     }
     private void postRefuelCompleted(RefuelItemData mItem) {
         closeProgressDialog();
-       /* if (mItem.isLocalModified())
-        {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle(R.string.sync_error)
-                    .setIcon(R.drawable.ic_error)
-                    .setCancelable(false)
-                    .setPositiveButton(R.string.accept, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            dialogInterface.dismiss();
-                            openPreview();
-                        }
-                    });
-            LinearLayout layout = new LinearLayout(this);
-            layout.setOrientation(LinearLayout.HORIZONTAL);
-            layout.setPadding(10,10,10,10);
-            TextView txt = new TextView(this);
-            SpannableString ss = new SpannableString(getString(R.string.sync_error_message));
 
-            //txt.setText(R.string.sync_error_message);
-            ImageSpan img = new ImageSpan(this,R.drawable.ic_not_sync);
-            ss.setSpan(img,ss.length()-1,ss.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            txt.setText(ss);
 
-            layout.addView(txt);
-
-            builder.setView(layout);
-            builder.create().show();
-        }
-
-        else*/
-
-            openPreview();
+        openPreview();
 
     }
 

@@ -511,7 +511,9 @@ public class HttpClient {
     public RefuelItemData postRefuel(RefuelItemData refuelData) {
         String url = API_BASE_URL + "api/refuels";
         try {
-            Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
+            //Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
+            Logger.appendLog("API", String.format("FlightCode: %s Amount : %.0f Start Number: %.0f End Number: %.0f",refuelData.getFlightCode(), refuelData.getRealAmount(),  refuelData.getStartNumber() , refuelData.getEndNumber()));
+
             String parm = gson.toJson(refuelData);
             HttpResponse response = sendPOST(url, parm);
             if (response.responseCode == HttpURLConnection.HTTP_OK) {
