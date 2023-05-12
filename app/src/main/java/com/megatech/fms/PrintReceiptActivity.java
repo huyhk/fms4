@@ -32,11 +32,14 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.megatech.fms.databinding.ActivityInvoiceBinding;
 import com.megatech.fms.helpers.DataHelper;
+import com.megatech.fms.helpers.ImageUtil;
 import com.megatech.fms.helpers.Logger;
 import com.megatech.fms.helpers.NetworkHelper;
 import com.megatech.fms.helpers.PrintWorker;
+import com.megatech.fms.helpers.ScreenshotAPI;
 import com.megatech.fms.helpers.ZebraWorker;
 import com.megatech.fms.model.ReceiptModel;
 import com.megatech.fms.model.TruckModel;
@@ -110,8 +113,8 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
                 closeProgressDialog();
             }
         });
-        if (BuildConfig.FHS) {
-            //findViewById(R.id.btnCapture).setVisibility(View.GONE);
+        if (BuildConfig.THERMAL_PRINTER) {
+       //     findViewById(R.id.btnCapture).setVisibility(View.GONE);
         } else {
             findViewById(R.id.btnSign).setVisibility(View.GONE);
             findViewById(R.id.btnSellerSign).setVisibility(View.GONE);
@@ -180,6 +183,7 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
                 break;
             case R.id.btnCapture:
                 if (!model.isCaptured())
+                    //openCapture();
                     openImagePicker();
                 else
                     showImage(model.getPdfPath());
@@ -226,11 +230,8 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
     ZebraWorker zebra = null;
 
     private void print() {
-        /*if (!NetworkHelper.isWifi(this)) {
-            showWarningMessage(R.string.wifi_not_connected);
-            return;
-        }*/
-        if (BuildConfig.FHS) {
+
+        if (BuildConfig.THERMAL_PRINTER) {
             if (zebra == null) {
                 zebra = new ZebraWorker(this);
                 zebra.setStateListener(new ZebraWorker.ZebraStateListener() {
@@ -276,7 +277,9 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
         // Create an image file name
 
         String imageFileName = "JPEG_" + model.getNumber() + "_";
+
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        //File storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
         File image = File.createTempFile(
                 imageFileName,  /* prefix */
                 ".jpg",         /* suffix */
@@ -286,30 +289,6 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
         // Save a file: path for use with ACTION_VIEW intents
         currentPhotoPath = image.getAbsolutePath();
         return image;
-    }
-
-    private void openCapture() {
-        Logger.appendLog("RECEIPT_WINDOW", "Capture printed receipt");
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        // Ensure that there's a camera activity to handle the intent
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            // Create the File where the photo should go
-            File photoFile = null;
-            try {
-                photoFile = createImageFile();
-            } catch (IOException ex) {
-                // Error occurred while creating the File
-
-            }
-            // Continue only if the File was successfully created
-            if (photoFile != null) {
-                Uri photoURI = FileProvider.getUriForFile(this,
-                        BuildConfig.APPLICATION_ID + ".fileprovider",
-                        photoFile);
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-            }
-        }
     }
 
     private void openImagePicker() {
@@ -330,7 +309,8 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
                         BuildConfig.APPLICATION_ID + ".fileprovider",
                         photoFile);
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                //startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+                takePictureIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                takePictureIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
             }
         }
 
@@ -346,35 +326,18 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
 
     private void saveImage(Uri uri, String outPath) {
         try {
-
-            InputStream inputStream = getContentResolver().openInputStream(uri);
+            Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(),uri);
             int targetW = 1200;
             int targetH = 1200;
-            BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-            bmOptions.inJustDecodeBounds = true;
 
-            BitmapFactory.decodeStream(inputStream, null, bmOptions);
-
-            int photoW = bmOptions.outWidth;
-            int photoH = bmOptions.outHeight;
-
-            // Determine how much to scale down the image
-            int scaleFactor = Math.min(photoW / targetW, photoH / targetH) - 1;
-            if (scaleFactor < 1) scaleFactor = 1;
-
-            // Decode the image file into a Bitmap sized to fill the View
-            bmOptions.inJustDecodeBounds = false;
-            bmOptions.inSampleSize = scaleFactor;//scaleFactor;
-            inputStream = getContentResolver().openInputStream(uri);
-            Bitmap bitmap = BitmapFactory.decodeStream(inputStream, null, bmOptions);
             Bitmap pdfBitmap = resize(bitmap, targetW, targetH);
             try {
                 pdfBitmap.compress(Bitmap.CompressFormat.JPEG, 85, new FileOutputStream(outPath));
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
+            } catch (Exception e) {
+                FirebaseCrashlytics.getInstance().recordException(e);
             }
         } catch (Exception ex) {
-
+            FirebaseCrashlytics.getInstance().recordException(ex);
         }
     }
 
@@ -392,8 +355,8 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
                 }
             } else {
                 Logger.appendLog("RECEIPT_WINDOW", "Capture completed");
-                int targetW = 1200;
-                int targetH = 1200;
+                int targetW = 800;
+                int targetH = 800;
 
                 // Get the dimensions of the bitmap
                 BitmapFactory.Options bmOptions = new BitmapFactory.Options();
@@ -413,14 +376,19 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
                 bmOptions.inSampleSize = scaleFactor;//scaleFactor;
 
                 Bitmap bitmap = BitmapFactory.decodeFile(currentPhotoPath, bmOptions);
+                if (bitmap == null)
+                {
+                    Toast.makeText(this, getString(R.string.capture_error),Toast.LENGTH_LONG).show();
+                    FirebaseCrashlytics.getInstance().log("null bitmap " + currentPhotoPath);
+                    return;
+                }
                 Bitmap pdfBitmap = resize(bitmap, targetW, targetH);
                 try {
                     pdfBitmap.compress(Bitmap.CompressFormat.JPEG, 85, new FileOutputStream(currentPhotoPath));
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
+                } catch (Exception e) {
+                    FirebaseCrashlytics.getInstance().recordException(e);
                 }
             }
-            //model.setPdfImageString(ImageUtil.convert(bitmap));
             model.setPdfPath(currentPhotoPath);
             model.setCaptured(true);
             binding.invalidateAll();
@@ -429,13 +397,13 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
         }
 
 
-        if (requestCode == BUYER_SIGNATURE && resultCode == RESULT_OK) {
+        else if (requestCode == BUYER_SIGNATURE && resultCode == RESULT_OK) {
             String file = data.getExtras().getString("signature_file");
             model.setSignaturePath(file);
             binding.invalidateAll();
             ((Button) findViewById(R.id.btnSign)).setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_checked, 0, 0, 0);
         }
-        if (requestCode == SELLER_SIGNATURE && resultCode == RESULT_OK) {
+        else if (requestCode == SELLER_SIGNATURE && resultCode == RESULT_OK) {
             String file = data.getExtras().getString("signature_file");
             model.setSellerSignaturePath(file);
             binding.invalidateAll();
@@ -450,14 +418,16 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
             float ratioBitmap = (float) width / (float) height;
             float ratioMax = (float) maxWidth / (float) maxHeight;
 
-            int finalWidth = maxWidth;
-            int finalHeight = maxHeight;
-            if (ratioMax > ratioBitmap) {
-                finalWidth = (int) ((float) maxHeight * ratioBitmap);
-            } else {
-                finalHeight = (int) ((float) maxWidth / ratioBitmap);
+            if (width> maxWidth) {
+                int finalWidth = maxWidth;
+                int finalHeight = maxHeight;
+                if (ratioMax > ratioBitmap) {
+                    finalWidth = (int) ((float) maxHeight * ratioBitmap);
+                } else {
+                    finalHeight = (int) ((float) maxWidth / ratioBitmap);
+                }
+                image = Bitmap.createScaledBitmap(image, finalWidth, finalHeight, true);
             }
-            image = Bitmap.createScaledBitmap(image, finalWidth, finalHeight, true);
             return image;
         } else {
             return image;
@@ -627,7 +597,7 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
     private void openSave() {
         //LocalDate today = LocalDate.now();
 
-        if (!model.isCaptured() && !BuildConfig.FHS) {
+        if (!model.isCaptured() && !BuildConfig.THERMAL_PRINTER) {
             showConfirmMessage(R.string.not_capture_confirm, new Callable<Void>() {
                 @Override
                 public Void call() throws Exception {
@@ -658,6 +628,7 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
     private void save() {
         Logger.appendLog("RECEIPT_WINDOW", "save receipt " + model.getNumber());
         setProgressDialog();
+        sendScreenshot();
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... voids) {
@@ -702,5 +673,47 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
                 return null;
             }
         });
+    }
+
+    private  void sendScreenshot()
+    {
+        Bitmap b = takeScreenshot();
+        File f = saveBitmap(b);
+        Logger.appendLog("RECEIPT", "screenshot file " + f.getName());
+
+    }
+    private Bitmap takeScreenshot() {
+        View rootView = findViewById(android.R.id.content).getRootView();
+        rootView.setDrawingCacheEnabled(true);
+        return rootView.getDrawingCache();
+    }
+
+    private File saveBitmap(Bitmap bitmap) {
+        File folder = getExternalFilesDir(Environment.DIRECTORY_PICTURES) ;
+        File imagePath = null;
+        try {
+            imagePath = new File(folder,"screenshot_"+ model.getNumber()+".jpg");
+            imagePath.createNewFile();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        FileOutputStream fos;
+        try {
+            fos = new FileOutputStream(imagePath);
+            Bitmap scaledBitmap = ImageUtil.resize(bitmap, 1200);
+            scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+            bitmap.recycle();
+            fos.flush();
+            fos.close();
+        } catch (FileNotFoundException e) {
+
+        } catch (IOException e) {
+
+        } catch (Exception ex)
+        {
+
+        }
+        return imagePath;
     }
 }

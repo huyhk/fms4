@@ -23,7 +23,7 @@ public class InvoiceAPI extends  BaseAPI{
             Logger.appendLog("InvoiceAPI", "Post Invoice: " + model.getInvoiceNumber());
 
             String parm = gson.toJson(model);
-            HttpClient.HttpResponse response = httpClient.sendPOST(url, parm);
+            HttpResponse response = httpClient.sendPOST(url, parm);
             if (response.getResponseCode() == HttpURLConnection.HTTP_OK)
                 return gson.fromJson(response.getData(), InvoiceModel.class);
         }

@@ -1,6 +1,7 @@
 package com.megatech.fms;
 
 import android.app.Application;
+import android.content.Context;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.wifi.WifiManager;
@@ -27,6 +28,7 @@ import com.megatech.fms.model.TruckModel;
 import com.megatech.fms.model.UserInfo;
 import com.megatech.fms.receivers.WifiReceiver;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -42,28 +44,55 @@ public class FMSApplication extends Application implements LifecycleObserver {
     @Override
     public void onCreate() {
         super.onCreate();
-        /*IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
-        intentFilter.addAction(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION);
-        registerReceiver(new WifiReceiver(), intentFilter);*/
+
         checkDatabase();
         registerDBService();
         cApp = this;
     }
 
+    @Override
+    public void onLowMemory() {
+        trimCache(this);
+        super.onLowMemory();
+    }
+
+
+    public static void trimCache(Context context) {
+        try {
+            File dir = context.getCacheDir();
+            if (dir != null && dir.isDirectory()) {
+                deleteDir(dir);
+            }
+        } catch (Exception e) {
+            // TODO: handle exception
+        }
+    }
+
+    public static boolean deleteDir(File dir) {
+        if (dir != null && dir.isDirectory()) {
+            String[] children = dir.list();
+            for (int i = 0; i < children.length; i++) {
+                boolean success = deleteDir(new File(dir, children[i]));
+                if (!success) {
+                    return false;
+                }
+            }
+        }
+
+        // The directory is now empty so delete it
+        return dir.delete();
+    }
     private void registerDBService() {
         ScheduledExecutorService scheduler =
                 Executors.newSingleThreadScheduledExecutor();
 
         scheduler.scheduleAtFixedRate
-                (new Runnable() {
-                    public void run() {
-                        try {
-                            DataHelper.Synchronize();
-                        }
-                        catch (Exception ex)
-                        {}
+                (() -> {
+                    try {
+                        DataHelper.Synchronize();
                     }
+                    catch (Exception ex)
+                    {}
                 }, 0, 30, TimeUnit.SECONDS);
     }
 
@@ -108,16 +137,24 @@ public class FMSApplication extends Application implements LifecycleObserver {
 ///////////////////////////////////////////////
 
 
-
+    private static UserInfo _user;
     public UserInfo getUser()
     {
-        return UserInfo.fromSharedPreferences(this);
+        if (_user == null || _user.getUserId() <=0)
+            _user =  UserInfo.fromSharedPreferences(this);
+        return _user;
     }
 
     public String getDeviceIP() {
         //if (BuildConfig.DEBUG)
         //    return "viennam.ddns.net";
         return getSetting().getDeviceIP();
+    }
+
+    public String getTabletId() {
+        //if (BuildConfig.DEBUG)
+        //    return "viennam.ddns.net";
+        return getSetting().getTabletSerial();
     }
 
     public void setDeviceIP(String deviceIP) {

@@ -204,12 +204,12 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
 
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(m_Title);
-        Logger.appendLog("CONFIRM", m_Title);
+        Logger.appendLog(LOG_TAG, m_Title);
         final EditText input = new EditText(this);
         input.setInputType(inputType);
         input.setTypeface(Typeface.DEFAULT);
         input.setText(view.getText());
-        Logger.appendLog("CONFIRM", "Old value: "+ view.getText().toString());
+        Logger.appendLog(LOG_TAG, "Old value: "+ view.getText().toString());
         input.setImeOptions(EditorInfo.IME_ACTION_DONE);
         input.setGravity(Gravity.CENTER_HORIZONTAL);
         if ((inputType & InputType.TYPE_NUMBER_FLAG_DECIMAL )>0)
@@ -259,7 +259,7 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
             private boolean doUpdateResult() {
                 try {
                     m_Text = input.getText().toString();
-                    Logger.appendLog("CONFIRM", "New value: "+ m_Text);
+                    Logger.appendLog(LOG_TAG, "New value: "+ m_Text);
                     Pattern regex = Pattern.compile(pattern);
                     Matcher matcher = regex.matcher(m_Text);
                     if (!matcher.find()) {
@@ -437,7 +437,7 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
         else {
             //sendScreenshot();
 
-            //Logger.appendLog("CONFIRM","StartNumber: "+ mItem.getStartNumber() + " EndNumber: "+ mItem.getEndNumber() + " RealAmount: "+ mItem.getRealAmount() +" Temperature: "+ mItem.getManualTemperature() + " Density: "+ mItem.getDensity());
+            Logger.appendLog(LOG_TAG,"StartNumber: "+ mItem.getStartNumber() + " EndNumber: "+ mItem.getEndNumber() + " RealAmount: "+ mItem.getRealAmount() +" Temperature: "+ mItem.getManualTemperature() + " Density: "+ mItem.getDensity());
             postData();
         }
     }
@@ -449,15 +449,15 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
         final Date date = new Date();
         if (id == R.id.refuel_confirm_start_time) {
             date.setTime(mItem.getStartTime().getTime());
-            Logger.appendLog("CONFIRM", "Update start time " );
+            Logger.appendLog(LOG_TAG, "Update start time " );
         }
         else {
             date.setTime(mItem.getEndTime().getTime());
-            Logger.appendLog("CONFIRM", "Update end time " );
+            Logger.appendLog(LOG_TAG, "Update end time " );
         }
         final Calendar c = Calendar.getInstance();
         c.setTime(date);
-        Logger.appendLog("CONFIRM", "Old value: " + dateFormat.format(date) );
+        Logger.appendLog(LOG_TAG, "Old value: " + dateFormat.format(date) );
         mYear = c.get(Calendar.YEAR);
         mMonth = c.get(Calendar.MONTH);
         mDay = c.get(Calendar.DAY_OF_MONTH);
@@ -477,7 +477,7 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
                                 c.set(Calendar.HOUR_OF_DAY, hourOfDay);
                                 updateTime(id,c);
 
-                                Logger.appendLog("CONFIRM", "new value: " + dateFormat.format(c.getTime()) );
+                                Logger.appendLog(LOG_TAG, "New value: " + dateFormat.format(c.getTime()) );
                             }
                         }, mHour, mMinute, false);
                 timePickerDialog.show();
@@ -532,7 +532,7 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
     {
         Bitmap b = takeScreenshot();
         File f = saveBitmap(b);
-        Logger.appendLog("RFC", "screenshot file " + f.getName());
+        Logger.appendLog(LOG_TAG, "screenshot file " + f.getName());
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... voids) {
@@ -541,7 +541,7 @@ public class RefuelDetailConfirmActivity extends UserBaseActivity implements Vie
                         f.delete();
 
                 } catch (Exception e) {
-                    Logger.appendLog("RFC","Send screenshot failed");
+                    Logger.appendLog(LOG_TAG,"Send screenshot failed");
                 }
                 return null;
             }

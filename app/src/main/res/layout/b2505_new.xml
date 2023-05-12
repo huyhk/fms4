@@ -296,14 +296,17 @@
                 android:text="@string/difference" />
 
             <TextView
+                android:id="@+id/b2505_new_density_diff"
                 style="?android:attr/textAppearanceMedium"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
                 android:focusable="false"
-
+                android:drawableStart="@drawable/ic_edit"
+                android:hint="@string/touch_to_edit"
+                android:onClick="onClick"
                 android:padding="5dp"
-                android:text='@{String.format("%.4f",mItem.density15 - mItem.density)}'></TextView>
+                android:text='@{String.format("%.4f",mItem.densityDiff)}'></TextView>
 
             <TextView
                 style="?android:attr/textAppearanceMedium"

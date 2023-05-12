@@ -43,6 +43,7 @@ import com.megatech.fms.helpers.Logger;
 import com.megatech.fms.helpers.NetworkHelper;
 import com.megatech.fms.model.AirlineModel;
 import com.megatech.fms.model.LCRDataModel;
+import com.megatech.fms.model.LogEntryModel;
 import com.megatech.fms.model.REFUEL_ITEM_STATUS;
 import com.megatech.fms.model.RefuelItemData;
 import com.megatech.fms.model.TruckModel;
@@ -462,12 +463,12 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
 
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(m_Title);
-        Logger.appendLog("RFW",m_Title);
+        this.saveLog(LogEntryModel.LOG_TYPE.USER_ACTION,m_Title);
         final EditText input = new EditText(this);
         input.setInputType(inputType);
         input.setTypeface(Typeface.DEFAULT);
         input.setText(view.getText());
-        Logger.appendLog("RFW", "Old value: "+ view.getText().toString());
+        this.saveLog(LogEntryModel.LOG_TYPE.USER_ACTION, "Old value: "+ view.getText().toString());
 
         input.setImeOptions(EditorInfo.IME_ACTION_DONE);
         input.setGravity(Gravity.CENTER_HORIZONTAL);
@@ -518,7 +519,7 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
             private boolean doUpdateResult() {
                 try {
                     m_Text = input.getText().toString();
-                    Logger.appendLog("RFW", "New value: "+ m_Text);
+                    saveLog(LogEntryModel.LOG_TYPE.USER_ACTION, "New value: "+ m_Text);
                     Pattern regex = Pattern.compile(pattern);
                     Matcher matcher = regex.matcher(m_Text);
                     if (!matcher.find()) {
@@ -1346,11 +1347,11 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
 
             saveData();
         }
-        Log.e("REFUEL", "Update refuel data");
+        //Log.e("REFUEL", "Update refuel data");
     }
 
     private void doStop() {
-        Logger.appendLog("RFW", "doStop");
+        //Logger.appendLog("RFW", "doStop");
         setRefuelStatus(REFUEL_STATUS.ENDED);
         started = false;
         reader.setRefuel(false);
@@ -1386,10 +1387,10 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
                 //mItem.setStartNumber(mItem.getEndNumber() - mItem.getRealAmount());
             }
 
-            Logger.appendLog("RFW", "end doStop");
+            //Logger.appendLog("RFW", "end doStop");
             postData();
         } catch (Exception e) {
-            Logger.appendLog("RFW", " doStop Error: " + e.getLocalizedMessage());
+            this.saveLog(LogEntryModel.LOG_TYPE.ERROR_LOG, " doStop Error: " + e.getLocalizedMessage());
         }
 
 
@@ -1491,28 +1492,28 @@ public class RefuelDetailActivity extends UserBaseActivity implements View.OnCli
 
     @Override
     protected void onStop() {
-        Logger.appendLog("RFW", "Power onstop");
+        //Logger.appendLog("RFW", "Power onstop");
         super.onStop();
         //isActive = false;
     }
 
     @Override
     protected void onPause() {
-        Logger.appendLog("RFW", "Power on pause");
+        //Logger.appendLog("RFW", "Power on pause");
         super.onPause();
         //isActive = false;
     }
 
     @Override
     protected void onResume() {
-        Logger.appendLog("RFW", "Power on resume");
+        //Logger.appendLog("RFW", "Power on resume");
         super.onResume();
         isActive = true;
     }
 
     @Override
     protected void onDestroy() {
-        Logger.appendLog("RFW", "Power on destroy");
+        //Logger.appendLog("RFW", "Power on destroy");
 
         super.onDestroy();
         isActive = false;

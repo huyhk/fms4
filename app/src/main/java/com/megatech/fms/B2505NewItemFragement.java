@@ -240,6 +240,10 @@ public class B2505NewItemFragement extends DialogFragment {
                 m_Title = getString(R.string.update_density15);
                 showEditDialog(id, InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
                 break;
+            case R.id.b2505_new_density_diff:
+                m_Title = getString(R.string.update_density_diff);
+                showEditDialog(id, InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                break;
             case R.id.b2505_new_note:
                 m_Title = getString(R.string.update_note);
                 showEditDialog(id, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
@@ -442,6 +446,10 @@ public class B2505NewItemFragement extends DialogFragment {
                         case R.id.b2505_new_density15:
                             d = numberFormat.parse(m_Text).doubleValue();
                             model.setDensity15(d);
+                            break;
+                        case R.id.b2505_new_density_diff:
+                            d = numberFormat.parse(m_Text).doubleValue();
+                            model.setDensityDiff(d);
                             break;
                         case R.id.b2505_new_appearance_other:
                         case R.id.b2505_new_appearance:

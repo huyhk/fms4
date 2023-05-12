@@ -47,6 +47,7 @@ import com.megatech.fms.model.LCRDataModel;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -63,7 +64,8 @@ public class LCRReader {
 
     private final boolean deviceError = true;
     private static boolean _dateFormatRequested = false;
-    private static SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
+    //private static SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
+    private static String dateFormat = "dd/MM/yy HH:mm:ss";
     private static boolean isLCR600 = false;
     private boolean isRefuel = false;
     public boolean getConnected() {
@@ -427,6 +429,8 @@ public class LCRReader {
             Locale locale = Locale.getDefault();
             NumberFormat numberFormat = NumberFormat.getInstance(locale);
 
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormat);
+
 
             // For not log items what is displayed in separated fields
             boolean showInLog = true;
@@ -438,11 +442,10 @@ public class LCRReader {
             if (responseFieldName.equals(FIELD_CHANGE.DATE_FORMAT.toString())) {
                 try {
                     int dateF = numberFormat.parse(responseField.getNewValue()).intValue();
-                    String pattern = dateFormat.toPattern();
                     if (dateF == 1) {
-                        dateFormat.applyPattern("dd/MM/yy HH:mm:ss");
+                        dateFormat = "dd/MM/yy HH:mm:ss";
                     } else
-                        dateFormat.applyPattern("MM/dd/yy HH:mm:ss");
+                        dateFormat = "MM/dd/yy HH:mm:ss";
                 } catch (Exception ex) {
 
                 }
@@ -482,7 +485,7 @@ public class LCRReader {
 
                 if (dataListener != null) {
                     try {
-                        model.setStartTime(dateFormat.parse(responseField.getNewValue()));
+                        model.setStartTime(simpleDateFormat.parse(responseField.getNewValue()));
                         onDataChanged(model, FIELD_CHANGE.STARTTIME);
                     } catch (ParseException e) {
                     }
@@ -493,7 +496,7 @@ public class LCRReader {
                 //showInLog = false;
                 if (dataListener != null) {
                     try {
-                        model.setEndTime(dateFormat.parse(responseField.getNewValue()));
+                        model.setEndTime(simpleDateFormat.parse(responseField.getNewValue()));
                         onDataChanged(model, FIELD_CHANGE.ENDTIME);
                         // if state changed to END_DELIVERY before, call onStopped
 
@@ -1172,7 +1175,7 @@ public class LCRReader {
 
         if (!_dateFormatRequested) {
             raiseError("Request DATEFORMAT & DBMNODE");
-            dateFormat = new SimpleDateFormat("DD/MM/YYYY HH:mm:ss");
+            //dateFormat = new SimpleDateFormat("DD/MM/YYYY HH:mm:ss");
             addRequestQueue("DATEFORMAT");
             //addRequestQueue("DBMNODE");
             processFieldQueue();

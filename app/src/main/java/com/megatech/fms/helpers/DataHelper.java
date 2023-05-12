@@ -14,8 +14,10 @@ import com.megatech.fms.data.entity.Airline;
 import com.megatech.fms.data.entity.BM2505;
 import com.megatech.fms.data.entity.Flight;
 import com.megatech.fms.data.entity.Invoice;
+import com.megatech.fms.data.entity.LogEntry;
 import com.megatech.fms.data.entity.Receipt;
 import com.megatech.fms.data.entity.RefuelItem;
+import com.megatech.fms.data.entity.Review;
 import com.megatech.fms.data.entity.Truck;
 import com.megatech.fms.data.entity.TruckFuel;
 import com.megatech.fms.data.entity.User;
@@ -24,9 +26,11 @@ import com.megatech.fms.model.BM2505Model;
 import com.megatech.fms.model.FlightModel;
 import com.megatech.fms.model.InvoiceFormModel;
 import com.megatech.fms.model.InvoiceModel;
+import com.megatech.fms.model.LogEntryModel;
 import com.megatech.fms.model.REFUEL_ITEM_STATUS;
 import com.megatech.fms.model.ReceiptModel;
 import com.megatech.fms.model.RefuelItemData;
+import com.megatech.fms.model.ReviewModel;
 import com.megatech.fms.model.ShiftModel;
 import com.megatech.fms.model.TruckFuelModel;
 import com.megatech.fms.model.TruckModel;
@@ -259,8 +263,25 @@ public class DataHelper {
                 repo.deleteOldRefuels(10);
                 processing = false;
 
+                List<Review> modifiedReview = repo.getModifiedReview();
 
+                if (modifiedReview.size()>0)
+                {
+                    ReviewAPI reviewClient = new ReviewAPI();
+                    for (Review item:modifiedReview)
+                    {
+                        ReviewModel itemModel = item.toModel();
+                        ReviewModel postedModel = reviewClient.postReview(itemModel);
+                        if (postedModel!=null)
+                        {
+                            item.setLocalModified(false);
+                            item.setId(postedModel.getId());
+                            item.setJsonData(postedModel.toJson());
+                            repo.postReview(item);
+                        }
 
+                    }
+                }
 
                 List<Receipt> modifiedReceipt = repo.getModifiedReceipt();
                 ReceiptAPI client = new ReceiptAPI();
@@ -391,6 +412,7 @@ public class DataHelper {
                     int[] ids = new int[lstUser.size()];
                     int i = 0;
                     for (UserModel model : lstUser) {
+
                         repo.insertUser(User.fromUserModel(model));
 
                         //ids[i++] = model.getId();
@@ -631,5 +653,44 @@ public class DataHelper {
             lst.add(local.toModel());
         }
         return lst;
+    }
+
+    public static void postLog(LogEntryModel.LOG_TYPE tag, String logText, String activity) {
+        new Thread(()-> {
+            repo.postLog(new LogEntryModel(tag, logText, activity));
+        }).start();
+    }
+
+    public static List<LogEntryModel> getLogList(int limit) {
+        List<LogEntry> modified = repo.getLogList(limit);
+        List<LogEntryModel> lst = new ArrayList<>();
+        for (LogEntry local : modified) {
+            lst.add(local.toModel());
+        }
+        return lst;
+    }
+
+    public static void deleteLogs(int[] ids) {
+        new Thread(() -> {
+            repo.deleteLogs(ids);
+        }).start();
+    }
+
+    public static ReviewModel getReview(int id) {
+        return null;
+    }
+
+    public static void postReview(ReviewModel model) {
+        repo.postReview(Review.fromModel(model));
+    }
+
+    public static ReviewModel getReviewByFlight(int flightId) {
+        return repo.getReviewByFlight(flightId);
+    }
+    public static ReviewModel getReviewByFlight(String flightId) {
+        return repo.getReviewByFlight(flightId);
+    }
+    public static boolean checkReview(int flightId, String flightUniqueId) {
+        return repo.checkReview(flightId,flightUniqueId);
     }
 }

@@ -60,6 +60,7 @@ public class ReceiptModel extends BaseModel {
             model.setVolume(0);
             model.setWeight(0);
             model.isFHS = BuildConfig.FHS;
+            model.isThermal = BuildConfig.THERMAL_PRINTER;
             model.setRefuelMethod(model.isFHS ? REFUEL_METHOD.FHS : REFUEL_METHOD.REFUELER);
             //model.setDate(new Date());
             model.customerId = refuel.getAirlineId();
@@ -901,6 +902,16 @@ public class ReceiptModel extends BaseModel {
     public enum REFUEL_METHOD {
         REFUELER,
         FHS
+    }
+
+    private boolean isThermal;
+
+    public boolean isThermal() {
+        return isThermal;
+    }
+
+    public void setThermal(boolean thermal) {
+        isThermal = thermal;
     }
 
     private boolean isFHS;

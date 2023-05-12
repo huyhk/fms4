@@ -42,6 +42,7 @@ import com.megatech.fms.helpers.HttpClient;
 import com.megatech.fms.helpers.Logger;
 import com.megatech.fms.model.AirlineModel;
 import com.megatech.fms.model.InvoiceModel;
+import com.megatech.fms.model.LogEntryModel;
 import com.megatech.fms.model.RefuelItemData;
 import com.megatech.fms.model.UserInfo;
 import com.megatech.fms.view.AirlineArrayAdapter;
@@ -49,6 +50,7 @@ import com.megatech.fms.view.AirlineArrayAdapter;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 public class NewRefuelActivity extends UserBaseActivity implements View.OnClickListener {
 
@@ -67,7 +69,7 @@ public class NewRefuelActivity extends UserBaseActivity implements View.OnClickL
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
-        Logger.appendLog("NEWR", "create new refuel");
+        Logger.saveLog(LogEntryModel.LOG_TYPE.APP_LOG, "create new refuel", this.getClass().getName());
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_refuel);
@@ -91,6 +93,7 @@ public class NewRefuelActivity extends UserBaseActivity implements View.OnClickL
             refuelData = new RefuelItemData();
             refuelData.setTruckId(currentApp.getSetting().getTruckId());
             refuelData.setTruckNo(currentApp.getTruckNo());
+            refuelData.setFlightUniqueId(UUID.randomUUID().toString());
             refuelData.setRefuelItemType(isExtract ? RefuelItemData.REFUEL_ITEM_TYPE.EXTRACT : RefuelItemData.REFUEL_ITEM_TYPE.REFUEL);
             refuelData.setInternational(BuildConfig.FHS);
             SharedPreferences preferences = getSharedPreferences("FMS", MODE_PRIVATE);
@@ -103,7 +106,7 @@ public class NewRefuelActivity extends UserBaseActivity implements View.OnClickL
             setContentView(binding.getRoot());
             loaddata();
         } catch (Exception ex) {
-            Logger.appendLog("NEWR", ex.getLocalizedMessage());
+            this.saveLog(LogEntryModel.LOG_TYPE.ERROR_LOG,ex.getMessage());
         }
 
     }
@@ -209,7 +212,7 @@ public class NewRefuelActivity extends UserBaseActivity implements View.OnClickL
     }
 
     private void binddata() {
-        Logger.appendLog("NEWR", "binddata");
+        this.saveLog(LogEntryModel.LOG_TYPE.APP_LOG,"Bind data");
         if (airlines == null)
             return;
 

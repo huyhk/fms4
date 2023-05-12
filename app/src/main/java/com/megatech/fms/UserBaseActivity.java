@@ -34,6 +34,7 @@ import androidx.legacy.content.WakefulBroadcastReceiver;
 import com.megatech.fms.helpers.DataHelper;
 import com.megatech.fms.helpers.HttpClient;
 import com.megatech.fms.helpers.Logger;
+import com.megatech.fms.model.LogEntryModel;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -284,7 +285,7 @@ public class UserBaseActivity extends BaseActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
-                        Logger.appendLog("Confirm restart app");
+                        Logger.saveLog(LogEntryModel.LOG_TYPE.USER_ACTION,"Confirm restart app", this.getClass().getName());
                         dialog.dismiss();
 
                         restartApp();
@@ -303,6 +304,8 @@ public class UserBaseActivity extends BaseActivity {
     }
 
     private final int RESTART_CODE = 3;
+
+
 
     private void restartApp() {
         //Intent intent = new Intent(this, StartupActivity.class);

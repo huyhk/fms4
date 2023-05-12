@@ -31,6 +31,7 @@ import androidx.core.content.ContextCompat;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.megatech.fms.helpers.Logger;
+import com.megatech.fms.model.LogEntryModel;
 import com.megatech.fms.model.TruckModel;
 import com.megatech.fms.model.UserInfo;
 
@@ -331,6 +332,11 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
                 dialog.dismiss();
             }
         });
+    }
+
+    public void saveLog(LogEntryModel.LOG_TYPE logType, String logText)
+    {
+        Logger.saveLog(logType, logText, this.getClass().getName());
     }
 
     @Override

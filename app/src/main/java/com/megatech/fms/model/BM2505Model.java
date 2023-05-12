@@ -13,6 +13,7 @@ public class BM2505Model extends BaseModel {
     private double temperature;
     private double density;
     private double density15;
+    private  double densityDiff;
     private boolean densityCheck = true;
     private String appearanceCheck = "C&B";
     private boolean waterCheck = true;
@@ -102,6 +103,14 @@ public class BM2505Model extends BaseModel {
 
     public void setDensity15(double density15) {
         this.density15 = density15;
+    }
+
+    public double getDensityDiff() {
+        return densityDiff;
+    }
+
+    public void setDensityDiff(double densityDiff) {
+        this.densityDiff = densityDiff;
     }
 
     public boolean isDensityCheck() {

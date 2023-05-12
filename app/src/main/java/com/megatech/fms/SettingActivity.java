@@ -218,7 +218,7 @@ public class SettingActivity extends UserBaseActivity {
     private void restartApp() {
         Intent intent = new Intent(this, StartupActivity.class);
         int mPendingIntentId = MAGICAL_NUMBER;
-        PendingIntent mPendingIntent = PendingIntent.getActivity(this, mPendingIntentId, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+        PendingIntent mPendingIntent = PendingIntent.getActivity(this, mPendingIntentId, intent,  PendingIntent.FLAG_IMMUTABLE);
         AlarmManager mgr = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
         mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 100, mPendingIntent);
         System.exit(0);

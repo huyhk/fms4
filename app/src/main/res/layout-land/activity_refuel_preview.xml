@@ -111,6 +111,12 @@
                 android:layout_height="wrap_content"
                 android:onClick="onClick"
                 android:text="@{mItem.bM2508Result == null? @string/check_form_create : @string/check_form_view}" />
+            <Button
+                android:id="@+id/refuel_preview_review"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onClick"
+                 />
 
             <CheckedTextView
                 android:id="@+id/refuel_preview_sync"

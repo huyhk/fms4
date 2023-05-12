@@ -19,7 +19,7 @@ public class ImageUtil
     public static String convert(Bitmap bitmap)
     {
         try(ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 75, outputStream);
 
             return Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT);
         }

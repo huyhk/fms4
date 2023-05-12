@@ -3,9 +3,12 @@ package com.megatech.fms.helpers;
 import android.content.Context;
 import android.os.Environment;
 
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.megatech.fms.BuildConfig;
 import com.megatech.fms.FMSApplication;
 import com.megatech.fms.data.AppDatabase;
+import com.megatech.fms.model.LogEntryModel;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -13,22 +16,35 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.stream.Collectors;
 
 public class Logger {
 
     private static Timer timer;
 
+
+    public static void saveLog(LogEntryModel.LOG_TYPE logType, String logText, String activitiName)
+    {
+
+        new Thread(()-> {
+            DataHelper.postLog(logType, logText, activitiName);
+        }).start();
+    }
+
     public static void appendLog(String logText) {
         appendLog(null, logText);
     }
-
-    public static void appendLog(String tag, String logText) {
+    public static void appendLog(String tag, String logText)
+    {
+        appendLog(tag, logText, null);
+    }
+    public static void appendLog(String tag, String logText, String activity) {
         Context ctx = FMSApplication.getApplication();
 
-
-        String fileName = ctx.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS) + "/fms.log";
+        String fileName = ctx.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS) + "/fms.log" ;
         File logFile = new File(fileName);
 
         if (tag != null)
@@ -60,24 +76,27 @@ public class Logger {
             e.printStackTrace();
         }
 
-        if (timer == null) {
-            timer = new Timer();
-            timer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    sendLog();
-                }
-            }, 1000 * 60 * 6, 1000 * 60 * 60);
-        }
     }
 
     public static boolean sendLog() {
         try {
+
+            LogEntryAPI client = new LogEntryAPI();
+
+            List<LogEntryModel> list = DataHelper.getLogList(100);
+
+            boolean postOK = client.postLogs(list);
+            if (postOK)
+            {
+                int[] ids =  list.stream().mapToInt(model->model.getLocalId()).toArray();
+                DataHelper.deleteLogs(ids);
+            }
+
             Context ctx = FMSApplication.getApplication();
-            HttpClient client = new HttpClient();
+
             String fileName = ctx.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS) + "/fms.log";
-            String url = BuildConfig.API_BASE_URL + "api/log";
-            return client.sendLog(url, fileName);
+
+            return client.postLogFile( fileName);
 
 
         } catch (Exception ex) {

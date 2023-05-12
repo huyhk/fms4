@@ -45,7 +45,7 @@ public class StartupActivity extends BaseActivity {
     }
 
     private final int REQUEST_WRITE_PERMISSION = 1;
-    private final int REQUEST_BLUETOOTH_PERMISSION = 2;
+    private final int REQUEST_BLUETOOTH_PERMISSION = 4;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -119,6 +119,18 @@ public class StartupActivity extends BaseActivity {
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH)) {
            Log.i("STARTUP","NO BLUETOOTH ENABLED");
         }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+        {
+            if (checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED ||
+                    checkSelfPermission(Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED )
+            {
+
+                requestPermissions(new String[]{
+                        Manifest.permission.BLUETOOTH_SCAN,
+                        Manifest.permission.BLUETOOTH_CONNECT},REQUEST_BLUETOOTH_PERMISSION);
+            }
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
                     checkSelfPermission(Manifest.permission.REQUEST_INSTALL_PACKAGES) != PackageManager.PERMISSION_GRANTED ||
@@ -147,16 +159,7 @@ public class StartupActivity extends BaseActivity {
 
 
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
-        {
-            if (checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED ||
-                    checkSelfPermission(Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED )
-            {
-                requestPermissions(new String[]{
-                        Manifest.permission.BLUETOOTH_SCAN,
-                        Manifest.permission.BLUETOOTH_CONNECT},REQUEST_BLUETOOTH_PERMISSION);
-                }
-        }
+
         return true;
     }
 

@@ -1,6 +1,7 @@
 package com.megatech.fms.data.dao;
 
 import androidx.room.Dao;
+import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
@@ -13,7 +14,7 @@ import java.util.List;
 @Dao
 public interface UserDao {
 
-    @Query("Select * from User")
+    @Query("Select * from User where NOT isDeleted")
     List<User> getAll();
 
     @Query("Select * from User where id= :id")
@@ -24,4 +25,7 @@ public interface UserDao {
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
     int update(User user);
+
+    @Query("Delete from User where localId = :localId")
+    int delete(int localId);
 }

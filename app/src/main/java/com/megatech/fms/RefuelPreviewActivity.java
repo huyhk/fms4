@@ -25,6 +25,7 @@ import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.DatePicker;
@@ -174,7 +175,7 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
     private int localId;
     private int remoteId;
     private String uniqueId;
-
+    private boolean hasReview ;
     //AlertDialog progressDialog;
     private void loadData() {
 
@@ -191,6 +192,7 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
 
                 //refuelData = DataHelper.getRefuelItem(remoteId, localId);
                 refuelData = DataHelper.getRefuelItem(uniqueId);
+                hasReview =  DataHelper.checkReview(refuelData.getFlightId(), refuelData.getFlightUniqueId());
                 return refuelData;
             }
 
@@ -300,6 +302,7 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
             binding = DataBindingUtil.inflate(getLayoutInflater(), R.layout.activity_refuel_preview, null, false);
             binding.setMItem(refuelData);
             setContentView(binding.getRoot());
+            ((Button)findViewById(R.id.refuel_preview_review)).setText(hasReview? R.string.review_view: R.string.review_create);
             //findViewById(R.id.refuel_preview_international).setEnabled(isEditable);
             ((CheckBox)findViewById(R.id.refuel_preview_international)).setOnTouchListener((view, motionEvent) -> {
                if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
@@ -570,6 +573,12 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
             if (updateAllInvoice(number, formId, printTemplate,techlog))
                 truckArrayAdapter.notifyDataSetChanged();
         }
+        else if (requestCode == REVIEW_WINDOW && resultCode == RESULT_OK)
+        {
+            hasReview = true;
+            ((Button)findViewById(R.id.refuel_preview_review)).setText(hasReview? R.string.review_view: R.string.review_create);
+
+        }
     }
 
     private void preview() {
@@ -783,6 +792,14 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
         Logger.appendLog("PRW", oldValue + "-->" + text);
     }
 
+    private int REVIEW_WINDOW = 8899;
+    private void showReview(){
+        Intent intent = new Intent(this, ReviewActivity.class);
+        intent.putExtra("FLIGHT_ID", refuelData.getFlightId());
+        intent.putExtra("FLIGHT_UUID", refuelData.getFlightUniqueId());
+        startActivityForResult(intent, REVIEW_WINDOW);
+    }
+
     @Override
     public void onClick(View v) {
         super.onClick(v);
@@ -790,6 +807,10 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
         int id = v.getId();
         isSplit = false;
         switch (id) {
+            case R.id.refuel_preview_review :
+                showReview();
+                break;
+
             case R.id.refuel_preview_split:
                 showSplit();
                 break;
@@ -1668,7 +1689,16 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
     private boolean calculateReturnAmount(double returnAmount) {
         return calculateReturnAmount(returnAmount, RETURN_UNIT.KG);
     }
+    private void updateAllReview()
+    {
+        for (RefuelItemData item : allItems) {
+            item.setHasReview(true);
 
+
+        }
+        new Thread(() -> DataHelper.postRefuels(printItems, false)).start();
+        binding.invalidateAll();
+    }
     private boolean calculateReturnAmount(double returnAmount, RETURN_UNIT unit) {
 
         if (refuelData.getDensity() > 0) {

@@ -51,7 +51,7 @@ public class B2505Activity extends DateBaseActivity implements View.OnClickListe
         FragmentManager fm = getSupportFragmentManager();
         B2505NewItemFragement newItemFragement = new B2505NewItemFragement(model);
         newItemFragement.show(fm, "fragment_edit_name");
-
+        loaddata();
     }
 
     private void openNew() {
@@ -59,7 +59,7 @@ public class B2505Activity extends DateBaseActivity implements View.OnClickListe
         FragmentManager fm = getSupportFragmentManager();
         B2505NewItemFragement newItemFragement = new B2505NewItemFragement();
         newItemFragement.show(fm, "fragment_edit_name");
-
+        loaddata();
     }
 
 

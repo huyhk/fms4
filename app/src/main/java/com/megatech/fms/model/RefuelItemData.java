@@ -104,6 +104,7 @@ public class RefuelItemData extends BaseModel implements Cloneable {
 
 
 
+
     public void setReceiptNumber(String receiptNumber) {
         this.receiptNumber = receiptNumber;
     }
@@ -116,6 +117,15 @@ public class RefuelItemData extends BaseModel implements Cloneable {
 
     public void setReceiptCount(int receiptCount) {
         this.receiptCount = receiptCount;
+    }
+    private boolean hasReview;
+
+    public boolean hasReview() {
+        return hasReview;
+    }
+
+    public void setHasReview(boolean hasReview) {
+        this.hasReview = hasReview;
     }
 
     public int getInvoiceStatus()
@@ -842,6 +852,16 @@ public class RefuelItemData extends BaseModel implements Cloneable {
 
     public void setSplit(boolean split) {
         isSplit = split;
+    }
+
+    private String flightUniqueId = UUID.randomUUID().toString();
+
+    public String getFlightUniqueId() {
+        return flightUniqueId;
+    }
+
+    public void setFlightUniqueId(String flightUniqueId) {
+        this.flightUniqueId = flightUniqueId;
     }
 
     public RefuelItemData split(double splitAmount)

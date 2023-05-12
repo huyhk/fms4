@@ -22,7 +22,7 @@ public class TruckAPI extends BaseAPI{
         try {
 
             Logger.appendLog("TruckAPI", "getTruck(int id)");
-            HttpClient.HttpResponse response = httpClient.sendGET(url +"/"+ truckId);
+            HttpResponse response = httpClient.sendGET(url +"/"+ truckId);
             if (response.getResponseCode() == HttpURLConnection.HTTP_OK)
                 return gson.fromJson(response.getData(), TruckModel.class);
         }
@@ -39,7 +39,7 @@ public class TruckAPI extends BaseAPI{
         try {
 
             String parm = gson.toJson(model);
-            HttpClient.HttpResponse response = httpClient.sendPOST(url, parm);
+            HttpResponse response = httpClient.sendPOST(url, parm);
             if (response.getResponseCode() == HttpURLConnection.HTTP_OK) {
 
                 return gson.fromJson(response.getData(), TruckModel.class);

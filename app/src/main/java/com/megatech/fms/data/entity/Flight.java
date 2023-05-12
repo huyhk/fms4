@@ -6,6 +6,7 @@ import androidx.room.Entity;
 import com.megatech.fms.model.FlightModel;
 
 import java.util.Date;
+import java.util.UUID;
 
 @Entity
 public class Flight extends BaseEntity {
@@ -32,6 +33,8 @@ public class Flight extends BaseEntity {
     private String aircraftCode;
 
     private Date refuelScheduledTime;
+
+
 
     public String getAircraftCode() {
         return aircraftCode;

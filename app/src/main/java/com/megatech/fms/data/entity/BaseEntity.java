@@ -12,7 +12,7 @@ import java.util.UUID;
 public class BaseEntity {
     protected static Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
 
-    private int id;
+    protected int id;
 
     public int getId() {
         return id;
@@ -23,7 +23,7 @@ public class BaseEntity {
     }
 
     @PrimaryKey(autoGenerate = true)
-    private int localId;
+    protected int localId;
 
     public int getLocalId() {
         return localId;
@@ -33,7 +33,7 @@ public class BaseEntity {
         this.localId = localId;
     }
 
-    private String jsonData;
+    protected String jsonData;
 
     public String getJsonData() {
         return jsonData;
@@ -43,7 +43,7 @@ public class BaseEntity {
         this.jsonData = jsonData;
     }
 
-    private boolean isSynced = true;
+    protected boolean isSynced = true;
 
     public boolean isSynced() {
         return isSynced;
@@ -53,7 +53,7 @@ public class BaseEntity {
         isSynced = synced;
     }
 
-    private boolean isLocalModified = false;
+    protected boolean isLocalModified = false;
 
     public boolean isLocalModified() {
         return isLocalModified;

@@ -1,6 +1,7 @@
 package com.megatech.fms.data;
 
 import android.database.Cursor;
+import android.util.CloseGuard;
 
 import androidx.sqlite.db.SimpleSQLiteQuery;
 
@@ -8,9 +9,11 @@ import com.megatech.fms.data.entity.Airline;
 import com.megatech.fms.data.entity.BM2505;
 import com.megatech.fms.data.entity.Flight;
 import com.megatech.fms.data.entity.Invoice;
+import com.megatech.fms.data.entity.LogEntry;
 import com.megatech.fms.data.entity.ParkingLot;
 import com.megatech.fms.data.entity.Receipt;
 import com.megatech.fms.data.entity.RefuelItem;
+import com.megatech.fms.data.entity.Review;
 import com.megatech.fms.data.entity.Shift;
 import com.megatech.fms.data.entity.Truck;
 import com.megatech.fms.data.entity.TruckFuel;
@@ -20,7 +23,9 @@ import com.megatech.fms.helpers.HttpClient;
 import com.megatech.fms.model.AirlineModel;
 import com.megatech.fms.model.BM2505Model;
 import com.megatech.fms.model.FlightModel;
+import com.megatech.fms.model.LogEntryModel;
 import com.megatech.fms.model.RefuelItemData;
+import com.megatech.fms.model.ReviewModel;
 import com.megatech.fms.model.ShiftModel;
 import com.megatech.fms.model.TruckFuelModel;
 import com.megatech.fms.model.TruckModel;
@@ -452,5 +457,67 @@ public class DataRepository {
 
         List<Receipt> modified = db.receiptDao().getAll(date.getTime(), next.getTime());
         return modified;
+    }
+
+    public void postLog(LogEntryModel model) {
+
+        LogEntry entry = LogEntry.fromModel(model);
+        //db.logEntryDao().insert(entry);
+    }
+
+    public List<LogEntry> getLogList(int limit) {
+        return db.logEntryDao().getModified(limit);
+    }
+
+    public void deleteLogs(int[] ids) {
+        db.logEntryDao().deleteLogs(ids);
+    }
+
+    public Review getReview(int id) {
+        return db.reviewDao().get(id);
+    }
+    public Review getReview(String uniqueId) {
+        return db.reviewDao().get(uniqueId);
+    }
+    public void postReview(Review model) {
+        Review item = db.reviewDao().get(model.getUniqueId());
+
+
+        model.setDateUpdated(new Date());
+
+        if (item == null || (item.getId() == 0 &&  item.getLocalId() != model.getLocalId())) {
+            db.reviewDao().insert(model);
+        } else {
+            //item.setJsonData(truckModel.getJsonData());
+
+            model.setLocalId(item.getLocalId());
+            model.setId(item.getId());
+
+            db.reviewDao().update(model);
+        }
+    }
+
+    public ReviewModel getReviewByFlight(int flightId) {
+
+        Review item = db.reviewDao().getByFlight(flightId);
+        if (item!= null)
+            return item.toModel();
+        else
+            return null;
+    }
+    public ReviewModel getReviewByFlight(String flightId) {
+
+        Review item = db.reviewDao().getByFlight(flightId);
+        if (item!= null)
+            return item.toModel();
+        else
+            return null;
+    }
+    public boolean checkReview(int flightId,String flightUniqueId) {
+        return db.reviewDao().checkReview(flightId,flightUniqueId);
+    }
+
+    public List<Review> getModifiedReview() {
+        return db.reviewDao().getModified();
     }
 }

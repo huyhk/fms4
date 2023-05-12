@@ -11,7 +11,7 @@ public class ScreenshotAPI extends BaseAPI {
 
     public boolean postScreenshot(File file) {
         try {
-            HttpClient.HttpResponse response = this.httpClient.sendFile(this.url, file);
+            HttpResponse response = this.httpClient.sendFile(this.url, file);
             return response.getResponseCode() == HttpURLConnection.HTTP_OK;
         } catch (Exception ex) {
             return false;
