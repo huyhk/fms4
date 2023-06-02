@@ -520,4 +520,8 @@ public class DataRepository {
     public List<Review> getModifiedReview() {
         return db.reviewDao().getModified();
     }
+
+    public Receipt getReceipt(String uniqueId) {
+        return db.receiptDao().getByUniqueId(uniqueId);
+    }
 }

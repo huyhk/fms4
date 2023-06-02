@@ -198,7 +198,6 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
 
             @Override
             protected void onPostExecute(RefuelItemData itemData) {
-                Logger.appendLog("PRW", "End loading");
                 refuelData = itemData;
                 bindData();
                 super.onPostExecute(itemData);
@@ -283,7 +282,6 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
     }
 
     private void bindData() {
-        Logger.appendLog("PRW", "Start binding");
         if (refuelData == null) {
             Logger.appendLog("null item, uniqueid : " + uniqueId);
             showErrorMessage(R.string.error_loading_item);

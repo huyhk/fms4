@@ -38,4 +38,8 @@ public interface ReceiptDao {
 
     @Query("Update Receipt set isCancelled = 1, cancelReason = :reason, isLocalModified = 1 where number in (:printedItems) ")
     void cancel(String[] printedItems, String reason);
+
+    @Query("Select * from receipt where uniqueId  = :uniqueId ")
+    Receipt getByUniqueId(String uniqueId);
+
 }

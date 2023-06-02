@@ -6,7 +6,6 @@ import androidx.databinding.DataBindingUtil;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -37,9 +36,7 @@ import com.megatech.fms.databinding.ActivityInvoiceBinding;
 import com.megatech.fms.helpers.DataHelper;
 import com.megatech.fms.helpers.ImageUtil;
 import com.megatech.fms.helpers.Logger;
-import com.megatech.fms.helpers.NetworkHelper;
 import com.megatech.fms.helpers.PrintWorker;
-import com.megatech.fms.helpers.ScreenshotAPI;
 import com.megatech.fms.helpers.ZebraWorker;
 import com.megatech.fms.model.ReceiptModel;
 import com.megatech.fms.model.TruckModel;
@@ -49,17 +46,12 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.text.NumberFormat;
 import java.text.ParseException;
-import java.time.LocalDate;
-import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 public class PrintReceiptActivity extends UserBaseActivity implements View.OnClickListener {
 
@@ -121,22 +113,52 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
         }
 
     }
-
+    private  boolean reprint = false;
     private void loaddata() {
 
         setProgressDialog();
         Bundle b = getIntent().getExtras();
         String data = b.getString("RECEIPT");
-        model = ReceiptModel.fromJson(data);
-        bindData();
+        if (data !=null) {
+            model = ReceiptModel.fromJson(data);
+            bindData();
+        }
+        else
+        {
+            String uniqueId = b.getString("RECEIPT_ID");
+            if (uniqueId!=null)
+            {
+                loadReceipt(uniqueId);
+            }
+        }
+
 
 
     }
 
+    private void loadReceipt(String uniqueId)
+    {
+        new AsyncTask<Void, Void, ReceiptModel>() {
+            @Override
+            protected ReceiptModel doInBackground(Void... voids) {
+                ReceiptModel response = DataHelper.getReceipt(uniqueId);
+                return response;
+            }
+
+            @Override
+            protected void onPostExecute(ReceiptModel response) {
+                model = response;
+                reprint = true;
+                bindData();
+                super.onPostExecute(response);
+            }
+        }.execute();
+    }
     ReceiptModel model = null;
     ActivityInvoiceBinding binding;
 
     private void bindData() {
+        closeProgressDialog();
         if (model != null) {
             binding = DataBindingUtil.inflate(getLayoutInflater(), R.layout.activity_invoice, null, false);
             binding.setInvoiceItem(model);
@@ -146,7 +168,16 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
             lv.setAdapter(new ReceiptItemAdapter(this, model.getItems()));
 
         }
-        closeProgressDialog();
+        else {
+            showMessage(R.string.title_data_error, R.string.receipt_not_found,R.drawable.ic_error, new Callable<Void>() {
+
+                @Override
+                public Void call() throws Exception {
+                    finish();
+                    return null;
+                }
+            });
+        }
     }
 
     private void exit() {

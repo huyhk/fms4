@@ -693,4 +693,11 @@ public class DataHelper {
     public static boolean checkReview(int flightId, String flightUniqueId) {
         return repo.checkReview(flightId,flightUniqueId);
     }
+
+    public static ReceiptModel getReceipt(String uniqueId) {
+        Receipt receipt =  repo.getReceipt(uniqueId);
+        if (receipt!=null)
+            return receipt.toModel();
+        else return null;
+    }
 }

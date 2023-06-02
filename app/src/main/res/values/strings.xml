@@ -478,6 +478,9 @@
     <string name="review_recreate">Khảo sát lại</string>
     <string name="thankyou">Xin cảm ơn quý khách!</string>
     <string name="thankyou_e">Thank you!</string>
+    <string name="receipt_not_found">Không tìm được dữ liệu. Vui lòng kiểm tra lại.</string>
+    <string name="title_data_error">Lỗi dữ liệu</string>
+    <string name="view_receipt">Xem phiếu cũ</string>
 
     <string-array name="vat_array">
         <item>0%</item>
