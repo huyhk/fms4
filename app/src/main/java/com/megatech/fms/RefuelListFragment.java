@@ -75,11 +75,18 @@ public class RefuelListFragment extends Fragment {
                         //this.getActivity().finishAffinity();
                     } else {
                         mAdapter = new RefuelRecyclerViewAdapter((UserBaseActivity) getActivity(), lstData);
+
+                        filter(filterQuery);
+
                         if (rv == null)
                             rv = (RefuelRecyclerView) view;
-                        if (rv != null)
+
+                        if (rv != null) {
+                            rv.getRecycledViewPool().clear();
+
                             rv.setAdapter(mAdapter);
-                        filter(filterQuery);
+                        }
+
                     }
                 });
 

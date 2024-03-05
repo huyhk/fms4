@@ -23,12 +23,23 @@
         android:padding="5dp"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight=".15"
-        android:text='@{DateUtils.formatDate(mItem.time,"dd/MM/yyyy HH:mm")}'></TextView>
+        android:layout_weight=".075"
+        android:text='@{DateUtils.formatDate(mItem.startTime,"HH:mm")}'></TextView>
     <View
         android:layout_width="1dp"
         android:layout_height="32dp"
         android:background="@android:color/darker_gray" />
+    <TextView
+        android:padding="5dp"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight=".075"
+        android:text='@{DateUtils.formatDate(mItem.endTime,"HH:mm")}'></TextView>
+    <View
+        android:layout_width="1dp"
+        android:layout_height="32dp"
+        android:background="@android:color/darker_gray" />
+
 
     <TextView
         android:padding="5dp"

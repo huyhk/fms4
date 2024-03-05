@@ -40,44 +40,21 @@
                 android:onClick="onClick"
                 android:text="@string/save" />
         </androidx.appcompat.widget.Toolbar>
-
         <TableRow
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="#ffffff"
             android:padding="5dp">
-
             <TextView
                 style="?android:attr/textAppearanceMedium"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
                 android:padding="5dp"
-                android:text="@string/time"></TextView>
+                android:text="@string/start_time"></TextView>
 
             <TextView
-                android:id="@+id/b2502_new_time"
-                style="?android:attr/textAppearanceMedium"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight=".25"
-                android:drawableStart="@drawable/ic_edit"
-                android:focusable="false"
-                android:hint="@string/touch_to_edit"
-                android:onClick="onClick"
-                android:padding="5dp"
-                android:text='@{DateUtils.formatDate(mItem.time,"HH:mm")}' />
-
-            <TextView
-                style="?android:attr/textAppearanceMedium"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight=".25"
-                android:padding="5dp"
-                android:text="@string/ticket_no"></TextView>
-
-            <TextView
-                android:id="@+id/b2502_new_ticket_no"
+                android:id="@+id/b2502_new_start_time"
                 style="?android:attr/textAppearanceMedium"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -87,8 +64,29 @@
                 android:hint="@string/touch_to_edit"
                 android:onClick="onClick"
                 android:padding="5dp"
-                android:text="@{mItem.ticketNo}"></TextView>
+                android:text='@{DateUtils.formatDate(mItem.startTime,"HH:mm")}' />
+            <TextView
+                style="?android:attr/textAppearanceMedium"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight=".25"
+                android:padding="5dp"
+                android:text="@string/end_time"></TextView>
+
+            <TextView
+                android:id="@+id/b2502_new_end_time"
+                style="?android:attr/textAppearanceMedium"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight=".25"
+                android:drawableStart="@drawable/ic_edit"
+                android:focusable="false"
+                android:hint="@string/touch_to_edit"
+                android:onClick="onClick"
+                android:padding="5dp"
+                android:text='@{DateUtils.formatDate(mItem.endTime,"HH:mm")}' />
         </TableRow>
+
 
         <TableRow
             android:layout_width="match_parent"
@@ -123,10 +121,10 @@
                 android:layout_height="wrap_content"
                 android:layout_weight=".25"
                 android:padding="5dp"
-                android:text="@string/fuel_amount" />
+                android:text="@string/ticket_no"></TextView>
 
             <TextView
-                android:id="@+id/b2502_new_amount"
+                android:id="@+id/b2502_new_ticket_no"
                 style="?android:attr/textAppearanceMedium"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -136,13 +134,40 @@
                 android:hint="@string/touch_to_edit"
                 android:onClick="onClick"
                 android:padding="5dp"
-                android:text='@{String.format("%.0f",mItem.amount)}'></TextView>
+                android:text="@{mItem.ticketNo}"></TextView>
         </TableRow>
+
 
         <TableRow
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="#ffffff"
+            android:padding="5dp">
+            <TextView
+                style="?android:attr/textAppearanceMedium"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight=".25"
+                android:padding="5dp"
+                android:text="@string/fuel_amount" />
+
+            <TextView
+                android:id="@+id/b2502_new_amount"
+                style="?android:attr/textAppearanceMedium"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight=".75"
+                android:drawableStart="@drawable/ic_edit"
+                android:focusable="false"
+                android:hint="@string/touch_to_edit"
+                android:onClick="onClick"
+                android:padding="5dp"
+                android:text='@{String.format("%.0f",mItem.amount)}'></TextView>
+        </TableRow>
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#efefef"
             android:padding="5dp">
 
             <TextView
@@ -211,6 +236,106 @@
                 android:text="@{mItem.qcNo}"></TextView>
 
 
+        </TableRow>
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#efefef"
+            android:padding="5dp">
+
+            <TextView
+                style="?android:attr/textAppearanceLarge"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:padding="5dp"
+                android:text="@string/test_after_loading"></TextView>
+
+
+
+
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#ffffff"
+            android:padding="5dp">
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#ffffff"
+                android:padding="5dp">
+                <TextView
+                    style="?android:attr/textAppearanceMedium"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight=".25"
+                    android:padding="5dp"
+                    android:text="@string/start"></TextView>
+
+                <TextView
+                    android:id="@+id/b2502_new_test_start_time"
+                    style="?android:attr/textAppearanceMedium"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight=".25"
+                    android:drawableStart="@drawable/ic_edit"
+                    android:focusable="false"
+                    android:hint="@string/touch_to_edit"
+                    android:onClick="onClick"
+                    android:padding="5dp"
+                    android:text='@{DateUtils.formatDate(mItem.testStartTime,"HH:mm")}' />
+                <TextView
+                    style="?android:attr/textAppearanceMedium"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight=".25"
+                    android:padding="5dp"
+                    android:text="@string/end"></TextView>
+
+                <TextView
+                    android:id="@+id/b2502_new_test_end_time"
+                    style="?android:attr/textAppearanceMedium"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight=".25"
+                    android:drawableStart="@drawable/ic_edit"
+                    android:focusable="false"
+                    android:hint="@string/touch_to_edit"
+                    android:onClick="onClick"
+                    android:padding="5dp"
+                    android:text='@{DateUtils.formatDate(mItem.testEndTime,"HH:mm")}' />
+
+                <TextView
+                    style="?android:attr/textAppearanceMedium"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight=".25"
+                    android:padding="5dp"
+                    android:text="@string/test_result"></TextView>
+                <RadioGroup style="?android:attr/textAppearanceMedium"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight=".25"
+                    android:orientation="horizontal"
+                    android:padding="5dp">
+                    <RadioButton
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:padding="5dp"
+                        android:checked="@={mItem.testResult}"
+                        android:text="P"></RadioButton>
+                    <RadioButton
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:padding="5dp"
+                        android:checked="@={!mItem.testResult}"
+
+                        android:text="F"></RadioButton>
+
+                </RadioGroup>
+            </TableRow>
         </TableRow>
     </LinearLayout>
 

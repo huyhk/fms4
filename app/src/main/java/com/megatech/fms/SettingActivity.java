@@ -24,6 +24,8 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -34,6 +36,7 @@ import androidx.core.content.ContextCompat;
 import com.google.firebase.FirebaseApp;
 import com.liquidcontrols.lcr.iq.sdk.lc.api.constants.LCR.LCR_COMMAND;
 import com.liquidcontrols.lcr.iq.sdk.lc.api.constants.LCR.LCR_DEVICE_CONNECTION_STATE;
+import com.megatech.fms.databinding.ActivitySettingBinding;
 import com.megatech.fms.helpers.DataHelper;
 import com.megatech.fms.helpers.LCRReader;
 import com.megatech.fms.model.LCRDataModel;
@@ -56,13 +59,21 @@ public class SettingActivity extends UserBaseActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_setting);
-        if (!currentApp.isFirstUse())
-            finish();
+        //if (!currentApp.isFirstUse())
+        //    finish();
         settingModel = currentApp.getSetting();
 
 
+
+        RadioButton rad520 = (RadioButton) findViewById(R.id.rad_zq520);
+        RadioButton rad511 = (RadioButton) findViewById(R.id.rad_zq511);
+        findViewById(R.id.row_thermal_printer_type).setVisibility(BuildConfig.THERMAL_PRINTER?View.VISIBLE:View.GONE);
+
+        findViewById(R.id.btnBack).setVisibility(currentApp.isFirstUse()?View.GONE:View.VISIBLE);
+
         final Button btnTest = findViewById(R.id.btnTest);
         final Button btnSave = findViewById(R.id.btnUpdate);
+        final Button btnBack =findViewById(R.id.btnBack);
         final EditText txtIp = findViewById(R.id.txtIP);
         final EditText txtPrinter = findViewById(R.id.txtPrinter);
         final EditText txtIMEI = findViewById(R.id.txtIMEI);
@@ -73,79 +84,80 @@ public class SettingActivity extends UserBaseActivity {
         txtIp.setText(settingModel.getDeviceIP());
         txtPrinter.setText(settingModel.getPrinterIP());
 
+        rad520.setChecked(settingModel.getThermalPrinterType() == TruckModel.THERMAL_PRINTER_TYPE.ZQ520);
+        rad511.setChecked(settingModel.getThermalPrinterType() == TruckModel.THERMAL_PRINTER_TYPE.ZQ511);
+
         getDeviceIMEI();
 
-        btnTest.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                v.setEnabled(false);
-                btnSave.setEnabled(false);
-                btnTest.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
-                String ip = txtIp.getText().toString();
-                reader =  new LCRReader(ctx, ip);
+        btnBack.setOnClickListener(view -> finish());
+        btnTest.setOnClickListener(v -> {
+            v.setEnabled(false);
+            btnSave.setEnabled(false);
+            btnTest.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
+            String ip = txtIp.getText().toString();
+            reader =  new LCRReader(ctx, ip);
 
-                reader.setConnectionListener(new LCRReader.LCRConnectionListener() {
-                    @Override
-                    public void onConnected() {
+            reader.setConnectionListener(new LCRReader.LCRConnectionListener() {
+                @Override
+                public void onConnected() {
 
-                        reader.requestSerial();
+                    reader.requestSerial();
 
-                    }
+                }
 
-                    @Override
-                    public void onError() {
-                        v.setEnabled(true);
-                        btnSave.setEnabled(true);
-                        btnTest.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.ic_error, getTheme()), null, null, null);
+                @Override
+                public void onError() {
+                    v.setEnabled(true);
+                    btnSave.setEnabled(true);
+                    btnTest.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.ic_error, getTheme()), null, null, null);
+                    reader.destroy();
+                }
+
+                @Override
+                public void onDeviceAdded(boolean failed) {
+
+                }
+
+                @Override
+                public void onDisconnected() {
+
+                }
+
+                @Override
+                public void onCommandError(LCR_COMMAND command) {
+
+                }
+
+                @Override
+                public void onConnectionStateChange(LCR_DEVICE_CONNECTION_STATE state) {
+
+                }
+            });
+
+            reader.setFieldDataListener(new LCRReader.LCRDataListener() {
+                @Override
+                public void onDataChanged(LCRDataModel dataModel, LCRReader.FIELD_CHANGE field_change) {
+                    v.setEnabled(true);
+                    btnSave.setEnabled(true);
+                    if (field_change == LCRReader.FIELD_CHANGE.SERIAL) {
+                        settingModel.setDeviceSerial(dataModel.getSerialId());
                         reader.destroy();
+                        btnTest.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.ic_check, getTheme()), null, null, null);
                     }
+                }
 
-                    @Override
-                    public void onDeviceAdded(boolean failed) {
+                @Override
+                public void onErrorMessage(String errorMsg) {
 
-                    }
+                }
 
-                    @Override
-                    public void onDisconnected() {
+                @Override
+                public void onFieldAddSucess(String field_name) {
 
-                    }
+                }
+            });
 
-                    @Override
-                    public void onCommandError(LCR_COMMAND command) {
-
-                    }
-
-                    @Override
-                    public void onConnectionStateChange(LCR_DEVICE_CONNECTION_STATE state) {
-
-                    }
-                });
-
-                reader.setFieldDataListener(new LCRReader.LCRDataListener() {
-                    @Override
-                    public void onDataChanged(LCRDataModel dataModel, LCRReader.FIELD_CHANGE field_change) {
-                        v.setEnabled(true);
-                        btnSave.setEnabled(true);
-                        if (field_change == LCRReader.FIELD_CHANGE.SERIAL) {
-                            settingModel.setDeviceSerial(dataModel.getSerialId());
-                            reader.destroy();
-                            btnTest.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.ic_check, getTheme()), null, null, null);
-                        }
-                    }
-
-                    @Override
-                    public void onErrorMessage(String errorMsg) {
-
-                    }
-
-                    @Override
-                    public void onFieldAddSucess(String field_name) {
-
-                    }
-                });
-
-                reader.doConnectDevice();
-            }
+            reader.doConnectDevice();
         });
         ProgressBar loading_bar = findViewById(R.id.loading_bar);
 
@@ -160,6 +172,14 @@ public class SettingActivity extends UserBaseActivity {
 
                 settingModel.setDeviceIP(ip);
                 settingModel.setPrinterIP(printerAddress);
+
+
+                if (BuildConfig.THERMAL_PRINTER)
+                {
+                    RadioButton rad = (RadioButton) findViewById(R.id.rad_zq520);
+
+                    settingModel.setThermalPrinterType(rad.isChecked()? TruckModel.THERMAL_PRINTER_TYPE.ZQ520: TruckModel.THERMAL_PRINTER_TYPE.ZQ511);
+                }
                 EditText editText = findViewById(R.id.txtCurrentAmount);
                 float currentAmount = Float.parseFloat(editText.getText().toString());
                 settingModel.setCurrentAmount(currentAmount);
@@ -170,7 +190,7 @@ public class SettingActivity extends UserBaseActivity {
                 setResult(Activity.RESULT_OK);
 
                 finish();
-                restartApp();
+                //restartApp();
             }
         });
 

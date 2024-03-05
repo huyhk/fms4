@@ -148,7 +148,10 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
         showMessage(R.string.confirm, messageId, R.drawable.ic_question, positiveClick, negativeClick);
 
     }
-
+    public void showInfoMessage(int messageId)
+    {
+        showInfoMessage(R.string.info, messageId, R.drawable.ic_info, null);
+    }
     public void showInfoMessage(int messageId, Callable<Void> positiveClick)
     {
         showInfoMessage(R.string.info, messageId, R.drawable.ic_info, positiveClick);
@@ -182,17 +185,20 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
     public void showMessage(int titleId, int messageId, int iconId, Callable<Void> positiveClick, Callable<Void> negativeClick) {
         if (!isActive)
             return;
+
+        Logger.saveLog(LogEntryModel.LOG_TYPE.USER_ACTION, "show message " + getString(messageId),getPackageName());
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(titleId)
                 .setMessage(messageId)
                 .setIcon(iconId)
                 .setNeutralButton(R.string.back, (dialog1, which) -> {
-
+                    Logger.saveLog(LogEntryModel.LOG_TYPE.USER_ACTION, "back click", getPackageName());
                     dialog1.dismiss();
                 });
         if (positiveClick != null)
             builder.setPositiveButton(R.string.accept, (dialog1, which) -> {
                 try {
+                    Logger.saveLog(LogEntryModel.LOG_TYPE.USER_ACTION, "positive click", getPackageName());
                     positiveClick.call();
 
                 } catch (Exception e) {
@@ -204,6 +210,7 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
             builder.setNegativeButton(R.string.cancel, (dialog1, which) -> {
                 if (negativeClick != null) {
                     try {
+                        Logger.saveLog(LogEntryModel.LOG_TYPE.USER_ACTION, "negative click", getPackageName());
                         negativeClick.call();
 
                     } catch (Exception e) {
@@ -229,7 +236,7 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void showErrorMessage(int messageId) {
-        showErrorMessage(R.string.validate, messageId, R.drawable.ic_error);
+        showErrorMessage(R.string.error, messageId, R.drawable.ic_error);
 
     }
 

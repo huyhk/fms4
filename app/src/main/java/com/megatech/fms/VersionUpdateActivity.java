@@ -45,7 +45,7 @@ public class VersionUpdateActivity extends BaseActivity implements View.OnClickL
         TextView txt = findViewById(R.id.info_dialog_version);
         txt.setText(String.format("%s", BuildConfig.VERSION_NAME));
 
-        new CheckVersionAsyncTask().execute(API_BASE_URL + "files/version.txt");
+        new CheckVersionAsyncTask().execute(API_BASE_URL + (BuildConfig.THERMAL_PRINTER? "files/thermal.txt": "files/version.txt"));
     }
 
     String update_url;
@@ -98,9 +98,8 @@ public class VersionUpdateActivity extends BaseActivity implements View.OnClickL
                 } else {
                     ((TextView) findViewById(R.id.version_check_message)).setText(getString(R.string.newest_version_using));
                 }
-                update_url = API_BASE_URL + "/files/" + (BuildConfig.FHS ? "fhs-" : "fms-release-") + versionInfo + ".apk";
-                if (BuildConfig.DEBUG)
-                   update_url = API_BASE_URL + "/files/" + "fms-debug-" + versionInfo + ".apk";
+                update_url = API_BASE_URL + "/files/" + (BuildConfig.THERMAL_PRINTER ? "thermal-" : "fms-release-") + versionInfo + ".apk";
+
             } catch (Exception ex) {
                 showErrorMessage(R.string.file_update_error);
             }

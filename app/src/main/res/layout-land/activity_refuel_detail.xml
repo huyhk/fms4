@@ -489,6 +489,53 @@
                             android:text='@{mItem.operatorName}'
                             android:textIsSelectable="true" />
                     </TableRow>
+                    <TableRow
+                        android:background="#ffffff"
+                        android:paddingTop="1dp"
+                        android:paddingBottom="1dp">
+                        <TextView
+
+                            style="?android:attr/textAppearanceMedium"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.25"
+                            android:padding="5dp"
+                            android:text="@string/projected_capacity" />
+
+                        <TextView
+                            android:id="@+id/refuelitem_projected_capacity"
+                            style="?android:attr/textAppearanceMedium"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.25"
+                            android:focusable="false"
+
+                            android:padding="5dp"
+                            android:text='@{String.format("%.2f",mItem.projectedCapacity)}'
+                            android:textIsSelectable="true" />
+
+                        <TextView
+
+                            style="?android:attr/textAppearanceMedium"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.25"
+                            android:padding="5dp"
+                            android:text="@string/actual_capacity" />
+
+                        <TextView
+                            android:id="@+id/refuelitem_actual_capacity"
+                            style="?android:attr/textAppearanceMedium"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.25"
+                            android:textColor="@color/colorRed"
+                            android:focusable="false"
+
+                            android:padding="5dp"
+                            android:text='@{String.format("%.2f",mItem.actualCapacity)}'
+                            android:textIsSelectable="true" />
+                    </TableRow>
                 </TableLayout>
 
 
@@ -562,7 +609,28 @@
                     app:layout_constraintTop_toBottomOf="@id/lblStartMeter" />
 
 
+                <TextView
 
+                    style="?android:attr/textAppearanceMedium"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_start"
+                    android:layout_marginTop="@dimen/margin_top"
+                    android:text="Cảm biến nước"
+                    app:layout_constraintStart_toEndOf="@id/guideline_center2"
+                    app:layout_constraintTop_toBottomOf="@id/lblEndMeter" />
+
+                <TextView
+
+                    android:id="@+id/txtWaterSensor"
+                    style="?android:attr/textAppearanceMedium"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_top"
+                    app:layout_constraintEnd_toStartOf="@id/guideline_right4"
+                    app:layout_constraintStart_toEndOf="@id/guideline_right2"
+                    android:text='@{String.format("%,.0f",mItem.waterSensor)}'
+                    app:layout_constraintTop_toBottomOf="@id/txtEndMeter" />
 
                 <androidx.constraintlayout.widget.Guideline
                     android:id="@+id/guideline_left3"

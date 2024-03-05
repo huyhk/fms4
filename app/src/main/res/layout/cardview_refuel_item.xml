@@ -259,6 +259,7 @@
                     android:textSize="@dimen/medium_text"></TextView>
 
                 <TextView
+                    android:id="@+id/refuel_item_refuel_time"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="0.25"

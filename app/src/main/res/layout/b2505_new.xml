@@ -44,8 +44,86 @@
                 android:onClick="onClick"
                 android:text="@string/save" />
         </androidx.appcompat.widget.Toolbar>
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#ffffff"
+            android:padding="5dp">
+            <TextView style="?android:attr/textAppearanceMedium"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight=".25"
+                android:padding="5dp"
+                ></TextView>
+
+            <RadioGroup
+                android:layout_width="0dp"
+                android:layout_weight=".75"
+
+
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/rad_flight"
+                    style="?android:attr/textAppearanceMedium"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="@{mItem.reportType == 0}"
+                    android:onClick="onClick"
+                    android:text="@string/flight"></RadioButton>
+
+                <RadioButton
+                    android:id="@+id/rad_other"
+                    style="?android:attr/textAppearanceMedium"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="@{mItem.reportType != 0}"
+                    android:onClick="onClick"
+                    android:text="@string/other"></RadioButton>
+            </RadioGroup>
+        </TableRow>
 
         <TableRow
+            android:visibility="@{mItem.reportType == 0? View.GONE: View.VISIBLE}"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#efefef"
+            android:padding="5dp">
+            <TextView
+                style="?android:attr/textAppearanceMedium"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight=".25"
+                android:padding="5dp"
+                android:text="@string/bm2505_container_type"></TextView>
+            <Spinner
+                android:id="@+id/bm2505_container_list"
+                style="?android:attr/textAppearanceMedium"
+                android:layout_width="0dp"
+                android:layout_weight=".25"
+
+                >
+
+            </Spinner>
+            <TextView   style="?android:attr/textAppearanceMedium"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight=".25"
+                android:padding="5dp"
+                android:text="@string/bm2505_depot"></TextView>
+            <TextView android:id="@+id/bm2505_new_depot"
+                style="?android:attr/textAppearanceMedium"
+                android:layout_width="0dp"
+                android:layout_weight=".25"
+                android:hint="@string/touch_to_edit"
+                android:drawableStart="@drawable/ic_edit"
+                android:onClick="onClick"
+                android:padding="5dp"
+                android:text="@={mItem.depot}"></TextView>
+        </TableRow>
+
+        <TableRow
+            android:visibility="@{mItem.reportType != 0? View.GONE: View.VISIBLE}"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="#efefef"
@@ -222,11 +300,26 @@
                 android:padding="5dp"
                 android:text='@{String.format("%.2f",mItem.temperature)}'></TextView>
 
-            <View
+            <TextView
+                style="?android:attr/textAppearanceMedium"
                 android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_weight=".5"
-                android:visibility="invisible"></View>
+                android:layout_height="wrap_content"
+                android:layout_weight=".25"
+                android:padding="5dp"
+                android:text="@string/max_flowrate"></TextView>
+
+            <TextView
+                android:id="@+id/b2505_new_max_flowrate"
+                style="?android:attr/textAppearanceMedium"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight=".25"
+                android:drawableStart="@drawable/ic_edit"
+                android:focusable="false"
+                android:hint="@string/touch_to_edit"
+                android:onClick="onClick"
+                android:padding="5dp"
+                android:text='@{String.format("%.2f",mItem.maxFlowRate)}'></TextView>
 
         </TableRow>
 

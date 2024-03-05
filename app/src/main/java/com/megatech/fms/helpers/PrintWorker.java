@@ -8,11 +8,13 @@ import android.widget.Toast;
 import com.megatech.fms.FMSApplication;
 import com.megatech.fms.R;
 import com.megatech.fms.model.InvoiceModel;
+import com.megatech.fms.model.ReceiptItemModel;
 import com.megatech.fms.model.ReceiptModel;
 import com.megatech.tcpclient.TcpClient;
 import com.megatech.tcpclient.TcpEvent;
 
 import java.nio.CharBuffer;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Observable;
@@ -153,10 +155,13 @@ public class PrintWorker implements Observer {
         }
         return true;
     }
+
+
     public  boolean printInvoice(InvoiceModel invoiceModel)
     {
         return printInvoice(invoiceModel, false);
     }
+
 
     public boolean printInvoice(InvoiceModel invoiceModel, boolean old) {
         dataToPrint = old ? invoiceModel.createInvoiceTextOld() : invoiceModel.createInvoiceText();
@@ -199,6 +204,59 @@ public class PrintWorker implements Observer {
     public boolean printReturn(ReceiptModel receiptModel)
     {
         receitpData = receiptModel.createReturnText();
+        printReceipt = true;
+        try {
+            String printerAddress = FMSApplication.getApplication().getPrinterAddress();
+            this.mTcpClient = new TcpClient(printerAddress, PRINTER_PORT);
+            this.mTcpClient.addObserver(this);
+            this.mTcpClient.connect();
+
+        }
+        catch (Exception e)
+        {
+            Log.e("ERROR", e.toString());
+            return false;
+        }
+        return  true;
+    }
+    private String createTestData() {
+
+
+        String LS_18 = new String(new char[]{27, 51, 18});
+        String LS_24 = new String(new char[]{27, 51, 24});
+        String LS_DEFAULT = new String(new char[]{27, 50});
+        StringBuilder builder = new StringBuilder();
+
+        builder.append("------------------------------------------------------------------\n");
+        builder.append("                    PRINTER TEST FORM                             \n");
+        builder.append("                    Thử máy in                                    \n");
+        builder.append("------------------------------------------------------------------\n");
+        builder.append(String.format("No.: %-15s            (%s)\n", "TEST NUMBER", DateUtils.formatDate(new Date(), "dd/MM/yyyy")));
+        builder.append(LS_18);
+        builder.append(String.format("Buyer: %s\n", "Tên khách hàng" ));
+        builder.append(LS_DEFAULT);
+        builder.append("\n");
+        builder.append(String.format("A/C Type         : %-16s A/C reg     : %s\n", "TEST Type", "Test Code"));
+       builder.append("------------------------------------------------------------------\n");
+        builder.append("| # |  Refueler No.     |   Temp.   |   USG  |  Litter |    Kg   |\n");
+        builder.append(LS_18);
+        builder.append("|   | Start/End Meter   | Density   |        |         |         |\n");
+        builder.append(LS_DEFAULT);
+        builder.append("------------------------------------------------------------------\n");
+        int i = 1;
+
+            builder.append(String.format("|%2d |%-19s|%8.2f oC|%8.0f|%9.0f|%9.0f|\n", i++, "Test printer", 0.00, 1234.56, 7890.12, 3456.78));
+            builder.append(LS_18);
+            builder.append(String.format("|   |%9.0f/%-9.0f|%6.4f kg/l|        |         |         |\n", 234567.89, 456789.34, 0.7898));
+            builder.append(LS_DEFAULT);
+            builder.append("------------------------------------------------------------------\n");
+
+        return builder.toString();
+    }
+    public boolean printTest( )
+    {
+
+        receitpData = "Test Printer";
         printReceipt = true;
         try {
             String printerAddress = FMSApplication.getApplication().getPrinterAddress();

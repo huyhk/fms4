@@ -209,107 +209,108 @@ public class ReceiptModel extends BaseModel {
     }
 
     UserInfo user = FMSApplication.getApplication().getUser();
-
+    TruckModel setting = FMSApplication.getApplication().getSetting();
     public String createThermalText() {
         StringBuilder builder = new StringBuilder();
         int height = 80;
+        String LEFT_INDENT =setting.getThermalPrinterType() == TruckModel.THERMAL_PRINTER_TYPE.ZQ520? "^LH130,0\n": "^LH000,0\n";
         builder.append("^XA");
         builder.append("^CWZ,E:OPENSANS-RE.TTF^FS  \n" +
-                "^LH100,0\n" +
+                LEFT_INDENT +
                 "^CI28");
         builder.append("^CFZ,25\n" +
-                "^FO10," + height + "^FB600,2,0,C,0^FD" + user.getInvoiceName().toUpperCase() + "^FS\n" +
+                "^FO0," + height + "^FB600,2,0,C,0^FD" + user.getInvoiceName().toUpperCase() + "^FS\n" +
                 "^CFZ,40\n" +
-                "^FO10," + (height + 50) + "^FB600,1,0,C,0^FDFUEL DELIVERY RECEIPT^FS\n" +
-                "^FO10," + (height + 90) + "^FB600,1,0,C,0^FD(PHIẾU GIAO NHIÊN LIỆU)^FS");
+                "^FO0," + (height + 50) + "^FB600,1,0,C,0^FDFUEL DELIVERY RECEIPT^FS\n" +
+                "^FO0," + (height + 90) + "^FB600,1,0,C,0^FD(PHIẾU GIAO NHIÊN LIỆU)^FS");
         height += 140;
         builder.append("^CFZ,20\n" +
-                "^FO10," + height + "^FB600,1,0,C,0^FDReceipt No. : " + this.number + "^FS\n" +
-                "^FO10," + (height + 20)+ "^FB600,1,0,C,0^FD" + DateUtils.formatDate(this.date, "dd/MM/yyyy") + "^FS\n" +
-                "^FO10," + (height + 40) + "^GB700,1,3^FS");
-        builder.append("^CFZ,30");
+                "^FO0," + height + "^FB600,1,0,C,0^FDReceipt No. : " + this.number + "^FS\n" +
+                "^FO0," + (height + 20)+ "^FB600,1,0,C,0^FD" + DateUtils.formatDate(this.date, "dd/MM/yyyy") + "^FS\n" +
+                "^FO0," + (height + 40) + "^GB700,1,3^FS");
+        builder.append("^CFZ,27");
         height += 50;
         int nameLines = (int) Math.ceil(this.customerName.length() *1.0 / 18);
-        builder.append("^FO10," + height + "^FB250,1,0,L,0^FDBuyer ^FS\n" +
-                "^FO260," + height + "^FB10,1,0,C,0^FD:^FS\n" +
-                "^FO270," + height + "^FB350," + nameLines + ",0,L,0^FD" + this.customerName + "^FS");
+        builder.append("^FO0," + height + "^FB250,1,0,L,0^FDBuyer ^FS\n" +
+                "^FO240," + height + "^FB10,1,0,C,0^FD:^FS\n" +
+                "^FO250," + height + "^FB320," + nameLines + ",0,L,0^FD" + this.customerName + "^FS");
 
         height += nameLines * 30;
-        builder.append("^FO10," + height + "^FB250,1,0,L,0^FDFlight No.        ^FS\n" +
-                "^FO260," + height + "^FB10,1,0,C,0^FD:^FS\n" +
-                "^FO270," + height + "^FB350,1,0,R,0^FD" + flightCode + "^FS\n" +
-                "^FO10," + (height + 30) + "^FB250,1,0,L,0^FDRoute        ^FS\n" +
-                "^FO260," + (height + 30) + "^FB10,1,0,C,0^FD:^FS\n" +
-                "^FO270," + (height + 30) + "^FB350,1,0,R,0^FD" + routeName + "^FS\n" +
-                "^FO10," + (height + 60) + "^FB250,1,0,L,0^FDA/C Type        ^FS\n" +
-                "^FO260," + (height + 60) + "^FB10,1,0,C,0^FD:^FS\n" +
-                "^FO270," + (height + 60) + "^FB350,1,0,R,0^FD" + aircraftType + "^FS\n" +
-                "^FO10," + (height + 90) + "^FB250,1,0,L,0^FDA/C Reg        ^FS\n" +
-                "^FO260," + (height + 90) + "^FB10,1,0,C,0^FD:^FS\n" +
-                "^FO270," + (height + 90) + "^FB350,1,0,R,0^FD" + aircraftCode + "^FS\n" +
-                "^FO10," + (height + 120) + "^FB250,1,0,L,0^FDCert No.        ^FS\n" +
-                "^FO260," + (height + 120) + "^FB10,1,0,C,0^FD:^FS\n" +
-                "^FO270," + (height + 120) + "^FB350,1,0,R,0^FD" + qualityNo + "^FS\n" +
-                "^FO10," + (height + 150) + "^FB250,1,0,L,0^FDStart Time        ^FS\n" +
-                "^FO260," + (height + 150) + "^FB10,1,0,C,0^FD:^FS\n" +
-                "^FO270," + (height + 150) + "^FB350,1,0,R,0^FD" + DateUtils.formatDate(startTime, "HH:mm dd/MM/yyyy") + "^FS\n" +
-                "^FO10," + (height + 180) + "^FB250,1,0,L,0^FDEnd Time        ^FS\n" +
-                "^FO260," + (height + 180) + "^FB10,1,0,C,0^FD:^FS\n" +
-                "^FO270," + (height + 180) + "^FB350,1,0,R,0^FD" + DateUtils.formatDate(endTime, "HH:mm dd/MM/yyyy") + "^FS\n" +
-                "^FO10," + (height + 210) + "^FB250,1,0,L,0^FDProduct Name        ^FS\n" +
-                "^FO260," + (height + 210) + "^FB10,1,0,C,0^FD:^FS\n" +
-                "^FO270," + (height + 210) + "^FB350,1,0,R,0^FDJet A-1^FS\n" +
-                "^FO10," + (height + 240) + "^FB250,1,0,L,0^FDRefueling Method^FS\n" +
-                "^FO260," + (height + 240) + "^FB10,1,0,C,0^FD:^FS\n" +
-                "^FO270," + (height + 240) + "^FB350,1,0,R,0^FD" + (isFHS ? "FHS" : "Refueler") + "^FS  \n" +
-                "^FO10," + (height + 270) + "^GB700,1,3^FS");
+        builder.append("^FO0," + height + "^FB250,1,0,L,0^FDFlight No.        ^FS\n" +
+                "^FO240," + height + "^FB10,1,0,C,0^FD:^FS\n" +
+                "^FO250," + height + "^FB320,1,0,R,0^FD" + flightCode + "^FS\n" +
+                "^FO0," + (height + 30) + "^FB250,1,0,L,0^FDRoute        ^FS\n" +
+                "^FO240," + (height + 30) + "^FB10,1,0,C,0^FD:^FS\n" +
+                "^FO250," + (height + 30) + "^FB320,1,0,R,0^FD" + routeName + "^FS\n" +
+                "^FO0," + (height + 60) + "^FB250,1,0,L,0^FDA/C Type        ^FS\n" +
+                "^FO240," + (height + 60) + "^FB10,1,0,C,0^FD:^FS\n" +
+                "^FO250," + (height + 60) + "^FB320,1,0,R,0^FD" + aircraftType + "^FS\n" +
+                "^FO0," + (height + 90) + "^FB250,1,0,L,0^FDA/C Reg        ^FS\n" +
+                "^FO240," + (height + 90) + "^FB10,1,0,C,0^FD:^FS\n" +
+                "^FO250," + (height + 90) + "^FB320,1,0,R,0^FD" + aircraftCode + "^FS\n" +
+                "^FO0," + (height + 120) + "^FB250,1,0,L,0^FDCert No.        ^FS\n" +
+                "^FO240," + (height + 120) + "^FB10,1,0,C,0^FD:^FS\n" +
+                "^FO250," + (height + 120) + "^FB320,1,0,R,0^FD" + qualityNo + "^FS\n" +
+                "^FO0," + (height + 150) + "^FB250,1,0,L,0^FDStart Time        ^FS\n" +
+                "^FO240," + (height + 150) + "^FB10,1,0,C,0^FD:^FS\n" +
+                "^FO250," + (height + 150) + "^FB320,1,0,R,0^FD" + DateUtils.formatDate(startTime, "HH:mm dd/MM/yyyy") + "^FS\n" +
+                "^FO0," + (height + 180) + "^FB250,1,0,L,0^FDEnd Time        ^FS\n" +
+                "^FO240," + (height + 180) + "^FB10,1,0,C,0^FD:^FS\n" +
+                "^FO250," + (height + 180) + "^FB320,1,0,R,0^FD" + DateUtils.formatDate(endTime, "HH:mm dd/MM/yyyy") + "^FS\n" +
+                "^FO0," + (height + 210) + "^FB250,1,0,L,0^FDProduct Name        ^FS\n" +
+                "^FO240," + (height + 210) + "^FB10,1,0,C,0^FD:^FS\n" +
+                "^FO250," + (height + 210) + "^FB320,1,0,R,0^FDJet A-1^FS\n" +
+                "^FO0," + (height + 240) + "^FB250,1,0,L,0^FDRefueling Method^FS\n" +
+                "^FO240," + (height + 240) + "^FB10,1,0,C,0^FD:^FS\n" +
+                "^FO250," + (height + 240) + "^FB320,1,0,R,0^FD" + (isFHS ? "FHS" : "Refueler") + "^FS  \n" +
+                "^FO0," + (height + 270) + "^GB700,1,3^FS");
         height = height + 270 + 10;
         builder.append("^CFZ,40\n" +
-                "^FO10," + height + "^FB600,1,0,C,0^FDDETAIL^FS\n" +
-                "^FO10," + (height + 40) + "^GB700,1,3^FS");
+                "^FO0," + height + "^FB600,1,0,C,0^FDDETAIL^FS\n" +
+                "^FO0," + (height + 40) + "^GB700,1,3^FS");
 
         height = height + 50;
         builder.append("^CFZ,30");
         int i = 1;
 
         for (ReceiptItemModel item : items) {
-            builder.append("^FO10," + height + "^FB250,1,0,L,0^FD#        ^FS\n" +
-                    "^FO260," + height + "^FB10,1,0,C,0^FD:^FS\n" +
-                    "^FO270," + height + "^FB350,1,0,R,0^FD" + i + "^FS");
+            builder.append("^FO0," + height + "^FB250,1,0,L,0^FD#        ^FS\n" +
+                    "^FO240," + height + "^FB10,1,0,C,0^FD:^FS\n" +
+                    "^FO250," + height + "^FB320,1,0,R,0^FD" + i + "^FS");
             height += 30;
-            builder.append("^FO10," + height + "^FB250,1,0,L,0^FDRefueler No.        ^FS\n" +
-                    "^FO260," + height + "^FB10,1,0,C,0^FD:^FS\n" +
-                    "^FO270," + height + "^FB350,1,0,R,0^FD" + item.getTruckNo() + "^FS");
+            builder.append("^FO0," + height + "^FB250,1,0,L,0^FDRefueler No.        ^FS\n" +
+                    "^FO240," + height + "^FB10,1,0,C,0^FD:^FS\n" +
+                    "^FO250," + height + "^FB320,1,0,R,0^FD" + item.getTruckNo() + "^FS");
             height += 30;
-            builder.append("^FO10," + height + "^FB250,1,0,L,0^FDStart Meter        ^FS\n" +
-                    "^FO260," + height + "^FB10,1,0,C,0^FD:^FS\n" +
-                    "^FO270," + height + "^FB350,1,0,R,0^FD" + String.format("%.0f", item.getStartNumber()) + "^FS");
+            builder.append("^FO0," + height + "^FB250,1,0,L,0^FDStart Meter        ^FS\n" +
+                    "^FO240," + height + "^FB10,1,0,C,0^FD:^FS\n" +
+                    "^FO250," + height + "^FB320,1,0,R,0^FD" + String.format("%.0f", item.getStartNumber()) + "^FS");
             height += 30;
-            builder.append("^FO10," + height + "^FB250,1,0,L,0^FDEnd Meter        ^FS\n" +
-                    "^FO260," + height + "^FB10,1,0,C,0^FD:^FS\n" +
-                    "^FO270," + height + "^FB350,1,0,R,0^FD" + String.format("%.0f", item.getEndNumber()) + "^FS");
+            builder.append("^FO0," + height + "^FB250,1,0,L,0^FDEnd Meter        ^FS\n" +
+                    "^FO240," + height + "^FB10,1,0,C,0^FD:^FS\n" +
+                    "^FO250," + height + "^FB320,1,0,R,0^FD" + String.format("%.0f", item.getEndNumber()) + "^FS");
             height += 30;
-            builder.append("^FO10," + height + "^FB250,1,0,L,0^FDTemp.(°C)       ^FS\n" +
-                    "^FO260," + height + "^FB10,1,0,C,0^FD:^FS\n" +
-                    "^FO270," + height + "^FB350,1,0,R,0^FD" + String.format("%.2f", item.getTemperature()) + "^FS");
+            builder.append("^FO0," + height + "^FB250,1,0,L,0^FDTemp.(°C)       ^FS\n" +
+                    "^FO240," + height + "^FB10,1,0,C,0^FD:^FS\n" +
+                    "^FO250," + height + "^FB320,1,0,R,0^FD" + String.format("%.2f", item.getTemperature()) + "^FS");
             height += 30;
-            builder.append("^FO10," + height + "^FB250,1,0,L,0^FDDensity(kg/l)      ^FS\n" +
-                    "^FO260," + height + "^FB10,1,0,C,0^FD:^FS\n" +
-                    "^FO270," + height + "^FB350,1,0,R,0^FD" + String.format("%.4f", item.getDensity()) + "^FS");
+            builder.append("^FO0," + height + "^FB250,1,0,L,0^FDDensity(kg/l)      ^FS\n" +
+                    "^FO240," + height + "^FB10,1,0,C,0^FD:^FS\n" +
+                    "^FO250," + height + "^FB320,1,0,R,0^FD" + String.format("%.4f", item.getDensity()) + "^FS");
             height += 30;
-            builder.append("^FO10," + height + "^FB250,1,0,L,0^FDUSG      ^FS\n" +
-                    "^FO260," + height + "^FB10,1,0,C,0^FD:^FS\n" +
-                    "^FO270," + height + "^FB350,1,0,R,0^FD" + String.format("%.0f", item.getGallon()) + "^FS");
+            builder.append("^FO0," + height + "^FB250,1,0,L,0^FDUSG      ^FS\n" +
+                    "^FO240," + height + "^FB10,1,0,C,0^FD:^FS\n" +
+                    "^FO250," + height + "^FB320,1,0,R,0^FD" + String.format("%.0f", item.getGallon()) + "^FS");
             height += 30;
-            builder.append("^FO10," + height + "^FB250,1,0,L,0^FDLiter      ^FS\n" +
-                    "^FO260," + height + "^FB10,1,0,C,0^FD:^FS\n" +
-                    "^FO270," + height + "^FB350,1,0,R,0^FD" + String.format("%.0f", item.getVolume()) + "^FS");
+            builder.append("^FO0," + height + "^FB250,1,0,L,0^FDLiter      ^FS\n" +
+                    "^FO240," + height + "^FB10,1,0,C,0^FD:^FS\n" +
+                    "^FO250," + height + "^FB320,1,0,R,0^FD" + String.format("%.0f", item.getVolume()) + "^FS");
             height += 30;
-            builder.append("^FO10," + height + "^FB250,1,0,L,0^FDKg      ^FS\n" +
-                    "^FO260," + height + "^FB10,1,0,C,0^FD:^FS\n" +
-                    "^FO270," + height + "^FB350,1,0,R,0^FD" + String.format("%.0f", item.getWeight()) + "^FS");
+            builder.append("^FO0," + height + "^FB250,1,0,L,0^FDKg      ^FS\n" +
+                    "^FO240," + height + "^FB10,1,0,C,0^FD:^FS\n" +
+                    "^FO250," + height + "^FB320,1,0,R,0^FD" + String.format("%.0f", item.getWeight()) + "^FS");
             height += 30;
-            builder.append(" \"^FO10," + height + "^GB700,1,3^FS\"");
+            builder.append(" \"^FO0," + height + "^GB700,1,3^FS\"");
             height += 10;
             i++;
 
@@ -317,33 +318,33 @@ public class ReceiptModel extends BaseModel {
 
 
         builder.append("^CFZ,40\n" +
-                "^FO10," + height + "^FB600,1,0,C,0^FDTOTAL^FS");
+                "^FO0," + height + "^FB600,1,0,C,0^FDTOTAL^FS");
         height += 40;
-        builder.append("^FO10," + height + "^GB700,1,3^FS");
+        builder.append("^FO0," + height + "^GB700,1,3^FS");
         builder.append("^CFZ,30\n");
         height += 10;
-        builder.append("^FO10," + height + "^FB250,1,0,L,0^FDUSG      ^FS\n" +
-                "^FO260," + height + "^FB10,1,0,C,0^FD:^FS\n" +
-                "^FO270," + height + "^FB350,1,0,R,0^FD" + String.format("%.0f", gallon) + "^FS");
+        builder.append("^FO0," + height + "^FB250,1,0,L,0^FDUSG      ^FS\n" +
+                "^FO240," + height + "^FB10,1,0,C,0^FD:^FS\n" +
+                "^FO250," + height + "^FB320,1,0,R,0^FD" + String.format("%.0f", gallon) + "^FS");
         height += 30;
-        builder.append("^FO10," + height + "^FB250,1,0,L,0^FDLiter      ^FS\n" +
-                "^FO260," + height + "^FB10,1,0,C,0^FD:^FS\n" +
-                "^FO270," + height + "^FB350,1,0,R,0^FD" + String.format("%.0f", volume) + "^FS");
+        builder.append("^FO0," + height + "^FB250,1,0,L,0^FDLiter      ^FS\n" +
+                "^FO240," + height + "^FB10,1,0,C,0^FD:^FS\n" +
+                "^FO250," + height + "^FB320,1,0,R,0^FD" + String.format("%.0f", volume) + "^FS");
         height += 30;
-        builder.append("^FO10," + height + "^FB250,1,0,L,0^FDKg      ^FS\n" +
-                "^FO260," + height + "^FB10,1,0,C,0^FD:^FS\n" +
-                "^FO270," + height + "^FB350,1,0,R,0^FD" + String.format("%.0f", weight) + "^FS");
+        builder.append("^FO0," + height + "^FB250,1,0,L,0^FDKg      ^FS\n" +
+                "^FO240," + height + "^FB10,1,0,C,0^FD:^FS\n" +
+                "^FO250," + height + "^FB320,1,0,R,0^FD" + String.format("%.0f", weight) + "^FS");
         height += 30;
-        builder.append("^FO10," + height + "^GB700,1,3^FS");
+        builder.append("^FO0," + height + "^GB700,1,3^FS");
         height += 10;
-        builder.append("^FO10," + height + "^FB600,1,0,C,0^FDBuyer^FS");
+        builder.append("^FO0," + height + "^FB600,1,0,C,0^FDBuyer^FS");
         //print signature
         if (signaturePath != null) {
             height += 20;
             builder.append("^FO150," + height + "^XGE:BUYER.GRF,1,1^FS");
         }
         height += 200;
-        builder.append("^FO10," + height + "^FB600,1,0,C,0^FDSeller^FS");
+        builder.append("^FO0," + height + "^FB600,1,0,C,0^FDSeller^FS");
 
         if (sellerSignaturePath != null) {
             height += 20;
@@ -361,103 +362,104 @@ public class ReceiptModel extends BaseModel {
     public String createReturnThermalText() {
         StringBuilder builder = new StringBuilder();
         int height = 80;
+        String LEFT_INDENT =setting.getThermalPrinterType() == TruckModel.THERMAL_PRINTER_TYPE.ZQ520? "^LH130,0\n": "^LH000,0\n";
         builder.append("^XA");
         builder.append("^CWZ,E:OPENSANS-RE.TTF^FS  \n" +
-                "^LH100,0\n" +
+               LEFT_INDENT +
                 "^CI28");
         builder.append("^CFZ,25\n" +
-                "^FO10," + height + "^FB600,2,0,C,0^FD" + user.getInvoiceName().toUpperCase() + "^FS\n" +
+                "^FO0," + height + "^FB600,2,0,C,0^FD" + user.getInvoiceName().toUpperCase() + "^FS\n" +
                 "^CFZ,40\n" +
-                "^FO10," + (height + 50) + "^FB600,1,0,C,0^FDFUEL RETURNING FORM^FS\n" +
-                "^FO10," + (height + 90) + "^FB600,1,0,C,0^FD(PHIẾU HOÀN TRẢ NHIÊN LIỆU)^FS");
+                "^FO0," + (height + 50) + "^FB600,1,0,C,0^FDFUEL RETURNING FORM^FS\n" +
+                "^FO0," + (height + 90) + "^FB600,1,0,C,0^FD(PHIẾU HOÀN TRẢ NHIÊN LIỆU)^FS");
         height += 140;
         builder.append("^CFZ,20\n" +
-                "^FO10," + height + "^FB600,1,0,C,0^FDReceipt No. : " + this.number + "^FS\n" +
-                "^FO10," + (height + 20)+ "^FB600,1,0,C,0^FD" + DateUtils.formatDate(this.date, "dd/MM/yyyy") + "^FS\n" +
-                "^FO10," + (height + 40) + "^GB700,1,3^FS");
+                "^FO0," + height + "^FB600,1,0,C,0^FDReceipt No. : " + this.number + "^FS\n" +
+                "^FO0," + (height + 20)+ "^FB600,1,0,C,0^FD" + DateUtils.formatDate(this.date, "dd/MM/yyyy") + "^FS\n" +
+                "^FO0," + (height + 40) + "^GB700,1,3^FS");
         builder.append("^CFZ,30");
         height += 50;
         int nameLines = (int) Math.ceil(this.customerName.length() *1.0 / 18);
-        builder.append("^FO10," + height + "^FB250,1,0,L,0^FDBuyer ^FS\n" +
-                "^FO260," + height + "^FB10,1,0,C,0^FD:^FS\n" +
-                "^FO270," + height + "^FB350," + nameLines + ",0,L,0^FD" + this.customerName + "^FS");
+        builder.append("^FO0," + height + "^FB250,1,0,L,0^FDBuyer ^FS\n" +
+                "^FO240," + height + "^FB10,1,0,C,0^FD:^FS\n" +
+                "^FO250," + height + "^FB320," + nameLines + ",0,L,0^FD" + this.customerName + "^FS");
 
         height += nameLines * 30;
-        builder.append("^FO10," + height + "^FB250,1,0,L,0^FDFlight No.        ^FS\n" +
-                "^FO260," + height + "^FB10,1,0,C,0^FD:^FS\n" +
-                "^FO270," + height + "^FB350,1,0,R,0^FD" + flightCode + "^FS\n" +
-                "^FO10," + (height + 30) + "^FB250,1,0,L,0^FDRoute        ^FS\n" +
-                "^FO260," + (height + 30) + "^FB10,1,0,C,0^FD:^FS\n" +
-                "^FO270," + (height + 30) + "^FB350,1,0,R,0^FD" + routeName + "^FS\n" +
-                "^FO10," + (height + 60) + "^FB250,1,0,L,0^FDA/C Type        ^FS\n" +
-                "^FO260," + (height + 60) + "^FB10,1,0,C,0^FD:^FS\n" +
-                "^FO270," + (height + 60) + "^FB350,1,0,R,0^FD" + aircraftType + "^FS\n" +
-                "^FO10," + (height + 90) + "^FB250,1,0,L,0^FDA/C Reg        ^FS\n" +
-                "^FO260," + (height + 90) + "^FB10,1,0,C,0^FD:^FS\n" +
-                "^FO270," + (height + 90) + "^FB350,1,0,R,0^FD" + aircraftCode + "^FS\n" +
-                "^FO10," + (height + 120) + "^FB250,1,0,L,0^FDCert No.        ^FS\n" +
-                "^FO260," + (height + 120) + "^FB10,1,0,C,0^FD:^FS\n" +
-                "^FO270," + (height + 120) + "^FB350,1,0,R,0^FD" + qualityNo + "^FS\n" +
-                "^FO10," + (height + 150) + "^FB250,1,0,L,0^FDStart Time        ^FS\n" +
-                "^FO260," + (height + 150) + "^FB10,1,0,C,0^FD:^FS\n" +
-                "^FO270," + (height + 150) + "^FB350,1,0,R,0^FD" + DateUtils.formatDate(startTime, "HH:mm dd/MM/yyyy") + "^FS\n" +
-                "^FO10," + (height + 180) + "^FB250,1,0,L,0^FDEnd Time        ^FS\n" +
-                "^FO260," + (height + 180) + "^FB10,1,0,C,0^FD:^FS\n" +
-                "^FO270," + (height + 180) + "^FB350,1,0,R,0^FD" + DateUtils.formatDate(endTime, "HH:mm dd/MM/yyyy") + "^FS\n" +
-                "^FO10," + (height + 210) + "^FB250,1,0,L,0^FDProduct Name        ^FS\n" +
-                "^FO260," + (height + 210) + "^FB10,1,0,C,0^FD:^FS\n" +
-                "^FO270," + (height + 210) + "^FB350,1,0,R,0^FDJet A-1^FS\n" +
-                "^FO10," + (height + 240) + "^FB250,1,0,L,0^FDRefueling Method^FS\n" +
-                "^FO260," + (height + 240) + "^FB10,1,0,C,0^FD:^FS\n" +
-                "^FO270," + (height + 240) + "^FB350,1,0,R,0^FD" + (isFHS ? "FHS" : "Refueler") + "^FS  \n" +
-                "^FO10," + (height + 270) + "^GB700,1,3^FS");
+        builder.append("^FO0," + height + "^FB250,1,0,L,0^FDFlight No.        ^FS\n" +
+                "^FO240," + height + "^FB10,1,0,C,0^FD:^FS\n" +
+                "^FO250," + height + "^FB320,1,0,R,0^FD" + flightCode + "^FS\n" +
+                "^FO0," + (height + 30) + "^FB250,1,0,L,0^FDRoute        ^FS\n" +
+                "^FO240," + (height + 30) + "^FB10,1,0,C,0^FD:^FS\n" +
+                "^FO250," + (height + 30) + "^FB320,1,0,R,0^FD" + routeName + "^FS\n" +
+                "^FO0," + (height + 60) + "^FB250,1,0,L,0^FDA/C Type        ^FS\n" +
+                "^FO240," + (height + 60) + "^FB10,1,0,C,0^FD:^FS\n" +
+                "^FO250," + (height + 60) + "^FB320,1,0,R,0^FD" + aircraftType + "^FS\n" +
+                "^FO0," + (height + 90) + "^FB250,1,0,L,0^FDA/C Reg        ^FS\n" +
+                "^FO240," + (height + 90) + "^FB10,1,0,C,0^FD:^FS\n" +
+                "^FO250," + (height + 90) + "^FB320,1,0,R,0^FD" + aircraftCode + "^FS\n" +
+                "^FO0," + (height + 120) + "^FB250,1,0,L,0^FDCert No.        ^FS\n" +
+                "^FO240," + (height + 120) + "^FB10,1,0,C,0^FD:^FS\n" +
+                "^FO250," + (height + 120) + "^FB320,1,0,R,0^FD" + qualityNo + "^FS\n" +
+                "^FO0," + (height + 150) + "^FB250,1,0,L,0^FDStart Time        ^FS\n" +
+                "^FO240," + (height + 150) + "^FB10,1,0,C,0^FD:^FS\n" +
+                "^FO250," + (height + 150) + "^FB320,1,0,R,0^FD" + DateUtils.formatDate(startTime, "HH:mm dd/MM/yyyy") + "^FS\n" +
+                "^FO0," + (height + 180) + "^FB250,1,0,L,0^FDEnd Time        ^FS\n" +
+                "^FO240," + (height + 180) + "^FB10,1,0,C,0^FD:^FS\n" +
+                "^FO250," + (height + 180) + "^FB320,1,0,R,0^FD" + DateUtils.formatDate(endTime, "HH:mm dd/MM/yyyy") + "^FS\n" +
+                "^FO0," + (height + 210) + "^FB250,1,0,L,0^FDProduct Name        ^FS\n" +
+                "^FO240," + (height + 210) + "^FB10,1,0,C,0^FD:^FS\n" +
+                "^FO250," + (height + 210) + "^FB320,1,0,R,0^FDJet A-1^FS\n" +
+                "^FO0," + (height + 240) + "^FB250,1,0,L,0^FDRefueling Method^FS\n" +
+                "^FO240," + (height + 240) + "^FB10,1,0,C,0^FD:^FS\n" +
+                "^FO250," + (height + 240) + "^FB320,1,0,R,0^FD" + (isFHS ? "FHS" : "Refueler") + "^FS  \n" +
+                "^FO0," + (height + 270) + "^GB700,1,3^FS");
         height = height + 270 + 10;
         builder.append("^CFZ,40\n" +
-                "^FO10," + height + "^FB600,1,0,C,0^FDDETAIL^FS\n" +
-                "^FO10," + (height + 40) + "^GB700,1,3^FS");
+                "^FO0," + height + "^FB600,1,0,C,0^FDDETAIL^FS\n" +
+                "^FO0," + (height + 40) + "^GB700,1,3^FS");
 
         height = height + 50;
         builder.append("^CFZ,30");
         int i = 1;
 
         for (ReceiptItemModel item : items) {
-            builder.append("^FO10," + height + "^FB250,1,0,L,0^FD#        ^FS\n" +
-                    "^FO260," + height + "^FB10,1,0,C,0^FD:^FS\n" +
-                    "^FO270," + height + "^FB350,1,0,R,0^FD" + i + "^FS");
+            builder.append("^FO0," + height + "^FB250,1,0,L,0^FD#        ^FS\n" +
+                    "^FO240," + height + "^FB10,1,0,C,0^FD:^FS\n" +
+                    "^FO250," + height + "^FB320,1,0,R,0^FD" + i + "^FS");
             height += 30;
-            builder.append("^FO10," + height + "^FB250,1,0,L,0^FDRefueler No.        ^FS\n" +
-                    "^FO260," + height + "^FB10,1,0,C,0^FD:^FS\n" +
-                    "^FO270," + height + "^FB350,1,0,R,0^FD" + item.getTruckNo() + "^FS");
+            builder.append("^FO0," + height + "^FB250,1,0,L,0^FDRefueler No.        ^FS\n" +
+                    "^FO240," + height + "^FB10,1,0,C,0^FD:^FS\n" +
+                    "^FO250," + height + "^FB320,1,0,R,0^FD" + item.getTruckNo() + "^FS");
             height += 30;
-            builder.append("^FO10," + height + "^FB250,1,0,L,0^FDStart Meter        ^FS\n" +
-                    "^FO260," + height + "^FB10,1,0,C,0^FD:^FS\n" +
-                    "^FO270," + height + "^FB350,1,0,R,0^FD" + String.format("%.0f", item.getStartNumber()) + "^FS");
+            builder.append("^FO0," + height + "^FB250,1,0,L,0^FDStart Meter        ^FS\n" +
+                    "^FO240," + height + "^FB10,1,0,C,0^FD:^FS\n" +
+                    "^FO250," + height + "^FB320,1,0,R,0^FD" + String.format("%.0f", item.getStartNumber()) + "^FS");
             height += 30;
-            builder.append("^FO10," + height + "^FB250,1,0,L,0^FDEnd Meter        ^FS\n" +
-                    "^FO260," + height + "^FB10,1,0,C,0^FD:^FS\n" +
-                    "^FO270," + height + "^FB350,1,0,R,0^FD" + String.format("%.0f", item.getEndNumber()) + "^FS");
+            builder.append("^FO0," + height + "^FB250,1,0,L,0^FDEnd Meter        ^FS\n" +
+                    "^FO240," + height + "^FB10,1,0,C,0^FD:^FS\n" +
+                    "^FO250," + height + "^FB320,1,0,R,0^FD" + String.format("%.0f", item.getEndNumber()) + "^FS");
             height += 30;
-            builder.append("^FO10," + height + "^FB250,1,0,L,0^FDTemp.(°C)       ^FS\n" +
-                    "^FO260," + height + "^FB10,1,0,C,0^FD:^FS\n" +
-                    "^FO270," + height + "^FB350,1,0,R,0^FD" + String.format("%.2f", item.getTemperature()) + "^FS");
+            builder.append("^FO0," + height + "^FB250,1,0,L,0^FDTemp.(°C)       ^FS\n" +
+                    "^FO240," + height + "^FB10,1,0,C,0^FD:^FS\n" +
+                    "^FO250," + height + "^FB320,1,0,R,0^FD" + String.format("%.2f", item.getTemperature()) + "^FS");
             height += 30;
-            builder.append("^FO10," + height + "^FB250,1,0,L,0^FDDensity(kg/l)      ^FS\n" +
-                    "^FO260," + height + "^FB10,1,0,C,0^FD:^FS\n" +
-                    "^FO270," + height + "^FB350,1,0,R,0^FD" + String.format("%.4f", item.getDensity()) + "^FS");
+            builder.append("^FO0," + height + "^FB250,1,0,L,0^FDDensity(kg/l)      ^FS\n" +
+                    "^FO240," + height + "^FB10,1,0,C,0^FD:^FS\n" +
+                    "^FO250," + height + "^FB320,1,0,R,0^FD" + String.format("%.4f", item.getDensity()) + "^FS");
             height += 30;
-            builder.append("^FO10," + height + "^FB250,1,0,L,0^FDUSG      ^FS\n" +
-                    "^FO260," + height + "^FB10,1,0,C,0^FD:^FS\n" +
-                    "^FO270," + height + "^FB350,1,0,R,0^FD" + String.format("%.0f", item.getGallon()) + "^FS");
+            builder.append("^FO0," + height + "^FB250,1,0,L,0^FDUSG      ^FS\n" +
+                    "^FO240," + height + "^FB10,1,0,C,0^FD:^FS\n" +
+                    "^FO250," + height + "^FB320,1,0,R,0^FD" + String.format("%.0f", item.getGallon()) + "^FS");
             height += 30;
-            builder.append("^FO10," + height + "^FB250,1,0,L,0^FDLiter      ^FS\n" +
-                    "^FO260," + height + "^FB10,1,0,C,0^FD:^FS\n" +
-                    "^FO270," + height + "^FB350,1,0,R,0^FD" + String.format("%.0f", item.getVolume()) + "^FS");
+            builder.append("^FO0," + height + "^FB250,1,0,L,0^FDLiter      ^FS\n" +
+                    "^FO240," + height + "^FB10,1,0,C,0^FD:^FS\n" +
+                    "^FO250," + height + "^FB320,1,0,R,0^FD" + String.format("%.0f", item.getVolume()) + "^FS");
             height += 30;
-            builder.append("^FO10," + height + "^FB250,1,0,L,0^FDKg      ^FS\n" +
-                    "^FO260," + height + "^FB10,1,0,C,0^FD:^FS\n" +
-                    "^FO270," + height + "^FB350,1,0,R,0^FD" + String.format("%.0f", item.getWeight()) + "^FS");
+            builder.append("^FO0," + height + "^FB250,1,0,L,0^FDKg      ^FS\n" +
+                    "^FO240," + height + "^FB10,1,0,C,0^FD:^FS\n" +
+                    "^FO250," + height + "^FB320,1,0,R,0^FD" + String.format("%.0f", item.getWeight()) + "^FS");
             height += 30;
-            builder.append(" \"^FO10," + height + "^GB700,1,3^FS\"");
+            builder.append(" \"^FO0," + height + "^GB700,1,3^FS\"");
             height += 10;
             i++;
 
@@ -465,33 +467,33 @@ public class ReceiptModel extends BaseModel {
 
 
         builder.append("^CFZ,40\n" +
-                "^FO10," + height + "^FB600,1,0,C,0^FDTOTAL^FS");
+                "^FO0," + height + "^FB600,1,0,C,0^FDTOTAL^FS");
         height += 40;
-        builder.append("^FO10," + height + "^GB700,1,3^FS");
+        builder.append("^FO0," + height + "^GB700,1,3^FS");
         builder.append("^CFZ,30\n");
         height += 10;
-        builder.append("^FO10," + height + "^FB250,1,0,L,0^FDUSG      ^FS\n" +
-                "^FO260," + height + "^FB10,1,0,C,0^FD:^FS\n" +
-                "^FO270," + height + "^FB350,1,0,R,0^FD" + String.format("%.0f", gallon) + "^FS");
+        builder.append("^FO0," + height + "^FB250,1,0,L,0^FDUSG      ^FS\n" +
+                "^FO240," + height + "^FB10,1,0,C,0^FD:^FS\n" +
+                "^FO250," + height + "^FB320,1,0,R,0^FD" + String.format("%.0f", gallon) + "^FS");
         height += 30;
-        builder.append("^FO10," + height + "^FB250,1,0,L,0^FDLiter      ^FS\n" +
-                "^FO260," + height + "^FB10,1,0,C,0^FD:^FS\n" +
-                "^FO270," + height + "^FB350,1,0,R,0^FD" + String.format("%.0f", volume) + "^FS");
+        builder.append("^FO0," + height + "^FB250,1,0,L,0^FDLiter      ^FS\n" +
+                "^FO240," + height + "^FB10,1,0,C,0^FD:^FS\n" +
+                "^FO250," + height + "^FB320,1,0,R,0^FD" + String.format("%.0f", volume) + "^FS");
         height += 30;
-        builder.append("^FO10," + height + "^FB250,1,0,L,0^FDKg      ^FS\n" +
-                "^FO260," + height + "^FB10,1,0,C,0^FD:^FS\n" +
-                "^FO270," + height + "^FB350,1,0,R,0^FD" + String.format("%.0f", weight) + "^FS");
+        builder.append("^FO0," + height + "^FB250,1,0,L,0^FDKg      ^FS\n" +
+                "^FO240," + height + "^FB10,1,0,C,0^FD:^FS\n" +
+                "^FO250," + height + "^FB320,1,0,R,0^FD" + String.format("%.0f", weight) + "^FS");
         height += 30;
-        builder.append("^FO10," + height + "^GB700,1,3^FS");
+        builder.append("^FO0," + height + "^GB700,1,3^FS");
         height += 10;
-        builder.append("^FO10," + height + "^FB600,1,0,C,0^FDBuyer^FS");
+        builder.append("^FO0," + height + "^FB600,1,0,C,0^FDBuyer^FS");
         //print signature
         if (signaturePath != null) {
             height += 20;
             builder.append("^FO150," + height + "^XGE:BUYER.GRF,1,1^FS");
         }
         height += 200;
-        builder.append("^FO10," + height + "^FB600,1,0,C,0^FDSeller^FS");
+        builder.append("^FO0," + height + "^FB600,1,0,C,0^FDSeller^FS");
 
         if (sellerSignaturePath != null) {
             height += 20;

@@ -16,18 +16,27 @@ public class TruckFuelModel extends BaseModel {
     private String maintenanceStaff;
     private String qcNo;
     private Date time;
+    private Date startTime;
+    private Date endTime;
     private int operatorId;
     private String operatorName;
     private double amount; //litter
     private double accumulatedRefuelAmount;//litter
     private double truckCapacity;
 
+    private Date testStartTime;
+    private Date testEndTime;
+    private boolean testResult = true;
+
+    private double flowRate = 0;
     public TruckFuelModel() {
         TruckModel setting = FMSApplication.getApplication().getSetting();
         this.truckId = setting.getTruckId();
         this.truckNo = setting.getTruckNo();
         this.qcNo = FMSApplication.getApplication().getQCNo();
-        this.time = new Date();
+        this.startTime = this.endTime = this.time = new Date();
+        this.testStartTime = this.testEndTime =  new Date();
+
     }
 
     public int getTruckId() {
@@ -124,5 +133,53 @@ public class TruckFuelModel extends BaseModel {
 
     public void setTruckCapacity(double truckCapacity) {
         this.truckCapacity = truckCapacity;
+    }
+
+    public Date getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(Date startTime) {
+        this.startTime = startTime;
+    }
+
+    public Date getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(Date endTime) {
+        this.endTime = endTime;
+    }
+
+    public Date getTestStartTime() {
+        return testStartTime;
+    }
+
+    public void setTestStartTime(Date testStartTime) {
+        this.testStartTime = testStartTime;
+    }
+
+    public Date getTestEndTime() {
+        return testEndTime;
+    }
+
+    public void setTestEndTime(Date testEndTime) {
+        this.testEndTime = testEndTime;
+    }
+
+    public boolean isTestResult() {
+        return testResult;
+    }
+
+    public void setTestResult(boolean testResult) {
+        this.testResult = testResult;
+    }
+
+    public double getFlowRate() {
+        return flowRate;
+    }
+
+    public void setFlowRate(double flowRate) {
+        this.flowRate = flowRate;
     }
 }

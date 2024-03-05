@@ -226,4 +226,20 @@ public class TruckModel extends BaseModel {
     public void setFHS(boolean FHS) {
         isFHS = FHS;
     }
+
+    private THERMAL_PRINTER_TYPE thermalPrinterType = THERMAL_PRINTER_TYPE.ZQ520;
+
+    public THERMAL_PRINTER_TYPE getThermalPrinterType() {
+        return thermalPrinterType;
+    }
+
+    public void setThermalPrinterType(THERMAL_PRINTER_TYPE thermalPrinterType) {
+        this.thermalPrinterType = thermalPrinterType;
+    }
+
+    public enum THERMAL_PRINTER_TYPE
+    {
+        ZQ520,
+        ZQ511
+    }
 }

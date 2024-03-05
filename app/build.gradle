@@ -6,14 +6,14 @@ apply plugin: 'com.google.firebase.firebase-perf'
 android {
     signingConfigs {
         release {
-            storeFile file('G:\\Working\\MEgatech\\fms4.jks')
+            storeFile file('C:\\Users\\admin\\StudioProjects\\fms4\\keys\\fms4.jks')
             storePassword 'megatech'
             keyAlias = 'key0'
             keyPassword 'megatech'
         }
 
         debug {
-            storeFile file('G:\\Working\\MEgatech\\fms4.jks')
+            storeFile file('C:\\Users\\admin\\StudioProjects\\fms4\\keys\\fms4.jks')
             storePassword 'megatech'
             keyAlias = 'key0'
             keyPassword 'megatech'
@@ -29,9 +29,9 @@ android {
 
         minSdkVersion 26
         targetSdkVersion 31
-        versionCode 50
+        versionCode 55
         def versionNumber = "11"
-        def buildNumber = "1"
+        def buildNumber = "6"
 
         versionName "${versionNumber}.${buildNumber}.${formattedDate}.${versionCode}"
 
@@ -45,7 +45,7 @@ android {
             }
         }
         resValue "string", "app_name", "FMS Delivery"
-        buildConfigField 'int', 'DB_VERSION', '10'
+        buildConfigField 'int', 'DB_VERSION', '11'
         buildConfigField 'boolean', 'PRINT_RECEIPT', 'true'
         buildConfigField 'String', 'PRINTER_IP', '"192.168.1.1"'
         buildConfigField 'boolean','FHS', 'false'
@@ -72,14 +72,12 @@ android {
     buildTypes {
         debug {
 
-
             buildConfigField 'String', 'API_BASE_URL', '"http://116.193.76.111:8080/"'
-
 
             buildConfigField 'String', 'DB_FILE', '"fms_debug.db"'
             buildConfigField 'String', 'PRINTER_IP', '"10.0.2.2"'
             buildConfigField 'boolean', 'FHS', 'false'
-            buildConfigField 'boolean', 'THERMAL_PRINTER', 'true'
+            buildConfigField 'boolean', 'THERMAL_PRINTER', 'false'
 
             resValue "string", "app_name", "FMS Delivery DEBUG"
         }
@@ -91,64 +89,39 @@ android {
 
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            applicationVariants.all { variant ->
-                variant.outputs.all { output ->
-                    def date = new Date()
-                    def formattedDate = date.format('yyyyMMdd')
-
-                    outputFileName = "fms-${variant.name}-${versionCode}-${formattedDate}" + ".apk"
-
-                }
-            }
-        }
-        decalit {
-            initWith release
-            buildConfigField 'String', 'METER_UNIT', '"DECALITER"'
-            resValue "string", "app_name", "FMS Delivery DECALITER"
 
         }
+
         thermal {
             initWith release
             applicationIdSuffix  ".fhs"
-            //buildConfigField 'String', 'API_BASE_URL', '"http://fmsapi.skypec.com.vn/"'
 
             buildConfigField 'boolean', 'THERMAL_PRINTER', 'true'
 
             buildConfigField 'String', 'DB_FILE', '"fms_thermal.db"'
 
-
             resValue "string", "app_name", "FMS Delivery THERMAL"
 
         }
-        fhs {
-            initWith release
-            applicationIdSuffix  ".fhs"
-            buildConfigField 'String', 'DB_FILE', '"fms_fhs.db"'
 
-            buildConfigField 'boolean', 'PRINT_RECEIPT', 'false'
-            buildConfigField 'boolean', 'FHS', 'true'
-            buildConfigField 'String', 'AUTHORITY','"com.megatech.fms.fhs.fileprovider"'
-
-            resValue "string", "app_name", "FMS Delivery FHS"
-
-        }
-        fhsdemo {
-            initWith fhs
-            initWith release
-            buildConfigField 'String', 'API_BASE_URL', '"http://116.193.76.111:8080/"'
-            buildConfigField 'String', 'DB_FILE', '"fms_demo.db"'
-
-            resValue "string", "app_name", "FHS TEST"
-
-        }
         demo {
             initWith release
             buildConfigField 'String', 'API_BASE_URL', '"http://116.193.76.111:8080/"'
             buildConfigField 'String', 'DB_FILE', '"fms_demo.db"'
-            buildConfigField 'boolean', 'THERMAL_PRINTER', 'true'
+            buildConfigField 'boolean', 'THERMAL_PRINTER', 'false'
 
             resValue "string", "app_name", "FMS Delivery TEST"
         }
+
+
+        demo_thermal {
+            initWith demo
+            buildConfigField 'String', 'DB_FILE', '"fms_demo_thermal.db"'
+            buildConfigField 'boolean', 'THERMAL_PRINTER', 'true'
+
+            resValue "string", "app_name", "FMS Delivery TEST THERMAL"
+        }
+
 
 
     }
@@ -161,6 +134,7 @@ android {
         targetCompatibility 1.8
     }
     flavorDimensions 'fms'
+    namespace 'com.megatech.fms'
 }
 
 dependencies {

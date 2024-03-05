@@ -7,6 +7,7 @@ import androidx.room.Query;
 import androidx.room.Update;
 
 import com.megatech.fms.data.entity.BM2505;
+import com.megatech.fms.data.entity.BM2505Container;
 import com.megatech.fms.data.entity.TruckFuel;
 
 import java.util.List;
@@ -37,4 +38,16 @@ public interface BM2505Dao {
 
     @Query("SELECT * from BM2505 where isLocalModified")
     List<BM2505> getModified();
+
+    @Query("SELECT * from BM2505Container ")
+    List<BM2505Container> getContainers();
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insertContainer(BM2505Container container);
+
+    @Query("Select * from BM2505Container where  (id>0 and id = :id) or (id=0 and localId=:localId) ")
+    BM2505Container getContainer(int id, int localId);
+
+    @Update(onConflict = OnConflictStrategy.REPLACE)
+    void updateContainer(BM2505Container item);
 }

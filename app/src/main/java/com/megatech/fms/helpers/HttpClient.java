@@ -9,6 +9,7 @@ import com.megatech.fms.BuildConfig;
 import com.megatech.fms.FMSApplication;
 import com.megatech.fms.data.entity.ParkingLot;
 import com.megatech.fms.model.AirlineModel;
+import com.megatech.fms.model.BM2505ContainerModel;
 import com.megatech.fms.model.BM2505Model;
 import com.megatech.fms.model.FlightData;
 import com.megatech.fms.model.InvoiceFormModel;
@@ -814,6 +815,33 @@ public class HttpClient {
                         JSONObject o = arr.getJSONObject(i);
 
                         BM2505Model item = gson.fromJson(o.toString(), BM2505Model.class);
+                        lst.add(item);
+                    }
+                }
+                return lst;
+            }
+        } catch (Exception e) {
+            Log.e("truckfuel list", e.getMessage());
+        }
+        return null;
+    }
+
+    public List<BM2505ContainerModel> getBM2505ContainerList() {
+
+        String url = API_BASE_URL + "api/bm2505/containers";
+        try {
+            HttpResponse response = sendGET(url);
+            if (response.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                String data = response.getData();
+
+                JSONArray arr = new JSONArray(data);
+                List<BM2505ContainerModel> lst = new ArrayList<>();
+                if (arr.length() > 0) {
+
+                    for (int i = 0; i < arr.length(); i++) {
+                        JSONObject o = arr.getJSONObject(i);
+
+                        BM2505ContainerModel item = gson.fromJson(o.toString(), BM2505ContainerModel.class);
                         lst.add(item);
                     }
                 }

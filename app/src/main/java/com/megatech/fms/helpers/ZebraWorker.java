@@ -4,9 +4,14 @@ import static android.content.Context.MODE_PRIVATE;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.util.Log;
 
+import com.megatech.fms.BuildConfig;
+import com.megatech.fms.FMSApplication;
+import com.megatech.fms.model.ReceiptItemModel;
 import com.megatech.fms.model.ReceiptModel;
+import com.megatech.fms.model.TruckModel;
 import com.zebra.sdk.comm.BluetoothConnection;
 import com.zebra.sdk.comm.Connection;
 import com.zebra.sdk.printer.ZebraPrinter;
@@ -17,6 +22,7 @@ import com.zebra.sdk.printer.discovery.DiscoveredPrinterBluetooth;
 import com.zebra.sdk.printer.discovery.DiscoveryHandler;
 
 import java.io.File;
+import java.util.Date;
 
 public class ZebraWorker {
 
@@ -52,6 +58,8 @@ public class ZebraWorker {
             if (macAddress != null)
             {
                 con = new BluetoothConnection(macAddress);
+
+                Logger.appendLog("ZEBRA MAC ADDRESS",macAddress);
                 if (model!=null)
                     print(model);
                 return;
@@ -60,9 +68,12 @@ public class ZebraWorker {
                 @Override
                 public void foundPrinter(DiscoveredPrinter discoveredPrinter) {
                     printer = discoveredPrinter;
+
                     printerBluetooth = (DiscoveredPrinterBluetooth) printer;
                     if (printerBluetooth!=null)
                         saveAddress(printerBluetooth.address);
+
+
 
                 }
 
@@ -72,10 +83,8 @@ public class ZebraWorker {
                         con = printer.getConnection();
                         if (model != null)
                             print(model);
-                    } else {
-                        if (model!=null)
+                    } else if (model != null)
                         onConnectionError();
-                    }
                 }
 
                 @Override
@@ -86,10 +95,11 @@ public class ZebraWorker {
             });
         }catch (Exception ex)
         {
+            Logger.appendLog("ZEBRA ERROR",ex.getMessage());
             if (model!=null)
                 onConnectionError();
         }
-    }
+}
 
     Context context;
     DiscoveredPrinter printer ;
@@ -98,6 +108,11 @@ public class ZebraWorker {
 
     public void printReceipt(ReceiptModel receiptModel)
     {
+        /*if (BuildConfig.DEBUG)
+            print(receiptModel);
+        else {
+
+        }*/
 
         if ((con == null || !con.isConnected()) && printer == null)
             findPrinter(receiptModel);
@@ -161,6 +176,66 @@ public class ZebraWorker {
         }
 
     }
+    public String createTestString() {
+        TruckModel setting = FMSApplication.getApplication().getSetting();
+
+        StringBuilder builder = new StringBuilder();
+        int height = 80;
+        String LEFT_INDENT =setting.getThermalPrinterType() == TruckModel.THERMAL_PRINTER_TYPE.ZQ520? "^LH130,0\n": "^LH000,0\n";
+        builder.append("^XA");
+        builder.append("^CWZ,E:OPENSANS-RE.TTF^FS  \n" +
+                LEFT_INDENT +
+                "^CI28");
+        builder.append("^CFZ,25\n" +
+                "^FO0," + height + "^FB600,2,0,C,0^FD" + "TESTING FORM^FS\n" +
+                "^CFZ,40\n" +
+                "^FO0," + (height + 50) + "^FB600,1,0,C,0^FDPRINTER TEST FORM^FS\n" +
+                "^FO0," + (height + 90) + "^FB600,1,0,C,0^FD(THỬ MÁY IN)^FS");
+        height += 140;
+        builder.append("^CFZ,20\n" +
+                "^FO0," + height + "^FB600,1,0,C,0^FDReceipt No. : " + "TEST0001" + "^FS\n" +
+                "^FO0," + (height + 20)+ "^FB600,1,0,C,0^FD" + DateUtils.formatDate(new Date(), "dd/MM/yyyy") + "^FS\n" +
+                "^FO0," + (height + 40) + "^GB700,1,3^FS");
+        builder.append("^CFZ,30");
+        height += 50;
+        builder.append("^FO0," + height + "^FB250,1,0,L,0^FDBuyer ^FS\n" +
+                "^FO240," + height + "^FB10,1,0,C,0^FD:^FS\n" +
+                "^FO250," + height + "^FB320," + ",0,L,0^FD TESTING ^FS");
+
+
+        builder.append("^CFZ,40\n" +
+                "^FO0," + height + "^FB600,1,0,C,0^FDDETAIL^FS\n" +
+                "^FO0," + (height + 40) + "^GB700,1,3^FS");
+
+        height = height + 50;
+        builder.append("^CFZ,30");
+        int i = 1;
+
+
+
+        builder.append("^CFZ,40\n" +
+                "^FO0," + height + "^FB600,1,0,C,0^FDTOTAL^FS");
+        height += 40;
+        builder.append("^FO0," + height + "^GB700,1,3^FS");
+        builder.append("^CFZ,30\n");
+        height += 10;
+
+        builder.append("^FO0," + height + "^GB700,1,3^FS");
+        height += 10;
+        builder.append("^FO0," + height + "^FB600,1,0,C,0^FDBuyer^FS");
+        //print signature
+
+        builder.append("^PQ1");
+        builder.append("^LH0,0\n" );
+        builder.append("^XZ");
+
+        return builder.toString();
+
+    }
+    public void prinTest() {
+
+        print(createTestString());
+    }
 
     public interface ZebraStateListener{
         void onConnectionError();
@@ -169,10 +244,12 @@ public class ZebraWorker {
     }
 
     private void onConnectionError(){
+        clearAddress();
         if (stateListener!=null)
             stateListener.onConnectionError();
     }
     private void onError() {
+        clearAddress();
         if (stateListener != null)
             stateListener.onError();
     }

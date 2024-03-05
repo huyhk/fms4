@@ -12,6 +12,7 @@ import com.megatech.fms.data.AppDatabase;
 import com.megatech.fms.data.DataRepository;
 import com.megatech.fms.data.entity.Airline;
 import com.megatech.fms.data.entity.BM2505;
+import com.megatech.fms.data.entity.BM2505Container;
 import com.megatech.fms.data.entity.Flight;
 import com.megatech.fms.data.entity.Invoice;
 import com.megatech.fms.data.entity.LogEntry;
@@ -22,6 +23,7 @@ import com.megatech.fms.data.entity.Truck;
 import com.megatech.fms.data.entity.TruckFuel;
 import com.megatech.fms.data.entity.User;
 import com.megatech.fms.model.AirlineModel;
+import com.megatech.fms.model.BM2505ContainerModel;
 import com.megatech.fms.model.BM2505Model;
 import com.megatech.fms.model.FlightModel;
 import com.megatech.fms.model.InvoiceFormModel;
@@ -386,6 +388,16 @@ public class DataHelper {
 
                 }
 
+                List<BM2505ContainerModel> lstContainer = httpClient.getBM2505ContainerList();
+
+                if (lstContainer != null) {
+                    int i = 0;
+                    for (BM2505ContainerModel model : lstContainer) {
+                        repo.insertBM2505Container(BM2505Container.fromModel(model));
+
+                    }
+
+                }
 
             }).start();
 
@@ -699,5 +711,10 @@ public class DataHelper {
         if (receipt!=null)
             return receipt.toModel();
         else return null;
+    }
+
+    public static List<BM2505ContainerModel> getBM2505ContainerList() {
+
+        return repo.getBM2505ContainerList();
     }
 }

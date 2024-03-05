@@ -15,6 +15,7 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -33,6 +34,7 @@ import androidx.fragment.app.DialogFragment;
 import com.megatech.fms.databinding.B2505NewBinding;
 import com.megatech.fms.helpers.DataHelper;
 import com.megatech.fms.model.AirlineModel;
+import com.megatech.fms.model.BM2505ContainerModel;
 import com.megatech.fms.model.BM2505Model;
 import com.megatech.fms.model.FlightModel;
 import com.megatech.fms.model.UserModel;
@@ -75,6 +77,7 @@ public class B2505NewItemFragement extends DialogFragment {
     Dialog dlg;
     BM2505Model model;
     private List<FlightModel> flights;
+    private List<BM2505ContainerModel> containers;
     private B2505Activity activity;
 
     @NonNull
@@ -123,6 +126,37 @@ public class B2505NewItemFragement extends DialogFragment {
         activity = ((B2505Activity) getActivity());
         List<UserModel> userList = activity.userList;
         flights = activity.flightList;
+        containers = activity.containerList;
+
+
+        Spinner containerSpinner = view.findViewById(R.id.bm2505_container_list);
+
+
+        ArrayAdapter<BM2505ContainerModel> containerAdapter = new ArrayAdapter<BM2505ContainerModel>(activity, R.layout.support_simple_spinner_dropdown_item, containers);
+        containerAdapter.setDropDownViewResource(android.R.layout.simple_list_item_single_choice);
+        containerSpinner.setAdapter(containerAdapter);
+        if (model.getContainerId() > 0) {
+            for (int i = 0; i < containers.size(); i++)
+                if (model.getContainerId() == containers.get(i).getId()) {
+                    containerSpinner.setSelection(i);
+                    break;
+                }
+        }
+
+        containerSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                BM2505ContainerModel container = (BM2505ContainerModel) adapterView.getItemAtPosition(i);
+                model.setContainerId(container.getId());
+                model.setContainerName(container.getName());
+
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
         Spinner spn = view.findViewById(R.id.b2505_new_operator);
 
         ArrayAdapter<UserModel> spinnerAdapter = new ArrayAdapter<UserModel>(activity, R.layout.support_simple_spinner_dropdown_item, userList);
@@ -189,6 +223,14 @@ public class B2505NewItemFragement extends DialogFragment {
     public void onClick(View view) {
         int id = view.getId();
         switch (id) {
+            case R.id.rad_flight:
+                model.setReportType(0);
+                binding.invalidateAll();
+                break;
+            case R.id.rad_other:
+                model.setReportType(1);
+                binding.invalidateAll();
+                break;
             case R.id.b2505_new_back:
                 dlg.dismiss();
                 break;
@@ -200,6 +242,10 @@ public class B2505NewItemFragement extends DialogFragment {
                 break;
             case R.id.b2505_new_flight:
                 openFlightSelect();
+                break;
+            case R.id.bm2505_new_depot:
+                m_Title = getString(R.string.update_depot);
+                showEditDialog(id, InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
                 break;
             case R.id.b2505_new_tank_no:
                 m_Title = getString(R.string.update_tank_no);
@@ -247,6 +293,10 @@ public class B2505NewItemFragement extends DialogFragment {
             case R.id.b2505_new_note:
                 m_Title = getString(R.string.update_note);
                 showEditDialog(id, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+                break;
+            case R.id.b2505_new_max_flowrate:
+                m_Title = getString( R.string.update_max_flowrate);
+                showEditDialog(id, InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
                 break;
         }
     }
@@ -358,6 +408,7 @@ public class B2505NewItemFragement extends DialogFragment {
 
         Context context = this.getActivity();
         final AlertDialog.Builder builder = new AlertDialog.Builder(context);
+
         builder.setTitle(m_Title);
         final EditText input = new EditText(context);
         input.setInputType(inputType);
@@ -401,6 +452,9 @@ public class B2505NewItemFragement extends DialogFragment {
         dialog.setCancelable(!required);
 
         dialog.show();
+
+
+
         input.requestFocus();
         if (id == R.id.b2505_new_density || id==R.id.b2505_new_density15)
             input.setSelection(2, input.getText().length());
@@ -429,6 +483,9 @@ public class B2505NewItemFragement extends DialogFragment {
                     double d;
                     switch (id) {
 
+                        case R.id.bm2505_new_depot:
+                            model.setDepot(m_Text);
+                            break;
                         case R.id.b2505_new_tank_no:
                             model.setTankNo(m_Text);
                             break;
@@ -463,6 +520,11 @@ public class B2505NewItemFragement extends DialogFragment {
                             break;
                         case R.id.b2505_new_note:
                             model.setNote(m_Text);
+                            break;
+                        case R.id.b2505_new_max_flowrate:
+                            d = numberFormat.parse(m_Text).doubleValue();
+
+                            model.setMaxFlowRate(d);
                             break;
 
                     }

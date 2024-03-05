@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import com.megatech.fms.helpers.DataHelper;
 import com.megatech.fms.helpers.DateUtils;
+import com.megatech.fms.model.BM2505ContainerModel;
 import com.megatech.fms.model.BM2505Model;
 import com.megatech.fms.model.FlightModel;
 import com.megatech.fms.view.BM2505ArrayAdapter;
@@ -98,6 +99,8 @@ public class B2505Activity extends DateBaseActivity implements View.OnClickListe
 
     private List<BM2505Model> dataList;
     public List<FlightModel> flightList = null;
+
+    public List<BM2505ContainerModel> containerList = null;
     @Override
     public void loaddata() {
         setProgressDialog();
@@ -107,6 +110,7 @@ public class B2505Activity extends DateBaseActivity implements View.OnClickListe
             protected List<BM2505Model> doInBackground(Void... voids) {
                 userList = DataHelper.getUsers();
                 flightList =  DataHelper.getFlights();
+                containerList = DataHelper.getBM2505ContainerList();
                 List<BM2505Model> lst = DataHelper.getBM2505List(selectedDate);
                 return lst;
             }

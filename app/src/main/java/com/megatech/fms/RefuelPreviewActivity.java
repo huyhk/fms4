@@ -192,6 +192,7 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
 
                 //refuelData = DataHelper.getRefuelItem(remoteId, localId);
                 refuelData = DataHelper.getRefuelItem(uniqueId);
+                if (refuelData!=null)
                 hasReview =  DataHelper.checkReview(refuelData.getFlightId(), refuelData.getFlightUniqueId());
                 return refuelData;
             }
@@ -300,6 +301,7 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
             binding = DataBindingUtil.inflate(getLayoutInflater(), R.layout.activity_refuel_preview, null, false);
             binding.setMItem(refuelData);
             setContentView(binding.getRoot());
+            if (((Button)findViewById(R.id.refuel_preview_review)) !=null)
             ((Button)findViewById(R.id.refuel_preview_review)).setText(hasReview? R.string.review_view: R.string.review_create);
             //findViewById(R.id.refuel_preview_international).setEnabled(isEditable);
             ((CheckBox)findViewById(R.id.refuel_preview_international)).setOnTouchListener((view, motionEvent) -> {
@@ -482,6 +484,10 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
 
         }
 
+
+
+
+
         layout.addView(reasonEditText);
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle(R.string.cancel_receipt_info)
@@ -510,10 +516,11 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
 
                     }
                 })
-                .setNeutralButton(R.string.back, new DialogInterface.OnClickListener() {
+                .setNeutralButton(BuildConfig.THERMAL_PRINTER? R.string.re_print: R.string.back, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-
+                        if (BuildConfig.THERMAL_PRINTER)
+                            reprintReceipt();
                         dialogInterface.dismiss();
                     }
                 })
@@ -525,6 +532,8 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
                     }
                 })
                 .create();
+
+
         dialog.show();
 
     }
@@ -540,6 +549,12 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
         startActivityForResult(intent, RECEIPT_WINDOW);
     }
 
+    private void reprintReceipt() {
+        //ReceiptModel model = ReceiptModel.createReceipt(printItems,oldNumber, createNew);
+        Intent intent = new Intent(this, PrintReceiptActivity.class);
+        intent.putExtra("RECEIPT_ID", refuelData.getReceiptUniqueId());
+        startActivityForResult(intent, RECEIPT_WINDOW);
+    }
     private String oldNumber;
     private String[] checkPrintedItems() {
         ArrayList<String> stringArrayList = new ArrayList<String>();
@@ -841,9 +856,15 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
                 //save();
                 break;
             case R.id.refuel_preview_charter_name:
+                showConfirmMessage(R.string.change_charter_confirm, new Callable<Void>() {
+                    @Override
+                    public Void call() throws Exception {
+                        m_Title = getString(R.string.update_charter_name);
+                        showEditDialog(id, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS, ".+");
+                        return null;
+                    }
+                });
 
-                m_Title = getString(R.string.update_charter_name);
-                showEditDialog(id, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS, ".+");
                 break;
             case R.id.refuel_preview_aircraftCode:
                 m_Title = getString(R.string.update_aircraftCode);
@@ -886,7 +907,14 @@ public class RefuelPreviewActivity extends UserBaseActivity implements View.OnCl
                 openVatSpinner();
                 break;
             case R.id.refuel_preview_airline:
-                openAirlineDialog();
+                showConfirmMessage(R.string.change_airline_confirm, new Callable<Void>() {
+                    @Override
+                    public Void call() throws Exception {
+                        openAirlineDialog();
+                        return null;
+                    }
+                });
+
                 break;
             case R.id.refuel_preview_return:
                 if (refuelData.getDensity() <= 0)

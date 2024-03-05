@@ -3,6 +3,50 @@ package com.megatech.fms.model;
 import java.util.Date;
 
 public class BM2505Model extends BaseModel {
+
+    private int reportType = 0;
+
+    private int containerId;
+
+
+    private String containerName;
+
+    private String depot;
+
+    private double maxFlowRate;
+
+    public int getReportType() {
+        return reportType;
+    }
+
+    public void setReportType(int reportType) {
+        this.reportType = reportType;
+    }
+
+    public int getContainerId() {
+        return containerId;
+    }
+
+    public void setContainerId(int containerId) {
+        this.containerId = containerId;
+    }
+
+    public String getContainerName() {
+        return containerName;
+    }
+
+    public void setContainerName(String containerName) {
+        this.containerName = containerName;
+    }
+
+    public String getDepot() {
+        return depot;
+    }
+
+    public void setDepot(String depot) {
+        this.depot = depot;
+    }
+
     private Date time;
     private int truckId;
     private int flightId;
@@ -175,5 +219,13 @@ public class BM2505Model extends BaseModel {
 
     public void setNote(String note) {
         this.note = note;
+    }
+
+    public double getMaxFlowRate() {
+        return maxFlowRate;
+    }
+
+    public void setMaxFlowRate(double maxFlowRate) {
+        this.maxFlowRate = maxFlowRate;
     }
 }

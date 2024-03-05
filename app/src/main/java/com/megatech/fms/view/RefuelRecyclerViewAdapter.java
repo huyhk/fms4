@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -31,7 +32,11 @@ import com.megatech.fms.model.REFUEL_ITEM_STATUS;
 import com.megatech.fms.model.RefuelItemData;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class RefuelRecyclerViewAdapter extends RecyclerView.Adapter<RefuelRecyclerViewAdapter.MyViewHolder> implements Filterable {
 
@@ -41,11 +46,19 @@ public class RefuelRecyclerViewAdapter extends RecyclerView.Adapter<RefuelRecycl
 
     private List<RefuelItemData> mDataFiltered;
 
+    private Timer timer ;
 
     public RefuelRecyclerViewAdapter(UserBaseActivity mContext, List<RefuelItemData> mData) {
         this.mContext = mContext;
         this.mData = mData;
         this.mDataFiltered = mData;
+        /*timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+
+            }
+        }, 0, 1000);*/
 
     }
 
@@ -197,6 +210,7 @@ public class RefuelRecyclerViewAdapter extends RecyclerView.Adapter<RefuelRecycl
         TextView mFlightCode;
         TextView mAircraftCode;
         TextView mParkingLot;
+        TextView mRefuelTime;
         CheckedTextView mCheck;
         CheckedTextView mSync;
         private CardviewRefuelItemBinding binding;
@@ -210,6 +224,8 @@ public class RefuelRecyclerViewAdapter extends RecyclerView.Adapter<RefuelRecycl
         public MyViewHolder(CardviewRefuelItemBinding binding) {
             super(binding.getRoot());
             mSync = binding.getRoot().findViewById(R.id.refuel_item_sync);
+            mRefuelTime = binding.getRoot().findViewById(R.id.refuel_item_refuel_time);
+
             ctx = (UserBaseActivity)binding.getRoot().getContext();
             mSync.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -232,12 +248,35 @@ public class RefuelRecyclerViewAdapter extends RecyclerView.Adapter<RefuelRecycl
             mParkingLot = itemView.findViewById(R.id.refuel_item_parlingLot);
             mCheck = itemView.findViewById(R.id.refuel_item_chk);
             mSync = itemView.findViewById(R.id.refuel_item_sync);
+            mRefuelTime = itemView.findViewById(R.id.refuel_item_refuel_time);
 
         }
 
+        RefuelItemData mData ;
         public void bind(RefuelItemData itemData) {
             binding.setMItem(itemData);
+            mData = itemData;
+
             binding.executePendingBindings();
+            Date d = new Date();
+            long t = d.getTime() - mData.getRefuelTime().getTime();
+            long m = t / (1000 * 60);
+            int bgColor = Color.WHITE;
+            int color = Color.BLACK;
+            if (m > -70 && m <= -10) {
+                color = Color.WHITE;
+                bgColor = Color.rgb(00,80,00);
+            } else if (m > -10 && m <= 10) {
+                color = Color.BLUE;
+                bgColor = Color.rgb(255, 165, 0);
+            } else if (m > 10) {
+                color = Color.WHITE;
+                bgColor = Color.RED;
+            }
+            if (mData.getStatus() == REFUEL_ITEM_STATUS.NONE) {
+                mRefuelTime.setBackgroundColor(bgColor);
+                mRefuelTime.setTextColor(color);
+            }
 
         }
 

@@ -34,6 +34,8 @@ import androidx.legacy.content.WakefulBroadcastReceiver;
 import com.megatech.fms.helpers.DataHelper;
 import com.megatech.fms.helpers.HttpClient;
 import com.megatech.fms.helpers.Logger;
+import com.megatech.fms.helpers.PrintWorker;
+import com.megatech.fms.helpers.ZebraWorker;
 import com.megatech.fms.model.LogEntryModel;
 
 import java.io.File;
@@ -264,6 +266,66 @@ public class UserBaseActivity extends BaseActivity {
                 }
                 break;
 
+            case R.id.action_printer_test:
+
+                if (BuildConfig.THERMAL_PRINTER){
+                    zebraWorker.setStateListener(new ZebraWorker.ZebraStateListener() {
+                        @Override
+                        public void onConnectionError() {
+
+                            runOnUiThread(() -> {
+                                showErrorMessage(R.string.printer_connection_error);
+                            });
+
+
+                        }
+
+                        @Override
+                        public void onError() {
+                            runOnUiThread(() -> {
+                                showErrorMessage(R.string.printer_error);
+                            });
+                        }
+
+                        @Override
+                        public void onSuccess() {
+                            runOnUiThread(() -> {
+                                showInfoMessage(R.string.print_test_ok);
+                            });
+                        }
+                    });
+                    zebraWorker.prinTest();
+                }
+                else {
+                    printWorker = new PrintWorker();
+                    printWorker.setPrintStateListener(new PrintWorker.PrintStateListener() {
+                        @Override
+                        public void onConnectionError() {
+
+                            runOnUiThread(() -> {
+                                showErrorMessage(R.string.printer_connection_error);
+                            });
+
+
+                        }
+
+                        @Override
+                        public void onError() {
+                            runOnUiThread(() -> {
+                                showErrorMessage(R.string.printer_error);
+                            });
+                        }
+
+                        @Override
+                        public void onSuccess() {
+                            runOnUiThread(() -> {
+                                showInfoMessage(R.string.print_test_ok);
+                            });
+                        }
+                    });
+                    printWorker.printTest();
+                }
+                break;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -271,6 +333,8 @@ public class UserBaseActivity extends BaseActivity {
         return true;
     }
 
+    PrintWorker printWorker = new PrintWorker();
+    ZebraWorker zebraWorker = new ZebraWorker(this);
     private void showUpdate() {
         Intent intent = new Intent(this, VersionUpdateActivity.class);
         startActivity(intent);

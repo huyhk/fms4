@@ -864,6 +864,35 @@ public class RefuelItemData extends BaseModel implements Cloneable {
         this.flightUniqueId = flightUniqueId;
     }
 
+    private double waterSensor;
+
+    public double getWaterSensor() {
+        return waterSensor;
+    }
+
+    public void setWaterSensor(double waterSensor) {
+        this.waterSensor = waterSensor;
+    }
+
+    private double projectedCapacity;
+    private double actualCapacity;
+
+    public double getProjectedCapacity() {
+        return projectedCapacity;
+    }
+
+    public void setProjectedCapacity(double projectedCapacity) {
+        this.projectedCapacity = projectedCapacity;
+    }
+
+    public double getActualCapacity() {
+        return actualCapacity;
+    }
+
+    public void setActualCapacity(double actualCapacity) {
+        this.actualCapacity = actualCapacity;
+    }
+
     public RefuelItemData split(double splitAmount)
     {
         RefuelItemData splitItem = gson.fromJson(this.toJson(), RefuelItemData.class);

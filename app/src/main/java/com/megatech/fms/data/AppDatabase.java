@@ -24,6 +24,7 @@ import com.megatech.fms.data.dao.TruckFuelDao;
 import com.megatech.fms.data.dao.UserDao;
 import com.megatech.fms.data.entity.Airline;
 import com.megatech.fms.data.entity.BM2505;
+import com.megatech.fms.data.entity.BM2505Container;
 import com.megatech.fms.data.entity.Flight;
 import com.megatech.fms.data.entity.Invoice;
 import com.megatech.fms.data.entity.LogEntry;
@@ -49,7 +50,8 @@ import com.megatech.fms.enums.INVOICE_TYPE;
         BM2505.class,
         Receipt.class,
         LogEntry.class,
-        Review.class
+        Review.class,
+        BM2505Container.class
         },
         version = 5,
         exportSchema = false

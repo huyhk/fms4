@@ -128,6 +128,8 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
             String uniqueId = b.getString("RECEIPT_ID");
             if (uniqueId!=null)
             {
+                reprint = true;
+
                 loadReceipt(uniqueId);
             }
         }
@@ -148,7 +150,7 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
             @Override
             protected void onPostExecute(ReceiptModel response) {
                 model = response;
-                reprint = true;
+
                 bindData();
                 super.onPostExecute(response);
             }
@@ -178,6 +180,16 @@ public class PrintReceiptActivity extends UserBaseActivity implements View.OnCli
                 }
             });
         }
+
+        if (reprint)
+        {
+            findViewById(R.id.btnSellerSign).setVisibility(View.GONE);
+            findViewById(R.id.btnSign).setVisibility(View.GONE);
+            findViewById(R.id.btnCapture).setVisibility(View.GONE);
+            findViewById(R.id.btnSave).setVisibility(View.GONE);
+            findViewById(R.id.btnTechlog).setVisibility(View.GONE);
+        }
+
     }
 
     private void exit() {

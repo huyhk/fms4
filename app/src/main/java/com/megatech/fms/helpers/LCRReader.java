@@ -534,6 +534,16 @@ public class LCRReader {
                     }
                 }
             }
+            if (responseFieldName.equals(FIELD_CHANGE.ANALOGPORTVALUELIVE.toString())) {
+
+                if (dataListener != null) {
+                    try {
+                        model.setAnalogPortValueLive(numberFormat.parse(responseField.getNewValue()).doubleValue());
+                        onDataChanged(model, FIELD_CHANGE.ANALOGPORTVALUELIVE);
+                    } catch (ParseException e) {
+                    }
+                }
+            }
 
             if (responseFieldName.equals("DBMNODE")) {
                 isLCR600 = true;
@@ -1264,6 +1274,7 @@ public class LCRReader {
         addRequestQueue("DELIVERYFINISH");
         addRequestQueue("DELIVERYSTART");
         addRequestQueue("AVGTEMP");
+        addRequestQueue("ANALOGPORTVALUELIVE");
         //addRequestQueue("PREVIOUSGROSS");
 
         if (fieldAvail)
@@ -1699,8 +1710,9 @@ public class LCRReader {
         ENDTIME("DELIVERYFINISH"),
         DATE_FORMAT("DATEFORMAT"),
         TIME_FORMAT("TIMEFORMAT"),
-        SERIAL("METERID");
+        SERIAL("METERID"),
 
+        ANALOGPORTVALUELIVE ("ANALOGPORTVALUELIVE");
         private final String text;
 
         /**

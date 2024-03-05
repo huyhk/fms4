@@ -243,8 +243,9 @@ public class FMSApplication extends Application implements LifecycleObserver {
         editor.putString("TRUCK_NO",settingModel.getTruckNo());
         editor.putString("PRINTER_ADDRESS",printerAddress);
         editor.putString("SETTING",settingModel.toJson());
-        editor.commit();
+        editor.remove("ZEBRA_MAC_ADDRESS");
 
+        editor.commit();
 
 
     }

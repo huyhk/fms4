@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "artifactType": {
     "type": "APK",
     "kind": "Directory"
@@ -10,9 +10,11 @@
     {
       "type": "SINGLE",
       "filters": [],
-      "versionCode": 50,
-      "versionName": "11.1.20230504.50",
-      "outputFile": "fms-demo-50-20230504.apk"
+      "attributes": [],
+      "versionCode": 55,
+      "versionName": "11.6.20240126.55",
+      "outputFile": "fms-demo-55-20240126.apk"
     }
-  ]
+  ],
+  "elementType": "File"
 }

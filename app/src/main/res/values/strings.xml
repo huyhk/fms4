@@ -481,6 +481,26 @@
     <string name="receipt_not_found">Không tìm được dữ liệu. Vui lòng kiểm tra lại.</string>
     <string name="title_data_error">Lỗi dữ liệu</string>
     <string name="view_receipt">Xem phiếu cũ</string>
+    <string name="flight">Chuyến bay</string>
+    <string name="bm2505_report_type">Loại phiếu</string>
+    <string name="update_depot">Nhập kho chứa</string>
+    <string name="bm2505_container_type">Loại</string>
+    <string name="bm2505_depot">Kho chứa</string>
+    <string name="start_time">Giờ bắt đầu</string>
+    <string name="end_time">Giờ kết thúc</string>
+    <string name="test_after_loading">Kiểm tra chất lượng sau nhập hàng</string>
+    <string name="test_result">Kết quả</string>
+    <string name="change_airline_confirm">Bạn thực sự muốn đổi hãng bay?</string>
+    <string name="change_charter_confirm">Bạn thực sự muốn thay đổi tên in hóa đơn?</string>
+    <string name="re_print">Chỉ In lại phiếu</string>
+    <string name="thermal_printer_type">Loại máy in nhiệt</string>
+    <string name="max_flowrate">Lưu lượng tối đa</string>
+    <string name="projected_capacity">Tải dầu dự kiến</string>
+    <string name="actual_capacity">Tải dầu thực tế</string>
+    <string name="update_max_flowrate">Cập nhật lưu lượng tối đa</string>
+    <string name="printer_test">Thử máy in</string>
+    <string name="print_test_ok">In thành công</string>
+    <string name="error">Lỗi</string>
 
     <string-array name="vat_array">
         <item>0%</item>

@@ -129,4 +129,14 @@ public class LCRDataModel {
     public void setSerialId(String serialId) {
         this.serialId = serialId;
     }
+
+    private double analogPortValueLive;
+
+    public double getAnalogPortValueLive() {
+        return analogPortValueLive;
+    }
+
+    public void setAnalogPortValueLive(double doubleValue) {
+        analogPortValueLive = doubleValue;
+    }
 }

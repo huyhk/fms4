@@ -47,7 +47,7 @@ public class B2502NewItemFragement extends DialogFragment {
 
     public B2502NewItemFragement() {
         this.model = new TruckFuelModel();
-        this.model.setTime(new Date());
+        //this.model.setTime(new Date());
         this.model.setOperatorId(FMSApplication.getApplication().getUser().getUserId());
         this.model.setTruckId(FMSApplication.getApplication().getTruckId());
 
@@ -185,8 +185,11 @@ public class B2502NewItemFragement extends DialogFragment {
                 m_Title = getString(R.string.update_qc_no);
                 showEditDialog(id, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
                 break;
-            case R.id.b2502_new_time:
-                showTimeDialog();
+            case R.id.b2502_new_start_time:
+            case R.id.b2502_new_end_time:
+            case R.id.b2502_new_test_start_time:
+            case R.id.b2502_new_test_end_time:
+                showTimeDialog(id);
                 break;
         }
     }
@@ -215,7 +218,7 @@ public class B2502NewItemFragement extends DialogFragment {
 
     }
 
-    private void showTimeDialog() {
+    private void showTimeDialog(int id) {
 
         final Calendar c = Calendar.getInstance();
         c.setTime(model.getTime());
@@ -225,7 +228,22 @@ public class B2502NewItemFragement extends DialogFragment {
             public void onTimeSet(TimePicker timePicker, int i, int i1) {
                 c.set(Calendar.HOUR_OF_DAY, timePicker.getHour());
                 c.set(Calendar.MINUTE, timePicker.getMinute());
-                model.setTime(c.getTime());
+                Date t = c.getTime();
+                switch (id) {
+                    case R.id.b2502_new_end_time:
+                        model.setEndTime(t);
+                        break;
+                    case R.id.b2502_new_start_time:
+                        model.setStartTime(t);
+                        break;
+                    case R.id.b2502_new_test_start_time:
+                        model.setTestStartTime(t);
+                        break;
+                    case R.id.b2502_new_test_end_time:
+                        model.setTestEndTime(t);
+                        break;
+                }
+
                 binding.invalidateAll();
             }
         }, c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), false);
@@ -338,6 +356,7 @@ public class B2502NewItemFragement extends DialogFragment {
                         case R.id.b2502_new_qc_no:
                             model.setQcNo(m_Text);
                             break;
+
                     }
                 } catch (Exception ex) {
                     return false;

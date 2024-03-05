@@ -7,6 +7,7 @@ import androidx.sqlite.db.SimpleSQLiteQuery;
 
 import com.megatech.fms.data.entity.Airline;
 import com.megatech.fms.data.entity.BM2505;
+import com.megatech.fms.data.entity.BM2505Container;
 import com.megatech.fms.data.entity.Flight;
 import com.megatech.fms.data.entity.Invoice;
 import com.megatech.fms.data.entity.LogEntry;
@@ -21,6 +22,7 @@ import com.megatech.fms.data.entity.User;
 import com.megatech.fms.helpers.DateUtils;
 import com.megatech.fms.helpers.HttpClient;
 import com.megatech.fms.model.AirlineModel;
+import com.megatech.fms.model.BM2505ContainerModel;
 import com.megatech.fms.model.BM2505Model;
 import com.megatech.fms.model.FlightModel;
 import com.megatech.fms.model.LogEntryModel;
@@ -523,5 +525,28 @@ public class DataRepository {
 
     public Receipt getReceipt(String uniqueId) {
         return db.receiptDao().getByUniqueId(uniqueId);
+    }
+
+    public List<BM2505ContainerModel> getBM2505ContainerList() {
+
+        List<BM2505Container> localList = db.bm2505Dao().getContainers();
+        List<BM2505ContainerModel> returnList = new ArrayList();
+        for (BM2505Container item : localList) {
+            returnList.add(item.toModel());
+        }
+        return returnList;
+    }
+
+    public void insertBM2505Container(BM2505Container model) {
+        BM2505Container item = db.bm2505Dao().getContainer(model.getId(), model.getLocalId());
+
+        if (item == null || (item.getId() == 0 &&  item.getLocalId() != model.getLocalId())) {
+            db.bm2505Dao().insertContainer(model);
+        } else {
+
+
+            model.setLocalId(item.getLocalId());
+            db.bm2505Dao().updateContainer(model);
+        }
     }
 }
